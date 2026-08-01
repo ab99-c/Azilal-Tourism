@@ -1,40 +1,39 @@
+import { LanguageProvider } from './contexts/LanguageContext';
+import Navbar from './components/Navbar';
+import HeroSection from './components/HeroSection';
+import FeaturedSection from './components/FeaturedSection';
+import StatsSection from './components/StatsSection';
+import DestinationsSection from './components/DestinationsSection';
+import CategoriesSection from './components/CategoriesSection';
+import MapSection from './components/MapSection';
+import FooterSection from './components/FooterSection';
+import ChatWidget from './components/ChatWidget';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-
-
-function Router() {
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
-
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <LanguageProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <div className="min-h-screen bg-[#f5f5f0]">
+            <Navbar />
+            <main>
+              <HeroSection />
+              <FeaturedSection />
+              <StatsSection />
+              <DestinationsSection />
+              <CategoriesSection />
+              <MapSection />
+              <FooterSection />
+            </main>
+            <ChatWidget />
+          </div>
         </TooltipProvider>
-      </ThemeProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }
