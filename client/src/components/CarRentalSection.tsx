@@ -1,125 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, Fuel, Phone, Calendar } from 'lucide-react';
 import BookingModal from './BookingModal';
+import { getCars, type CarData } from '@/lib/carStore';
 
-const cars = [
-  {
-    img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80',
-    name: {
-      ar: 'سيارة عائلية',
-      en: 'Family SUV',
-      fr: 'SUV Familial',
-      ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ ⵏ ⵜⵡⴰⵛⵉⵜ',
-    },
-    desc: {
-      ar: 'سيارة دفع رباعي مريحة للعائلات مع مساحة واسعة ومساحة تخزين كبيرة',
-      en: 'Comfortable 4x4 SUV for families with spacious interior and large storage',
-      fr: 'SUV 4x4 confortable pour familles avec intérieur spacieux et grand coffre',
-      ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ 4x4 ⵉⵜⵜⵓⴷⵏ ⵉ ⵜⵡⴰⵛⵉⵜ',
-    },
-    seats: { ar: '7 مقاعد', en: '7 Seats', fr: '7 Places', ber: '7 ⵉⵖⵔⵎⴰⵏ' },
-    fuel: { ar: 'ديزل', en: 'Diesel', fr: 'Diesel', ber: 'ⴷⵉⵣⵉⵍ' },
-    type: '4x4',
-    price: { ar: '400 درهم/يوم', en: '400 MAD/day', fr: '400 MAD/jour', ber: '400 MAD/ⴰⵙⵙ' },
-    phone: '+212 523 555 000',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80',
-    name: {
-      ar: 'سيارة اقتصادية',
-      en: 'Economy Car',
-      fr: 'Voiture Économique',
-      ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ ⵜⴰⵎⴳⵏⵉⵜ',
-    },
-    desc: {
-      ar: 'سيارة صغيرة اقتصادية مثالية للتنقل في المدينة واستكشاف المنطقة',
-      en: 'Small economical car perfect for city travel and exploring the region',
-      fr: 'Petite voiture économique idéale pour la ville et l\'exploration de la région',
-      ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ ⵜⴰⵎⵥⵥⵢⴰⵏⵜ ⵉⵜⵜⵓⴷⵏ ⵉ ⵜⵎⴷⵉⵏⵜ',
-    },
-    seats: { ar: '5 مقاعد', en: '5 Seats', fr: '5 Places', ber: '5 ⵉⵖⵔⵎⴰⵏ' },
-    fuel: { ar: 'بنزين', en: 'Petrol', fr: 'Essence', ber: 'ⴰⵙⵏⴰⵍ' },
-    type: 'Economy',
-    price: { ar: '200 درهم/يوم', en: '200 MAD/day', fr: '200 MAD/jour', ber: '200 MAD/ⴰⵙⵙ' },
-    phone: '+212 523 555 111',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=600&q=80',
-    name: {
-      ar: 'سيارة فاخرة',
-      en: 'Luxury Sedan',
-      fr: 'Berline de Luxe',
-      ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ ⵉⵜⵜⵔⵣⵢⵏ',
-    },
-    desc: {
-      ar: 'سيارة فاخرة مع تجهيزات حديثة ومكيف هواء مثالية لرحلات الأعمال والراحة',
-      en: 'Luxury sedan with modern amenities and air conditioning, perfect for business trips',
-      fr: 'Berline de luxe avec équipements modernes et climatisation, idéale pour voyages d\'affaires',
-      ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ ⵉⵜⵜⵔⵣⵢⵏ ⵙ ⵉⵖⵔⵓⴷⵏ',
-    },
-    seats: { ar: '5 مقاعد', en: '5 Seats', fr: '5 Places', ber: '5 ⵉⵖⵔⵎⴰⵏ' },
-    fuel: { ar: 'ديزل', en: 'Diesel', fr: 'Diesel', ber: 'ⴷⵉⵣⵉⵍ' },
-    type: 'Luxury',
-    price: { ar: '700 درهم/يوم', en: '700 MAD/day', fr: '700 MAD/jour', ber: '700 MAD/ⴰⵙⵙ' },
-    phone: '+212 523 555 222',
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1533106418989-88406c7cc8ca?w=600&q=80',
-    name: {
-      ar: 'دراجة نارية',
-      en: 'Motorcycle',
-      fr: 'Moto',
-      ber: 'ⴰⵎⵓⵜⵓⵔ',
-    },
-    desc: {
-      ar: 'دراجة نارية للمغامرين الراغبين في استكشاف الطرق الجبلية بحرية',
-      en: 'Motorcycle for adventurers wanting to explore mountain roads freely',
-      fr: 'Moto pour les aventuriers souhaitant explorer les routes de montagne librement',
-      ber: 'ⴰⵎⵓⵜⵓⵔ ⵉ ⵜⵓⵔⴰⵔⵉⵏ ⵏ ⵉⵡⴷⵉⵡⵏ',
-    },
-    seats: { ar: '2 مقاعد', en: '2 Seats', fr: '2 Places', ber: '2 ⵉⵖⵔⵎⴰⵏ' },
-    fuel: { ar: 'بنزين', en: 'Petrol', fr: 'Essence', ber: 'ⴰⵙⵏⴰⵍ' },
-    type: 'Adventure',
-    price: { ar: '150 درهم/يوم', en: '150 MAD/day', fr: '150 MAD/jour', ber: '150 MAD/ⴰⵙⵙ' },
-    phone: '+212 523 555 333',
-  },
-];
+type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
 export default function CarRentalSection() {
   const { t, lang } = useLanguage();
-  const [selectedCar, setSelectedCar] = useState<typeof cars[0] | null>(null);
+  const [cars, setCars] = useState<CarData[]>([]);
+  const [selectedCar, setSelectedCar] = useState<CarData | null>(null);
 
-  const getName = (item: typeof cars[0]) => {
+  useEffect(() => {
+    setCars(getCars());
+  }, []);
+
+  const getName = (item: CarData) => {
     if (lang === 'ar') return item.name.ar;
     if (lang === 'fr') return item.name.fr;
     if (lang === 'ber') return item.name.ber;
     return item.name.en;
   };
 
-  const getDesc = (item: typeof cars[0]) => {
+  const getDesc = (item: CarData) => {
     if (lang === 'ar') return item.desc.ar;
     if (lang === 'fr') return item.desc.fr;
     if (lang === 'ber') return item.desc.ber;
     return item.desc.en;
   };
 
-  const getSeats = (item: typeof cars[0]) => {
+  const getSeats = (item: CarData) => {
     if (lang === 'ar') return item.seats.ar;
     if (lang === 'fr') return item.seats.fr;
     if (lang === 'ber') return item.seats.ber;
     return item.seats.en;
   };
 
-  const getFuel = (item: typeof cars[0]) => {
+  const getFuel = (item: CarData) => {
     if (lang === 'ar') return item.fuel.ar;
     if (lang === 'fr') return item.fuel.fr;
     if (lang === 'ber') return item.fuel.ber;
     return item.fuel.en;
   };
 
-  const getPrice = (item: typeof cars[0]) => {
+  const getPrice = (item: CarData) => {
     if (lang === 'ar') return item.price.ar;
     if (lang === 'fr') return item.price.fr;
     if (lang === 'ber') return item.price.ber;
@@ -149,7 +74,7 @@ export default function CarRentalSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {cars.map((car, i) => (
             <motion.div
-              key={i}
+              key={car.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -158,7 +83,7 @@ export default function CarRentalSection() {
             >
               <div className="relative h-40 overflow-hidden">
                 <img
-                  src={car.img}
+                  src={car.img || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&q=80'}
                   alt={getName(car)}
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
                 />
@@ -205,7 +130,7 @@ export default function CarRentalSection() {
         onClose={() => setSelectedCar(null)}
         type="car"
         itemName={selectedCar ? getName(selectedCar) : ''}
-        price={selectedCar ? selectedCar.price[lang] || selectedCar.price.en : ''}
+        price={selectedCar ? getPrice(selectedCar) : ''}
         image={selectedCar?.img}
       />
     </section>
