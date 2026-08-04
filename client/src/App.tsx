@@ -6,6 +6,10 @@ import StatsSection from './components/StatsSection';
 import DestinationsSection from './components/DestinationsSection';
 import CategoriesSection from './components/CategoriesSection';
 import MapSection from './components/MapSection';
+import HotelsSection from './components/HotelsSection';
+import RestaurantsSection from './components/RestaurantsSection';
+import CafesSection from './components/CafesSection';
+import CarRentalSection from './components/CarRentalSection';
 import FooterSection from './components/FooterSection';
 import ChatWidget from './components/ChatWidget';
 import { Toaster } from "@/components/ui/sonner";
@@ -27,6 +31,10 @@ function App() {
               <StatsSection />
               <DestinationsSection />
               <CategoriesSection />
+              <HotelsSection />
+              <RestaurantsSection />
+              <CafesSection />
+              <CarRentalSection />
               <MapSection />
               <FooterSection />
             </main>

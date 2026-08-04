@@ -24,6 +24,10 @@ export default function Navbar() {
   const navLinks = [
     { key: 'nav.home', href: '#home' },
     { key: 'nav.destinations', href: '#destinations' },
+    { key: 'nav.hotels', href: '#hotels' },
+    { key: 'nav.restaurants', href: '#restaurants' },
+    { key: 'nav.cafes', href: '#cafes' },
+    { key: 'nav.cars', href: '#cars' },
     { key: 'nav.activities', href: '#activities' },
     { key: 'nav.about', href: '#about' },
     { key: 'nav.contact', href: '#contact' },

@@ -13,6 +13,10 @@ const translations: Record<Lang, Record<string, string>> = {
   ar: {
     'nav.home': 'الرئيسية',
     'nav.destinations': 'الوجهات',
+    'nav.hotels': 'الفنادق',
+    'nav.restaurants': 'المطاعم',
+    'nav.cafes': 'المقاهي',
+    'nav.cars': 'السيارات',
     'nav.activities': 'الأنشطة',
     'nav.about': 'عن ادرار',
     'nav.contact': 'تواصل معنا',
@@ -74,6 +78,10 @@ const translations: Record<Lang, Record<string, string>> = {
   en: {
     'nav.home': 'Home',
     'nav.destinations': 'Destinations',
+    'nav.hotels': 'Hotels',
+    'nav.restaurants': 'Restaurants',
+    'nav.cafes': 'Cafés',
+    'nav.cars': 'Car Rental',
     'nav.activities': 'Activities',
     'nav.about': 'About ADRAR',
     'nav.contact': 'Contact Us',
@@ -135,6 +143,10 @@ const translations: Record<Lang, Record<string, string>> = {
   fr: {
     'nav.home': 'Accueil',
     'nav.destinations': 'Destinations',
+    'nav.hotels': 'Hôtels',
+    'nav.restaurants': 'Restaurants',
+    'nav.cafes': 'Cafés',
+    'nav.cars': 'Location',
     'nav.activities': 'Activités',
     'nav.about': 'À propos',
     'nav.contact': 'Contactez-nous',
@@ -196,6 +208,10 @@ const translations: Record<Lang, Record<string, string>> = {
   ber: {
     'nav.home': 'ⴰⵎⵣⵡⴰⵔⵓ',
     'nav.destinations': 'ⵉⵎⴷⴰⵏⵏ',
+    'nav.hotels': 'ⵉⵙⵏⴷⵇⵏ',
+    'nav.restaurants': 'ⵉⵎⵙⵙⴽⵏ',
+    'nav.cafes': 'ⵉⵇⵀⵡⴰⵢⵏ',
+    'nav.cars': 'ⵜⴰⵙⵍⵍⴰⵙⵜ',
     'nav.activities': 'ⵜⵉⵔⴰⵔⵉⵏ',
     'nav.about': 'ⴼ ⴰⴷⵔⴰⵔ',
     'nav.contact': 'ⵏⵎⵥⴰ',
