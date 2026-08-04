@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Star, MapPin, Wifi, Car, Coffee, Shield } from 'lucide-react';
+import { Star, MapPin, Wifi, Car, Coffee, Shield, Calendar } from 'lucide-react';
+import BookingModal from './BookingModal';
 
 const hotels = [
   {
@@ -113,6 +115,7 @@ const amenityIcons: Record<string, { icon: typeof Wifi; color: string }> = {
 
 export default function HotelsSection() {
   const { t, lang } = useLanguage();
+  const [selectedHotel, setSelectedHotel] = useState<typeof hotels[0] | null>(null);
 
   const getName = (item: typeof hotels[0]) => {
     if (lang === 'ar') return item.name.ar;
@@ -193,7 +196,7 @@ export default function HotelsSection() {
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">{getName(hotel)}</h3>
                 <p className="text-gray-500 text-xs leading-relaxed mb-3">{getDesc(hotel)}</p>
-                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap gap-1.5 pt-3 border-t border-gray-100 mb-3">
                   {hotel.amenities.map((amenity) => {
                     const { icon: Icon } = amenityIcons[amenity] || amenityIcons.wifi;
                     return (
@@ -203,11 +206,28 @@ export default function HotelsSection() {
                     );
                   })}
                 </div>
+                <button
+                  onClick={() => setSelectedHotel(hotel)}
+                  className="w-full py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-xs hover:bg-[#0f3d28] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  {lang === 'ar' ? 'احجز الآن' : lang === 'fr' ? 'Réserver' : lang === 'ber' ? 'ⵙⵜⵉⵏ' : 'Book Now'}
+                </button>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={!!selectedHotel}
+        onClose={() => setSelectedHotel(null)}
+        type="hotel"
+        itemName={selectedHotel ? getName(selectedHotel) : ''}
+        price={selectedHotel ? selectedHotel.price[lang] || selectedHotel.price.en : ''}
+        image={selectedHotel?.img}
+      />
     </section>
   );
 }

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Users, Fuel, Gauge, Shield, Phone, MapPin } from 'lucide-react';
+import { Users, Fuel, Phone, Calendar } from 'lucide-react';
+import BookingModal from './BookingModal';
 
 const cars = [
   {
@@ -87,6 +89,7 @@ const cars = [
 
 export default function CarRentalSection() {
   const { t, lang } = useLanguage();
+  const [selectedCar, setSelectedCar] = useState<typeof cars[0] | null>(null);
 
   const getName = (item: typeof cars[0]) => {
     if (lang === 'ar') return item.name.ar;
@@ -176,18 +179,35 @@ export default function CarRentalSection() {
                     {getFuel(car)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100 mb-3">
                   <span className="text-sm font-bold text-[#1b5e3f]">{getPrice(car)}</span>
                   <a href={`tel:${car.phone}`} className="flex items-center gap-1 text-xs text-[#c8a951] hover:text-[#1b5e3f] transition-colors">
                     <Phone className="w-3.5 h-3.5" />
                     {lang === 'ar' ? 'اتصل' : lang === 'fr' ? 'Appeler' : lang === 'ber' ? 'ⵙⵉⵙ' : 'Call'}
                   </a>
                 </div>
+                <button
+                  onClick={() => setSelectedCar(car)}
+                  className="w-full py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-xs hover:bg-[#0f3d28] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  {lang === 'ar' ? 'احجز الآن' : lang === 'fr' ? 'Réserver' : lang === 'ber' ? 'ⵙⵜⵉⵏ' : 'Book Now'}
+                </button>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <BookingModal
+        isOpen={!!selectedCar}
+        onClose={() => setSelectedCar(null)}
+        type="car"
+        itemName={selectedCar ? getName(selectedCar) : ''}
+        price={selectedCar ? selectedCar.price[lang] || selectedCar.price.en : ''}
+        image={selectedCar?.img}
+      />
     </section>
   );
 }
