@@ -5,7 +5,7 @@ import { MapPin, Mountain, Landmark, Sun, X, Star, Phone, Clock } from 'lucide-r
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Landmark data for Azilal region
+// Landmark data for ADRAR region
 interface Landmark {
   id: string;
   lat: number;
@@ -118,20 +118,20 @@ const rawLandmarks: Landmark[] = [
     rating: 4.5,
   },
   {
-    id: 'azilal-city',
+    id: 'adrar-city',
     lat: 32.1667,
     lng: -7.0833,
     name: {
-      ar: 'مدينة أزيلال',
-      en: 'Azilal City',
-      fr: 'Ville d\'Azilal',
-      ber: 'ⵜⴰⵎⴷⵉⵏⵜ ⵏ ⴰⵣⵉⵍⴰⵍ',
+      ar: 'مدينة ادرار',
+      en: 'ADRAR City',
+      fr: 'Ville d\'ADRAR',
+      ber: 'ⵜⴰⵎⴷⵉⵏⵜ ⵏ ⴰⴷⵔⴰⵔ',
     },
     desc: {
-      ar: 'مدينة أزيلال عاصمة الإقليم، مزيج من الحضارة الحديثة والتراث الأمازيغي العريق. تضم أسواق تقليدية ومطاعم محلية',
-      en: 'Azilal city, the capital of the province, a blend of modern civilization and ancient Amazigh heritage. Features traditional markets and local restaurants',
-      fr: 'La ville d\'Azilal, capitale de la province, un mélange de civilisation moderne et de patrimoine amazigh ancien',
-      ber: 'ⵜⴰⵎⴷⵉⵏⵜ ⵏ ⴰⵣⵉⵍⴰⵍ ⴰⵇⵇⴰ ⵏ ⵜⵎⵏⴰⴹⵜ',
+      ar: 'مدينة ادرار عاصمة الإقليم، مزيج من الحضارة الحديثة والتراث الأمازيغي العريق. تضم أسواق تقليدية ومطاعم محلية',
+      en: 'ADRAR city, the capital of the province, a blend of modern civilization and ancient Amazigh heritage. Features traditional markets and local restaurants',
+      fr: 'La ville d\'ADRAR, capitale de la province, un mélange de civilisation moderne et de patrimoine amazigh ancien',
+      ber: 'ⵜⴰⵎⴷⵉⵏⵜ ⵏ ⴰⴷⵔⴰⵔ ⴰⵇⵇⴰ ⵏ ⵜⵎⵏⴰⴹⵜ',
     },
     category: 'culture',
     rating: 4.3,
@@ -142,10 +142,10 @@ const rawLandmarks: Landmark[] = [
     lat: 32.1200,
     lng: -7.0500,
     name: {
-      ar: 'محمية أزيلال الطبيعية',
-      en: 'Azilal Nature Reserve',
-      fr: 'Réserve naturelle d\'Azilal',
-      ber: 'ⴰⴳⵏⵉ ⵏ ⵜⴰⴷⴰⵍⵉⵜ ⵏ ⴰⵣⵉⵍⴰⵍ',
+      ar: 'محمية ادرار الطبيعية',
+      en: 'ADRAR Nature Reserve',
+      fr: 'Réserve naturelle d\'ADRAR',
+      ber: 'ⴰⴳⵏⵉ ⵏ ⵜⴰⴷⴰⵍⵉⵜ ⵏ ⴰⴷⵔⴰⵔ',
     },
     desc: {
       ar: 'محمية طبيعية تضم أنواعاً نادرة من النباتات والحيوانات في بيئة جبلية فريدة. مثالية لعشاق الطبيعة والحياة البرية',

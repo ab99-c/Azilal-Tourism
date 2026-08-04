@@ -5,7 +5,7 @@ import { MapPin, ArrowUpRight } from 'lucide-react';
 const destinations = [
   {
     img: '/manus-storage/destination-binzaid_3d5b2664.jpg',
-    location: 'أزيلال - الأطلس الكبير',
+    location: 'ادرار - الأطلس الكبير',
     title_ar: 'بحيرة بين الويدان',
     title_en: 'Bin el Ouidane Lake',
     title_fr: 'Lac de Bin el Ouidane',
@@ -17,7 +17,7 @@ const destinations = [
   },
   {
     img: '/manus-storage/destination-tisnirt_033ee4ae.jpg',
-    location: 'أزيلال - وادي أزيلال',
+    location: 'ادرار - وادي ادرار',
     title_ar: 'شلالات تيسنيرت',
     title_en: 'Tisnirt Waterfalls',
     title_fr: 'Cascades de Tisnirt',
@@ -29,7 +29,7 @@ const destinations = [
   },
   {
     img: '/manus-storage/destination-berber_165bf569.jpg',
-    location: 'أزيلال - الجبل',
+    location: 'ادرار - الجبل',
     title_ar: 'قرى أيت بومهدى',
     title_en: 'Ait Bouhaddou Villages',
     title_fr: 'Villages d\'Ait Bouhaddou',
@@ -41,7 +41,7 @@ const destinations = [
   },
   {
     img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600https://images.unsplash.com/photo-1548018560-c7196e453dc8?w=600&q=80q=80',
-    location: 'أزيلال - الأطلس',
+    location: 'ادرار - الأطلس',
     title_ar: 'جبل توبقال',
     title_en: 'Toubkal Mountain',
     title_fr: 'Mont Toubkal',
@@ -53,7 +53,7 @@ const destinations = [
   },
   {
     img: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=600&q=80q=80',
-    location: 'أزيلال - الوديان',
+    location: 'ادرار - الوديان',
     title_ar: 'وادي أبي رقراق',
     title_en: 'Abirqrak Valley',
     title_fr: 'Vallée d\'Abirqrak',
@@ -65,11 +65,11 @@ const destinations = [
   },
   {
     img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600https://images.unsplash.com/photo-1519817914152-22d216bb9170?w=600&q=80q=80',
-    location: 'أزيلال - الصحراء',
-    title_ar: 'محمية أزيلال',
-    title_en: 'Azilal Reserve',
-    title_fr: 'Réserve d\'Azilal',
-    title_ber: 'ⴰⴳⵏⵉ ⵏ ⴰⵣⵉⵍⴰⵍ',
+    location: 'ادرار - الصحراء',
+    title_ar: 'محمية ادرار',
+    title_en: 'ADRAR Reserve',
+    title_fr: 'Réserve d\'ADRAR',
+    title_ber: 'ⴰⴳⵏⵉ ⵏ ⴰⴷⵔⴰⵔ',
     desc_ar: 'محمية طبيعية تضم أنواعاً نادرة من النباتات والحيوانات في بيئة جبلية فريدة',
     desc_en: 'A natural reserve with rare species of plants and animals in a unique mountain environment',
     desc_fr: 'Une réserve naturelle avec des espèces rares de plantes et d\'animaux dans un environnement montagnard unique',

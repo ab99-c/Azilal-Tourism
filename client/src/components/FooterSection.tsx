@@ -26,7 +26,7 @@ export default function FooterSection() {
                 className="w-10 h-10 object-contain"
               />
               <h3 className="text-xl font-extrabold">
-                {lang === 'ber' ? 'ⴰⵣⵉⵍⴰⵍ' : lang === 'ar' ? 'أزيلال' : 'Azilal'}
+                {lang === 'ber' ? 'ⴰⴷⵔⴰⵔ' : lang === 'ar' ? 'ادرار' : 'ADRAR'}
               </h3>
             </div>
             <p className="text-white/60 text-sm leading-relaxed">
@@ -68,7 +68,7 @@ export default function FooterSection() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-white/60 text-sm">
                 <MapPin className="w-4 h-4 shrink-0" />
-                {lang === 'ar' ? 'أزيلال، المغرب' : lang === 'fr' ? 'Azilal, Maroc' : lang === 'ber' ? 'ⴰⵣⵉⵍⴰⵍ, ⵎⵓⵔⴰⴽⵓⵛ' : 'Azilal, Morocco'}
+                {lang === 'ar' ? 'ادرار، المغرب' : lang === 'fr' ? 'ADRAR, Maroc' : lang === 'ber' ? 'ⴰⴷⵔⴰⵔ, ⵎⵓⵔⴰⴽⵓⵛ' : 'ADRAR, Morocco'}
               </li>
               <li className="flex items-center gap-3 text-white/60 text-sm">
                 <Phone className="w-4 h-4 shrink-0" />
@@ -76,7 +76,7 @@ export default function FooterSection() {
               </li>
               <li className="flex items-center gap-3 text-white/60 text-sm">
                 <Mail className="w-4 h-4 shrink-0" />
-                info@azilal-tourism.ma
+                info@adrar-tourism.ma
               </li>
             </ul>
           </div>
@@ -102,7 +102,7 @@ export default function FooterSection() {
         {/* Bottom */}
         <div className="border-t border-white/10 pt-6 text-center">
           <p className="text-white/40 text-sm">
-            © {new Date().getFullYear()} {lang === 'ar' ? 'السياحة في أزيلال' : lang === 'fr' ? 'Tourisme Azilal' : lang === 'ber' ? 'ⵜⴰⵎⵙⵉⴷⴰⵜ ⵏ ⴰⵣⵉⵍⴰⵍ' : 'Azilal Tourism'}. {t('footer.copyright')}.
+            © {new Date().getFullYear()} {lang === 'ar' ? 'السياحة في ادرار' : lang === 'fr' ? 'Tourisme ADRAR' : lang === 'ber' ? 'ⵜⴰⵎⵙⵉⴷⴰⵜ ⵏ ⴰⴷⵔⴰⵔ' : 'ADRAR Tourism'}. {t('footer.copyright')}.
           </p>
         </div>
       </div>

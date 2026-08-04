@@ -14,7 +14,7 @@ export default function HeroSection() {
       <div className="absolute inset-0">
         <img
           src="/manus-storage/hero-azilal_c8d161f3.jpg"
-          alt="Azilal Atlas Mountains"
+          alt="ADRAR Atlas Mountains"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0f3d28]/85 via-[#1b5e3f]/70 to-[#0f3d28]/90" />

@@ -52,7 +52,7 @@ export default function Navbar() {
             className="text-xl font-extrabold transition-colors"
             style={{ color: scrolled ? '#1b5e3f' : '#ffffff' }}
           >
-            {lang === 'ber' ? 'ⴰⵣⵉⵍⴰⵍ' : lang === 'ar' ? 'أزيلال' : 'Azilal'}
+            {lang === 'ber' ? 'ⴰⴷⵔⴰⵔ' : lang === 'ar' ? 'ادرار' : 'ADRAR'}
           </span>
         </a>
 
