@@ -8,6 +8,13 @@
       "when": 1786632186466,
       "tag": "0000_bumpy_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1786644467268,
+      "tag": "0001_hard_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

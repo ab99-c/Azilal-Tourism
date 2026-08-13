@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, date, time, json } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, date, time, json, index, uniqueIndex } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -45,7 +45,9 @@ export const cars = mysqlTable("cars", {
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  isActiveIdx: index("idx_cars_isActive").on(t.isActive),
+}));
 
 export type Car = typeof cars.$inferSelect;
 export type InsertCar = typeof cars.$inferInsert;
@@ -69,7 +71,10 @@ export const bookings = mysqlTable("bookings", {
   totalPrice: varchar("totalPrice", { length: 100 }),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  typeIdx: index("idx_bookings_type").on(t.type),
+  statusIdx: index("idx_bookings_status").on(t.status),
+}));
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
@@ -83,7 +88,9 @@ export const favorites = mysqlTable("favorites", {
   itemType: mysqlEnum("itemType", ["car", "hotel"]).notNull(),
   itemId: int("itemId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (t) => ({
+  uniqueFav: uniqueIndex("idx_favorites_unique").on(t.userId, t.itemType, t.itemId),
+}));
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
@@ -115,7 +122,9 @@ export const hotels = mysqlTable("hotels", {
   isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (t) => ({
+  isActiveIdx: index("idx_hotels_isActive").on(t.isActive),
+}));
 
 export type Hotel = typeof hotels.$inferSelect;
 export type InsertHotel = typeof hotels.$inferInsert;

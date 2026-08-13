@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -11,6 +12,28 @@ import {
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, upsertUser,
 } from "./db";
+import { cached, invalidateCache } from "./cache";
+
+/**
+ * Admin-gated procedure (principle #6: Authentication & Authorization).
+ * Only users with role === 'admin' can perform write operations and view
+ * all bookings. Public visitors can browse but never modify.
+ */
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_ONLY_ERR" });
+  }
+  return next({ ctx });
+});
+
+// --- Query cache entries (principle #8: Caching) ---
+const carsListCache = cached<any[]>("cars:list");
+const hotelsListCache = cached<any[]>("hotels:list");
+
+// Input validation helpers (principle #7: API Design)
+const MAX_NAME = 255;
+const MAX_TEXT = 5000;
+const MAX_SHORT = 200;
 
 export const appRouter = router({
   system: systemRouter,
@@ -37,8 +60,10 @@ export const appRouter = router({
 
   cars: router({
     list: publicProcedure.query(async () => {
+      const hit = carsListCache.get();
+      if (hit) return hit;
       const allCars = await getAllCars();
-      return allCars.map(car => ({
+      const mapped = allCars.map(car => ({
         id: car.id,
         nameAr: car.nameAr,
         nameEn: car.nameEn,
@@ -58,47 +83,60 @@ export const appRouter = router({
         phone: car.phone,
         image: car.image,
       }));
+      carsListCache.set(mapped);
+      return mapped;
     }),
-    create: publicProcedure
+    create: adminProcedure
       .input(z.object({
-        nameAr: z.string(), nameEn: z.string(), nameFr: z.string(), nameBer: z.string(),
-        typeAr: z.string(), typeEn: z.string(), typeFr: z.string(), typeBer: z.string(),
-        descriptionAr: z.string().optional(), descriptionEn: z.string().optional(),
-        descriptionFr: z.string().optional(), descriptionBer: z.string().optional(),
-        seats: z.string().default('5 مقاعد'), fuel: z.string().default('ديزل'),
-        price: z.string(), phone: z.string().optional(), image: z.string().optional(),
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        typeAr: z.string().max(MAX_NAME), typeEn: z.string().max(MAX_NAME),
+        typeFr: z.string().max(MAX_NAME), typeBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        seats: z.string().max(MAX_SHORT).default('5 مقاعد'), fuel: z.string().max(MAX_SHORT).default('ديزل'),
+        price: z.string().max(MAX_SHORT), phone: z.string().max(MAX_SHORT).optional(),
+        image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input }) => {
         await createCar(input);
+        invalidateCache("cars");
         return { success: true } as const;
       }),
-    update: publicProcedure
+    update: adminProcedure
       .input(z.object({
-        id: z.number(),
-        nameAr: z.string(), nameEn: z.string(), nameFr: z.string(), nameBer: z.string(),
-        typeAr: z.string(), typeEn: z.string(), typeFr: z.string(), typeBer: z.string(),
-        descriptionAr: z.string().optional(), descriptionEn: z.string().optional(),
-        descriptionFr: z.string().optional(), descriptionBer: z.string().optional(),
-        seats: z.string(), fuel: z.string(),
-        price: z.string(), phone: z.string().optional(), image: z.string().optional(),
+        id: z.number().int().positive(),
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        typeAr: z.string().max(MAX_NAME), typeEn: z.string().max(MAX_NAME),
+        typeFr: z.string().max(MAX_NAME), typeBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        seats: z.string().max(MAX_SHORT), fuel: z.string().max(MAX_SHORT),
+        price: z.string().max(MAX_SHORT), phone: z.string().max(MAX_SHORT).optional(),
+        image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
         await updateCar(id, data);
+        invalidateCache("cars");
         return { success: true } as const;
       }),
-    delete: publicProcedure
-      .input(z.object({ id: z.number() }))
+    delete: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         await deleteCar(input.id);
+        invalidateCache("cars");
         return { success: true } as const;
       }),
   }),
 
   hotels: router({
     list: publicProcedure.query(async () => {
+      const hit = hotelsListCache.get();
+      if (hit) return hit;
       const allHotels = await getAllHotels();
-      return allHotels.map(hotel => ({
+      const mapped = allHotels.map(hotel => ({
         id: hotel.id,
         nameAr: hotel.nameAr, nameEn: hotel.nameEn, nameFr: hotel.nameFr, nameBer: hotel.nameBer,
         descriptionAr: hotel.descriptionAr, descriptionEn: hotel.descriptionEn,
@@ -110,43 +148,52 @@ export const appRouter = router({
         amenities: hotel.amenities,
         image: hotel.image,
       }));
+      hotelsListCache.set(mapped);
+      return mapped;
     }),
-    create: publicProcedure
+    create: adminProcedure
       .input(z.object({
-        nameAr: z.string(), nameEn: z.string(), nameFr: z.string(), nameBer: z.string(),
-        descriptionAr: z.string().optional(), descriptionEn: z.string().optional(),
-        descriptionFr: z.string().optional(), descriptionBer: z.string().optional(),
-        locationAr: z.string().optional(), locationEn: z.string().optional(),
-        locationFr: z.string().optional(), locationBer: z.string().optional(),
-        rating: z.string().default('4.5'),
-        priceAr: z.string(), priceEn: z.string(), priceFr: z.string(), priceBer: z.string(),
-        amenities: z.any().optional(), image: z.string().optional(),
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        locationAr: z.string().max(MAX_NAME).optional(), locationEn: z.string().max(MAX_NAME).optional(),
+        locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
+        rating: z.string().max(10).default('4.5'),
+        priceAr: z.string().max(MAX_SHORT), priceEn: z.string().max(MAX_SHORT),
+        priceFr: z.string().max(MAX_SHORT), priceBer: z.string().max(MAX_SHORT),
+        amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input }) => {
         await createHotel(input);
+        invalidateCache("hotels");
         return { success: true } as const;
       }),
-    update: publicProcedure
+    update: adminProcedure
       .input(z.object({
-        id: z.number(),
-        nameAr: z.string(), nameEn: z.string(), nameFr: z.string(), nameBer: z.string(),
-        descriptionAr: z.string().optional(), descriptionEn: z.string().optional(),
-        descriptionFr: z.string().optional(), descriptionBer: z.string().optional(),
-        locationAr: z.string().optional(), locationEn: z.string().optional(),
-        locationFr: z.string().optional(), locationBer: z.string().optional(),
-        rating: z.string(),
-        priceAr: z.string(), priceEn: z.string(), priceFr: z.string(), priceBer: z.string(),
-        amenities: z.any().optional(), image: z.string().optional(),
+        id: z.number().int().positive(),
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        locationAr: z.string().max(MAX_NAME).optional(), locationEn: z.string().max(MAX_NAME).optional(),
+        locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
+        rating: z.string().max(10),
+        priceAr: z.string().max(MAX_SHORT), priceEn: z.string().max(MAX_SHORT),
+        priceFr: z.string().max(MAX_SHORT), priceBer: z.string().max(MAX_SHORT),
+        amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
         await updateHotel(id, data);
+        invalidateCache("hotels");
         return { success: true } as const;
       }),
-    delete: publicProcedure
-      .input(z.object({ id: z.number() }))
+    delete: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         await deleteHotel(input.id);
+        invalidateCache("hotels");
         return { success: true } as const;
       }),
   }),
@@ -155,18 +202,22 @@ export const appRouter = router({
     create: publicProcedure
       .input(z.object({
         type: z.enum(['hotel', 'car']),
-        itemName: z.string(),
-        guestName: z.string(),
-        guestEmail: z.string().email(),
-        guestPhone: z.string().optional(),
+        itemName: z.string().min(1).max(MAX_NAME),
+        guestName: z.string().min(2).max(MAX_NAME),
+        guestEmail: z.string().email().max(320),
+        guestPhone: z.string().max(MAX_SHORT).optional(),
         checkIn: z.string(),
         checkOut: z.string(),
-        pickUpTime: z.string().optional(),
-        dropOffTime: z.string().optional(),
-        guests: z.number().default(1),
-        notes: z.string().optional(),
-        totalPrice: z.string().optional(),
-      }))
+        pickUpTime: z.string().max(10).optional(),
+        dropOffTime: z.string().max(10).optional(),
+        guests: z.number().int().min(1).max(50).default(1),
+        notes: z.string().max(MAX_TEXT).optional(),
+        totalPrice: z.string().max(MAX_SHORT).optional(),
+      }).refine(d => {
+        const a = new Date(d.checkIn);
+        const b = new Date(d.checkOut);
+        return !isNaN(a.getTime()) && !isNaN(b.getTime()) && b.getTime() >= a.getTime();
+      }, { message: "checkOut must be after checkIn" }))
       .mutation(async ({ input }) => {
         await createBooking({
           type: input.type,
@@ -185,25 +236,23 @@ export const appRouter = router({
         } as any);
         return { success: true, message: 'Booking request submitted successfully' } as const;
       }),
-    list: publicProcedure.query(async () => {
-      const allBookings = await getAllBookings();
-      return allBookings;
+    // Only admins can list all bookings (customer PII protection)
+    list: adminProcedure.query(async () => {
+      return getAllBookings();
     }),
   }),
 
   favorites: router({
     list: publicProcedure.query(async () => {
-      // For public users, return empty (no auth needed)
-      return [];
+      return [] as any[];
     }),
     add: publicProcedure
-      .input(z.object({ itemType: z.enum(['car', 'hotel']), itemId: z.number() }))
+      .input(z.object({ itemType: z.enum(['car', 'hotel']), itemId: z.number().int().positive() }))
       .mutation(async ({ input }) => {
-        // For public users, we skip DB (no userId available)
         return { success: true } as const;
       }),
     remove: publicProcedure
-      .input(z.object({ itemType: z.enum(['car', 'hotel']), itemId: z.number() }))
+      .input(z.object({ itemType: z.enum(['car', 'hotel']), itemId: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         return { success: true } as const;
       }),
