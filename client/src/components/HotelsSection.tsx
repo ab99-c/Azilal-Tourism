@@ -87,7 +87,7 @@ export default function HotelsSection() {
             {lang === 'ar' ? 'أماكن الإقامة' : lang === 'fr' ? 'Hébergement' : lang === 'ber' ? 'ⵉⵎⴰⵍⴰⵢⵏ' : 'Accommodation'}
           </h2>
           <p className="text-gray-500 text-lg">
-            {lang === 'ar' ? 'اكتشف أفضل أماكن الإقامة في ادرار' : lang === 'fr' ? 'Découvrez les meilleurs hébergements à ADRAR' : lang === 'ber' ? 'ⵙⵏⵓⴱⵔⵛ ⵉⵎⴰⵍⴰⵢⵏ ⵉⵎⵇⵓⵔⵏ' : 'Find the best places to stay in ADRAR'}
+            {lang === 'ar' ? 'اكتشف أفضل أماكن الإقامة في أزيلال' : lang === 'fr' ? 'Découvrez les meilleurs hébergements à Azilal' : lang === 'ber' ? 'ⵙⵏⵓⴱⵔⵛ ⵉⵎⴰⵍⴰⵢⵏ ⵉⵎⵇⵓⵔⵏ' : 'Find the best places to stay in Azilal'}
           </p>
         </motion.div>
 

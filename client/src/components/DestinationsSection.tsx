@@ -5,7 +5,7 @@ import { MapPin, ArrowUpRight } from 'lucide-react';
 const destinations = [
   {
     img: '/manus-storage/destination-binzaid_3d5b2664.jpg',
-    location: 'ادرار - الأطلس الكبير',
+    location: 'أزيلال - الأطلس الكبير',
     title_ar: 'بحيرة بين الويدان',
     title_en: 'Bin el Ouidane Lake',
     title_fr: 'Lac de Bin el Ouidane',
@@ -17,7 +17,7 @@ const destinations = [
   },
   {
     img: '/manus-storage/destination-tisnirt_033ee4ae.jpg',
-    location: 'ادرار - وادي ادرار',
+    location: 'أزيلال - وادي أزيلال',
     title_ar: 'شلالات تيسنيرت',
     title_en: 'Tisnirt Waterfalls',
     title_fr: 'Cascades de Tisnirt',
@@ -29,7 +29,7 @@ const destinations = [
   },
   {
     img: '/manus-storage/destination-berber_165bf569.jpg',
-    location: 'ادرار - الجبل',
+    location: 'أزيلال - الجبل',
     title_ar: 'قرى أيت بومهدى',
     title_en: 'Ait Bouhaddou Villages',
     title_fr: 'Villages d\'Ait Bouhaddou',
@@ -41,11 +41,11 @@ const destinations = [
   },
   {
     img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80',
-    location: 'ادرار - الأطلس',
+    location: 'أزيلال - الأطلس',
     title_ar: 'جبل توبقال',
     title_en: 'Toubkal Mountain',
     title_fr: 'Mont Toubkal',
-    title_ber: 'ⴰⴷⵔⴰⵔ ⵏ ⵜⵓⴱⵇⴰⵍ',
+    title_ber: 'ⴰⵣⵉⵍⴰⵍ ⵏ ⵜⵓⴱⵇⴰⵍ',
     desc_ar: 'أعلى قمة في شمال أفريقيا، تحفة طبيعية تستحق التسلق والاستكشاف',
     desc_en: 'The highest peak in North Africa, a natural masterpiece worth climbing and exploring',
     desc_fr: 'Le plus haut sommet d\'Afrique du Nord, un chef-d\'œuvre naturel qui mérite d\'être exploré',
@@ -53,7 +53,7 @@ const destinations = [
   },
   {
     img: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600&q=80',
-    location: 'ادرار - الوديان',
+    location: 'أزيلال - الوديان',
     title_ar: 'وادي أبي رقراق',
     title_en: 'Abirqrak Valley',
     title_fr: 'Vallée d\'Abirqrak',
@@ -65,11 +65,11 @@ const destinations = [
   },
   {
     img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80',
-    location: 'ادرار - الصحراء',
-    title_ar: 'محمية ادرار',
-    title_en: 'ADRAR Reserve',
-    title_fr: 'Réserve d\'ADRAR',
-    title_ber: 'ⴰⴳⵏⵉ ⵏ ⴰⴷⵔⴰⵔ',
+    location: 'أزيلال - الصحراء',
+    title_ar: 'محمية أزيلال',
+    title_en: 'Azilal Reserve',
+    title_fr: 'Réserve d\'Azilal',
+    title_ber: 'ⴰⴳⵏⵉ ⵏ ⴰⵣⵉⵍⴰⵍ',
     desc_ar: 'محمية طبيعية تضم أنواعاً نادرة من النباتات والحيوانات في بيئة جبلية فريدة',
     desc_en: 'A natural reserve with rare species of plants and animals in a unique mountain environment',
     desc_fr: 'Une réserve naturelle avec des espèces rares de plantes et d\'animaux dans un environnement montagnard unique',

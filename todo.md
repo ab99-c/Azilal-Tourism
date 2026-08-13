@@ -31,3 +31,10 @@
 - [x] Update meta title/description to "ADRAR - Tourism in Azilal" framing
 - [x] Update footer/about text to position ADRAR as the tourism brand of Azilal
 - [x] Verify and checkpoint + push to GitHub
+
+## Place name audit: ADRAR = brand, Azilal = place
+
+- [ ] Audit all text strings (LanguageContext, components) for ADRAR/ادرار used as place/region name
+- [ ] Replace place references with Azilal/أزيلال in all 4 languages
+- [ ] Keep ADRAR only as brand (logo, hero title, footer brand line)
+- [ ] Verify visually, checkpoint, push to GitHub

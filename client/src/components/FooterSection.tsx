@@ -68,7 +68,7 @@ export default function FooterSection() {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-white/60 text-sm">
                 <MapPin className="w-4 h-4 shrink-0" />
-                {lang === 'ar' ? 'ادرار، المغرب' : lang === 'fr' ? 'ADRAR, Maroc' : lang === 'ber' ? 'ⴰⴷⵔⴰⵔ, ⵎⵓⵔⴰⴽⵓⵛ' : 'ADRAR, Morocco'}
+                {lang === 'ar' ? 'أزيلال، المغرب' : lang === 'fr' ? 'Azilal, Maroc' : lang === 'ber' ? 'ⴰⵣⵉⵍⴰⵍ, ⵎⵓⵔⴰⴽⵓⵛ' : 'Azilal, Morocco'}
               </li>
               <li className="flex items-center gap-3 text-white/60 text-sm">
                 <Phone className="w-4 h-4 shrink-0" />
