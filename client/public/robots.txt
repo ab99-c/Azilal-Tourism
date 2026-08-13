@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://azilal-tourism.vercel.app/sitemap.xml
