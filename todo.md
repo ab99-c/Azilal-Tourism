@@ -18,3 +18,9 @@
 - [x] Add in-memory TTL cache for cars.list / hotels.list with invalidation on mutations
 - [x] Harden bookings input validation (checkOut >= checkIn, length limits, guests >= 1)
 - [x] Verify with vitest + build, save checkpoint, push to GitHub
+
+## Bug Fixes (reported by user)
+
+- [x] Fix navbar: removed duplicate contact link, improved spacing/whitespace-nowrap
+- [x] Fix map pins: replaced fake coords with real Azilal-region coordinates, recentered map
+- [x] Fix 3 broken destination imgs with concatenated Unsplash URLs

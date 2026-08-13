@@ -29,8 +29,6 @@ export default function Navbar() {
     { key: 'nav.cafes', href: '#cafes' },
     { key: 'nav.cars', href: '#cars' },
     { key: 'nav.activities', href: '#activities' },
-    { key: 'nav.about', href: '#about' },
-    { key: 'nav.contact', href: '#contact' },
   ];
 
   return (
@@ -61,12 +59,12 @@ export default function Navbar() {
         </a>
 
         {/* Desktop Nav */}
-        <ul className="hidden lg:flex items-center gap-8">
+        <ul className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => (
             <li key={link.key}>
               <a
                 href={link.href}
-                className={`text-sm font-medium transition-colors relative py-1 ${
+                className={`text-sm font-medium transition-colors relative py-1 whitespace-nowrap ${
                   scrolled ? 'text-gray-700 hover:text-[#1b5e3f]' : 'text-white/90 hover:text-white'
                 }`}
               >

@@ -40,7 +40,7 @@ const destinations = [
     desc_ber: 'ⵉⵖⵔⵎⴰⵏ ⵉⵎⴰⵣⵉⵖⵏ ⵉⵎⵓⵍⵏ ⵉⴳⵎⴰⵢⵏ ⵜⵉⵖⵍⵉⵜ',
   },
   {
-    img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600https://images.unsplash.com/photo-1548018560-c7196e453dc8?w=600&q=80q=80',
+    img: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80',
     location: 'ادرار - الأطلس',
     title_ar: 'جبل توبقال',
     title_en: 'Toubkal Mountain',
@@ -52,7 +52,7 @@ const destinations = [
     desc_ber: 'ⴰⵏⵙⴰ ⵉⵜⵜⵔⵣⵢⵏ ⵉⵖⵔⴰⵏ ⵏ ⵜⴰⴼⵔⵉⵇⵜ ⵜⴰⴳⴰⴼⴰⵢⵜ',
   },
   {
-    img: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=600&q=80q=80',
+    img: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600&q=80',
     location: 'ادرار - الوديان',
     title_ar: 'وادي أبي رقراق',
     title_en: 'Abirqrak Valley',
@@ -64,7 +64,7 @@ const destinations = [
     desc_ber: 'ⴰⵡⴰⵍⵉ ⵉⵣⵓⵣⵣⴰⵏ ⵙ ⵓⵙⵏⴳⴰⵔ ⵉⵜⵜⴰⵡⵢⵏ',
   },
   {
-    img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600https://images.unsplash.com/photo-1519817914152-22d216bb9170?w=600&q=80q=80',
+    img: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80',
     location: 'ادرار - الصحراء',
     title_ar: 'محمية ادرار',
     title_en: 'ADRAR Reserve',

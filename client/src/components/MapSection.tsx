@@ -21,8 +21,8 @@ interface Landmark {
 const rawLandmarks: Landmark[] = [
   {
     id: 'bin-el-ouidane',
-    lat: 32.2333,
-    lng: -7.1333,
+    lat: 32.2853,
+    lng: -6.6106,
     name: {
       ar: 'بحيرة بين الويدان',
       en: 'Bin el Ouidane Lake',
@@ -41,8 +41,8 @@ const rawLandmarks: Landmark[] = [
   },
   {
     id: 'tisnirt',
-    lat: 32.1500,
-    lng: -7.0800,
+    lat: 32.1287,
+    lng: -6.7736,
     name: {
       ar: 'شلالات تيسنيرت',
       en: 'Tisnirt Waterfalls',
@@ -61,8 +61,8 @@ const rawLandmarks: Landmark[] = [
   },
   {
     id: 'ait-bouhaddou',
-    lat: 32.1000,
-    lng: -6.9500,
+    lat: 31.7833,
+    lng: -6.2333,
     name: {
       ar: 'قرى أيت بومهدى',
       en: 'Ait Bouhaddou Villages',
@@ -79,9 +79,9 @@ const rawLandmarks: Landmark[] = [
     rating: 4.9,
   },
   {
-    id: 'toubkal-approach',
-    lat: 32.0500,
-    lng: -7.1800,
+    id: 'oum-er-rbia',
+    lat: 32.3500,
+    lng: -6.4800,
     name: {
       ar: 'قمة الأطلس الكبير',
       en: 'High Atlas Peak',
@@ -99,9 +99,9 @@ const rawLandmarks: Landmark[] = [
     hours: 'يومي',
   },
   {
-    id: 'abirqrak',
-    lat: 32.0800,
-    lng: -7.1200,
+    id: 'oum-er-rbia-spring',
+    lat: 32.0242,
+    lng: -6.7467,
     name: {
       ar: 'وادي أبي رقراق',
       en: 'Abirqrak Valley',
@@ -119,8 +119,8 @@ const rawLandmarks: Landmark[] = [
   },
   {
     id: 'adrar-city',
-    lat: 32.1667,
-    lng: -7.0833,
+    lat: 31.9647,
+    lng: -6.5762,
     name: {
       ar: 'مدينة ادرار',
       en: 'ADRAR City',
@@ -139,8 +139,8 @@ const rawLandmarks: Landmark[] = [
   },
   {
     id: 'reserva-nature',
-    lat: 32.1200,
-    lng: -7.0500,
+    lat: 32.0500,
+    lng: -6.5200,
     name: {
       ar: 'محمية ادرار الطبيعية',
       en: 'ADRAR Nature Reserve',
@@ -159,8 +159,8 @@ const rawLandmarks: Landmark[] = [
   },
   {
     id: 'berber-museum',
-    lat: 32.1580,
-    lng: -7.0780,
+    lat: 31.9694,
+    lng: -6.5708,
     name: {
       ar: 'المتحف الأمازيغي',
       en: 'Amazigh Museum',
@@ -222,7 +222,7 @@ export default function MapSection() {
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [32.1300, -7.0900],
+      center: [31.9900, -6.5600],
       zoom: 10,
       zoomControl: true,
       attributionControl: false,
