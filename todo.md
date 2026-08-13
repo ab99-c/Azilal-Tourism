@@ -24,3 +24,10 @@
 - [x] Fix navbar: removed duplicate contact link, improved spacing/whitespace-nowrap
 - [x] Fix map pins: replaced fake coords with real Azilal-region coordinates, recentered map
 - [x] Fix 3 broken destination imgs with concatenated Unsplash URLs
+
+## Branding: ADRAR brand targeting Azilal city
+
+- [x] Update hero badge/tagline to mention Azilal explicitly (ADRAR is the brand, Azilal is the city)
+- [x] Update meta title/description to "ADRAR - Tourism in Azilal" framing
+- [x] Update footer/about text to position ADRAR as the tourism brand of Azilal
+- [x] Verify and checkpoint + push to GitHub
