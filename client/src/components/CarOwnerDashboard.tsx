@@ -1,9 +1,9 @@
 /**
- * Car Owner Dashboard
+ * ============================================================
+ * Car Owner Dashboard (Full-Stack with tRPC)
  * ============================================================
  * CRUD management panel for car rental owners
- * Features: Add, Edit, Delete cars + Car count display
- * Uses localStorage for persistence
+ * Uses tRPC mutations for persistent database operations
  * Supports RTL Arabic with translations
  * ============================================================
  */
@@ -11,22 +11,21 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
-  Plus, Pencil, Trash2, X, Car, ChevronDown, ChevronUp,
+  Plus, Pencil, Trash2, X, Car, ChevronDown,
   Save, RotateCcw, Image
 } from 'lucide-react';
-import {
-  getCars, addCar, updateCar, deleteCar, resetCars,
-  type CarData
-} from '@/lib/carStore';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
 export default function CarOwnerDashboard() {
   const { t, lang } = useLanguage();
-  const [cars, setCars] = useState<CarData[]>([]);
+  const { data: carsData, refetch } = trpc.cars.list.useQuery();
+  const [cars, setCars] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Form state
@@ -41,10 +40,46 @@ export default function CarOwnerDashboard() {
     phone: '',
   });
 
-  // Load cars on mount
+  // Load cars from database
   useEffect(() => {
-    setCars(getCars());
-  }, []);
+    if (carsData) {
+      setCars(carsData);
+    }
+  }, [carsData]);
+
+  // Mutations
+  const createCarMutation = trpc.cars.create.useMutation({
+    onSuccess: () => {
+      refetch();
+      resetForm();
+      toast.success(lang === 'ar' ? 'تمت إضافة السيارة بنجاح' : 'Car added successfully');
+    },
+    onError: (err) => {
+      toast.error(lang === 'ar' ? 'خطأ في إضافة السيارة' : 'Error adding car', { description: err.message });
+    },
+  });
+
+  const updateCarMutation = trpc.cars.update.useMutation({
+    onSuccess: () => {
+      refetch();
+      resetForm();
+      toast.success(lang === 'ar' ? 'تم تحديث السيارة بنجاح' : 'Car updated successfully');
+    },
+    onError: (err) => {
+      toast.error(lang === 'ar' ? 'خطأ في تحديث السيارة' : 'Error updating car', { description: err.message });
+    },
+  });
+
+  const deleteCarMutation = trpc.cars.delete.useMutation({
+    onSuccess: () => {
+      refetch();
+      if (expandedId !== null) setExpandedId(null);
+      toast.success(lang === 'ar' ? 'تم حذف السيارة بنجاح' : 'Car deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(lang === 'ar' ? 'خطأ في حذف السيارة' : 'Error deleting car', { description: err.message });
+    },
+  });
 
   // Reset form
   const resetForm = () => {
@@ -69,16 +104,16 @@ export default function CarOwnerDashboard() {
   };
 
   // Open edit form
-  const openEditForm = (car: CarData) => {
+  const openEditForm = (car: any) => {
     setFormData({
-      img: car.img,
-      name: { ...car.name },
-      desc: { ...car.desc },
-      seats: { ...car.seats },
-      fuel: { ...car.fuel },
-      type: car.type,
-      price: { ...car.price },
-      phone: car.phone,
+      img: car.image || '',
+      name: { ar: car.nameAr, en: car.nameEn, fr: car.nameFr, ber: car.nameBer },
+      desc: { ar: car.descriptionAr || '', en: car.descriptionEn || '', fr: car.descriptionFr || '', ber: car.descriptionBer || '' },
+      seats: { ar: car.seats, en: car.seats, fr: car.seats, ber: car.seats },
+      fuel: { ar: car.fuel, en: car.fuel, fr: car.fuel, ber: car.fuel },
+      type: car.typeAr,
+      price: { ar: car.priceAr, en: car.priceEn, fr: car.priceFr, ber: car.priceBer },
+      phone: car.phone || '',
     });
     setEditingId(car.id);
     setShowForm(true);
@@ -87,35 +122,46 @@ export default function CarOwnerDashboard() {
 
   // Submit form (add or update)
   const handleSubmit = () => {
-    if (editingId) {
-      const updated = updateCar(editingId, formData);
-      if (updated) {
-        setCars(getCars());
-        resetForm();
-      }
+    if (editingId !== null) {
+      updateCarMutation.mutate({
+        id: editingId,
+        image: formData.img,
+        nameAr: formData.name.ar, nameEn: formData.name.en, nameFr: formData.name.fr, nameBer: formData.name.ber,
+        typeAr: formData.type, typeEn: formData.type, typeFr: formData.type, typeBer: formData.type,
+        descriptionAr: formData.desc.ar, descriptionEn: formData.desc.en, descriptionFr: formData.desc.fr, descriptionBer: formData.desc.ber,
+        seats: formData.seats.ar,
+        fuel: formData.fuel.ar,
+        price: formData.price.ar,
+        phone: formData.phone,
+      });
     } else {
-      addCar(formData);
-      setCars(getCars());
-      resetForm();
+      createCarMutation.mutate({
+        image: formData.img,
+        nameAr: formData.name.ar, nameEn: formData.name.en, nameFr: formData.name.fr, nameBer: formData.name.ber,
+        typeAr: formData.type, typeEn: formData.type, typeFr: formData.type, typeBer: formData.type,
+        descriptionAr: formData.desc.ar, descriptionEn: formData.desc.en, descriptionFr: formData.desc.fr, descriptionBer: formData.desc.ber,
+        seats: formData.seats.ar,
+        fuel: formData.fuel.ar,
+        price: formData.price.ar,
+        phone: formData.phone,
+      });
     }
   };
 
   // Delete car with confirmation
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذه السيارة؟' : 'Are you sure you want to delete this car?')) {
-      deleteCar(id);
-      setCars(getCars());
-      if (expandedId === id) setExpandedId(null);
+      deleteCarMutation.mutate({ id });
     }
   };
 
-  // Reset all cars to defaults
+  // Reset all cars (just close and refetch - defaults are already in DB)
   const handleReset = () => {
-    resetCars();
-    setCars(getCars());
     setShowResetConfirm(false);
     setShowForm(false);
     setEditingId(null);
+    refetch();
+    toast.info(lang === 'ar' ? 'تم إعادة تحميل البيانات الافتراضية' : 'Default data reloaded');
   };
 
   const isRTL = lang === 'ar';
@@ -155,22 +201,37 @@ export default function CarOwnerDashboard() {
 
   const l = (key: keyof typeof labels) => labels[key][lang as Lang] || labels[key].en;
 
+  const getCarName = (car: any) => {
+    if (lang === 'ar') return car.nameAr;
+    if (lang === 'fr') return car.nameFr;
+    if (lang === 'ber') return car.nameBer;
+    return car.nameEn;
+  };
+
+  const getCarPrice = (car: any) => {
+    if (lang === 'ar') return car.priceAr;
+    if (lang === 'fr') return car.priceFr;
+    if (lang === 'ber') return car.priceBer;
+    return car.priceEn;
+  };
+
+  const getCarDesc = (car: any) => {
+    if (lang === 'ar') return car.descriptionAr;
+    if (lang === 'fr') return car.descriptionFr;
+    if (lang === 'ber') return car.descriptionBer;
+    return car.descriptionEn;
+  };
+
   return (
     <section className="py-16 bg-gradient-to-b from-[#1b5e3f] to-[#0f3d28]">
       <div className="container" dir={dir}>
         {/* Header */}
         <div className="text-center mb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-[#c8a951] text-sm font-semibold mb-4 backdrop-blur-sm">
               {lang === 'ar' ? '🔧 لوحة التحكم' : lang === 'fr' ? '⚙️ Tableau de Bord' : lang === 'ber' ? '🔧 ⴰⵙⵏⴼⵍ' : '🔧 Dashboard'}
             </span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
-              {l('title')}
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2">{l('title')}</h2>
             <p className="text-white/70 text-lg">{l('subtitle')}</p>
           </motion.div>
 
@@ -186,21 +247,11 @@ export default function CarOwnerDashboard() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3 mb-8 justify-center">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={openAddForm}
-            className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors"
-          >
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={openAddForm} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
             <Plus className="w-4 h-4" />
             {l('addCar')}
           </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setShowResetConfirm(true)}
-            className="px-5 py-2.5 bg-white/10 text-white rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10"
-          >
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowResetConfirm(true)} className="px-5 py-2.5 bg-white/10 text-white rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10">
             <RotateCcw className="w-4 h-4" />
             {l('resetDefault')}
           </motion.button>
@@ -216,40 +267,23 @@ export default function CarOwnerDashboard() {
           )}
 
           <AnimatePresence>
-            {cars.map((car, i) => (
-              <motion.div
-                key={car.id}
-                initial={{ opacity: 0, x: isRTL ? 30 : -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isRTL ? -30 : 30 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden"
-              >
+            {cars.map((car: any, i: number) => (
+              <motion.div key={car.id} initial={{ opacity: 0, x: isRTL ? 30 : -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isRTL ? -30 : 30 }} transition={{ delay: i * 0.05 }} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
                 {/* Car Summary Row */}
-                <div
-                  className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/5 transition-colors"
-                  onClick={() => setExpandedId(expandedId === car.id ? null : car.id)}
-                >
+                <div className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedId(expandedId === car.id ? null : car.id)}>
                   <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
-                    {car.img ? (
-                      <img src={car.img} alt="" className="w-full h-full object-cover" />
+                    {car.image ? (
+                      <img src={car.image} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <Image className="w-full h-full p-3 text-white/30" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-sm truncate">
-                      {lang === 'ar' ? car.name.ar : lang === 'fr' ? car.name.fr : lang === 'ber' ? car.name.ber : car.name.en}
-                    </p>
-                    <p className="text-white/50 text-xs">{car.type}</p>
+                    <p className="text-white font-semibold text-sm truncate">{getCarName(car)}</p>
+                    <p className="text-white/50 text-xs">{car.typeAr}</p>
                   </div>
-                  <div className="text-[#c8a951] font-bold text-sm">
-                    {lang === 'ar' ? car.price.ar : lang === 'fr' ? car.price.fr : lang === 'ber' ? car.price.ber : car.price.en}
-                  </div>
-                  <motion.div
-                    animate={{ rotate: expandedId === car.id ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <div className="text-[#c8a951] font-bold text-sm">{getCarPrice(car)}</div>
+                  <motion.div animate={{ rotate: expandedId === car.id ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <ChevronDown className="w-4 h-4 text-white/50" />
                   </motion.div>
                 </div>
@@ -257,51 +291,33 @@ export default function CarOwnerDashboard() {
                 {/* Expanded Details */}
                 <AnimatePresence>
                   {expandedId === car.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                       <div className="px-4 pb-4 pt-2 border-t border-white/10">
-                        {/* Info */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-xs">
                           <div className="bg-white/5 rounded-lg p-2">
                             <span className="text-white/40 block">{l('seats')}</span>
-                            <span className="text-white text-sm font-medium">
-                              {lang === 'ar' ? car.seats.ar : lang === 'fr' ? car.seats.fr : lang === 'ber' ? car.seats.ber : car.seats.en}
-                            </span>
+                            <span className="text-white text-sm font-medium">{car.seats}</span>
                           </div>
                           <div className="bg-white/5 rounded-lg p-2">
                             <span className="text-white/40 block">{l('fuel')}</span>
-                            <span className="text-white text-sm font-medium">
-                              {lang === 'ar' ? car.fuel.ar : lang === 'fr' ? car.fuel.fr : lang === 'ber' ? car.fuel.ber : car.fuel.en}
-                            </span>
+                            <span className="text-white text-sm font-medium">{car.fuel}</span>
                           </div>
                           <div className="bg-white/5 rounded-lg p-2">
                             <span className="text-white/40 block">{l('phone')}</span>
                             <span className="text-white text-sm font-medium">{car.phone}</span>
                           </div>
                           <div className="bg-white/5 rounded-lg p-2">
-                            <span className="text-white/40 block">{l('img')}</span>
-                            <span className="text-white text-xs truncate block">{car.img || '-'}</span>
+                            <span className="text-white/40 block">{l('desc')}</span>
+                            <span className="text-white text-xs truncate block">{getCarDesc(car) || '-'}</span>
                           </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-2">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); openEditForm(car); }}
-                            className="flex-1 py-2 bg-[#c8a951]/20 text-[#c8a951] rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-[#c8a951]/30 transition-colors"
-                          >
+                          <button onClick={(e) => { e.stopPropagation(); openEditForm(car); }} className="flex-1 py-2 bg-[#c8a951]/20 text-[#c8a951] rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-[#c8a951]/30 transition-colors">
                             <Pencil className="w-3.5 h-3.5" />
                             {l('edit')}
                           </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(car.id); }}
-                            className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors"
-                          >
+                          <button onClick={(e) => { e.stopPropagation(); handleDelete(car.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                             {l('delete')}
                           </button>
@@ -318,31 +334,12 @@ export default function CarOwnerDashboard() {
         {/* Add/Edit Form Modal */}
         <AnimatePresence>
           {showForm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => resetForm()}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-                dir={dir}
-              >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => resetForm()}>
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ duration: 0.2 }} className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()} dir={dir}>
                 {/* Form Header */}
                 <div className="bg-[#1b5e3f] rounded-t-3xl px-6 py-4 flex items-center justify-between">
-                  <h3 className="text-white font-bold text-lg">
-                    {editingId ? l('editCar') : l('addNew')}
-                  </h3>
-                  <button
-                    onClick={resetForm}
-                    className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                  >
+                  <h3 className="text-white font-bold text-lg">{editingId !== null ? l('editCar') : l('addNew')}</h3>
+                  <button onClick={resetForm} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
@@ -351,25 +348,13 @@ export default function CarOwnerDashboard() {
                   {/* Image URL */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('img')}</label>
-                    <input
-                      type="url"
-                      value={formData.img}
-                      onChange={(e) => setFormData({ ...formData, img: e.target.value })}
-                      placeholder="https://example.com/image.jpg"
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm"
-                    />
+                    <input type="url" value={formData.img} onChange={(e) => setFormData({ ...formData, img: e.target.value })} placeholder="https://example.com/image.jpg" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
 
                   {/* Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('type')}</label>
-                    <input
-                      type="text"
-                      value={formData.type}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      placeholder="SUV / 4x4 / Economy / Luxury"
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm"
-                    />
+                    <input type="text" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} placeholder="SUV / 4x4 / Economy / Luxury" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
 
                   {/* Name fields per language */}
@@ -377,17 +362,7 @@ export default function CarOwnerDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('name')}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(['ar', 'en', 'fr', 'ber'] as Lang[]).map((l_lang) => (
-                        <input
-                          key={l_lang}
-                          type="text"
-                          value={formData.name[l_lang]}
-                          onChange={(e) => setFormData({
-                            ...formData,
-                            name: { ...formData.name, [l_lang]: e.target.value }
-                          })}
-                          placeholder={l_lang === 'ar' ? 'بالعربية' : l_lang === 'fr' ? 'En français' : l_lang === 'ber' ? 'ⵙ ⵜⴰⵎⴰⵣⵉⵖⵜ' : 'In English'}
-                          className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs"
-                        />
+                        <input key={l_lang} type="text" value={formData.name[l_lang]} onChange={(e) => setFormData({ ...formData, name: { ...formData.name, [l_lang]: e.target.value } })} placeholder={l_lang === 'ar' ? 'بالعربية' : l_lang === 'fr' ? 'En français' : l_lang === 'ber' ? 'ⵙ ⵜⴰⵎⴰⵣⵉⵖⵜ' : 'In English'} className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
                       ))}
                     </div>
                   </div>
@@ -395,45 +370,18 @@ export default function CarOwnerDashboard() {
                   {/* Description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('desc')}</label>
-                    <textarea
-                      value={formData.desc.ar}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        desc: { ...formData.desc, ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value }
-                      })}
-                      rows={2}
-                      placeholder={l('desc')}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm"
-                    />
+                    <textarea value={formData.desc.ar} onChange={(e) => setFormData({ ...formData, desc: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} rows={2} placeholder={l('desc')} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
 
                   {/* Seats & Fuel */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{l('seats')}</label>
-                      <input
-                        type="text"
-                        value={formData.seats.ar}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          seats: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value }
-                        })}
-                        placeholder={l('seatsHint')}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs"
-                      />
+                      <input type="text" value={formData.seats.ar} onChange={(e) => setFormData({ ...formData, seats: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} placeholder={l('seatsHint')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{l('fuel')}</label>
-                      <input
-                        type="text"
-                        value={formData.fuel.ar}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          fuel: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value }
-                        })}
-                        placeholder={l('fuelHint')}
-                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs"
-                      />
+                      <input type="text" value={formData.fuel.ar} onChange={(e) => setFormData({ ...formData, fuel: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} placeholder={l('fuelHint')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
                     </div>
                   </div>
 
@@ -441,54 +389,22 @@ export default function CarOwnerDashboard() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('price')}</label>
                     <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={formData.price.ar}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          price: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value }
-                        })}
-                        placeholder={l('priceHint')}
-                        className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs"
-                      />
-                      <input
-                        type="text"
-                        value={formData.price.en}
-                        onChange={(e) => setFormData({
-                          ...formData,
-                          price: { ...formData.price, en: e.target.value }
-                        })}
-                        placeholder="400 MAD/day"
-                        className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs"
-                      />
+                      <input type="text" value={formData.price.ar} onChange={(e) => setFormData({ ...formData, price: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} placeholder={l('priceHint')} className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
+                      <input type="text" value={formData.price.en} onChange={(e) => setFormData({ ...formData, price: { ...formData.price, en: e.target.value } })} placeholder="400 MAD/day" className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
                     </div>
                   </div>
 
                   {/* Phone */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('phone')}</label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+212 5XX XXX XXX"
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm"
-                    />
+                    <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+212 5XX XXX XXX" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
                 </div>
 
                 {/* Form Actions */}
                 <div className="px-6 py-4 bg-gray-50 rounded-b-3xl flex gap-3">
-                  <button
-                    onClick={resetForm}
-                    className="flex-1 py-2.5 bg-gray-200 text-gray-600 rounded-xl font-medium text-sm hover:bg-gray-300 transition-colors"
-                  >
-                    {l('cancel')}
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    className="flex-1 py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0f3d28] transition-colors"
-                  >
+                  <button onClick={resetForm} className="flex-1 py-2.5 bg-gray-200 text-gray-600 rounded-xl font-medium text-sm hover:bg-gray-300 transition-colors">{l('cancel')}</button>
+                  <button onClick={handleSubmit} disabled={createCarMutation.isPending || updateCarMutation.isPending} className="flex-1 py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0f3d28] transition-colors disabled:opacity-50">
                     <Save className="w-4 h-4" />
                     {l('save')}
                   </button>
@@ -501,39 +417,15 @@ export default function CarOwnerDashboard() {
         {/* Reset Confirmation Modal */}
         <AnimatePresence>
           {showResetConfirm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setShowResetConfirm(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center"
-                onClick={(e) => e.stopPropagation()}
-              >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowResetConfirm(false)}>
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center" onClick={(e) => e.stopPropagation()}>
                 <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                   <Trash2 className="w-7 h-7 text-red-500" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {l('confirmReset')}
-                </h3>
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setShowResetConfirm(false)}
-                    className="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-medium text-sm hover:bg-gray-200 transition-colors"
-                  >
-                    {l('no')}
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 transition-colors"
-                  >
-                    {l('yes')}
-                  </button>
+                <p className="text-gray-700 mb-6">{l('confirmReset')}</p>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-2.5 bg-gray-200 text-gray-600 rounded-xl font-medium text-sm hover:bg-gray-300 transition-colors">{l('no')}</button>
+                  <button onClick={handleReset} className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 transition-colors">{l('yes')}</button>
                 </div>
               </motion.div>
             </motion.div>

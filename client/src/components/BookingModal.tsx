@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, Calendar, Clock, Users, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -198,15 +199,40 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
     setStep((prev) => (prev > 1 ? (prev - 1) as 1 | 2 | 3 : 1));
   };
 
-  const handleSubmit = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
+  const createBookingMutation = trpc.bookings.create.useMutation({
+    onSuccess: () => {
       setIsSubmitting(false);
       toast.success(t_book('booking.success'), {
         description: t_book('booking.successDesc'),
         duration: 4000,
       });
-    }, 1500);
+      onClose();
+    },
+    onError: (error) => {
+      setIsSubmitting(false);
+      toast.error(t_book('booking.error'), {
+        description: error.message,
+        duration: 4000,
+      });
+    },
+  });
+
+  const handleSubmit = () => {
+    setIsSubmitting(true);
+    createBookingMutation.mutate({
+      type: type,
+      itemName: itemName,
+      guestName: formData.fullName,
+      guestEmail: formData.email,
+      guestPhone: formData.phone,
+      checkIn: formData.startDate,
+      checkOut: formData.endDate,
+      pickUpTime: type === 'car' ? formData.pickupTime : undefined,
+      dropOffTime: type === 'car' ? formData.returnTime : undefined,
+      guests: parseInt(formData.guests) || 1,
+      notes: formData.notes,
+      totalPrice: price,
+    });
   };
 
   const today = new Date().toISOString().split('T')[0];
