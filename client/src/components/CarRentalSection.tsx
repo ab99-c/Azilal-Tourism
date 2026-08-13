@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Users, Fuel, Phone, Calendar, Filter, Search, SlidersHorizontal, ChevronDown, RotateCcw } from 'lucide-react';
+import { Users, Fuel, Phone, Calendar, Filter, Search, SlidersHorizontal, ChevronDown, RotateCcw, Car as CarIcon } from 'lucide-react';
 import BookingModal from './BookingModal';
 import { trpc } from '@/lib/trpc';
 import type { Car } from '../../../drizzle/schema';
@@ -262,7 +262,13 @@ export default function CarRentalSection() {
             {filteredCars.map((car, index) => (
               <motion.div key={car.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => setSelectedCar(car)}>
                 <div className="relative h-44 overflow-hidden">
-                  <img src={car.img} alt={getName(car)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  {car.img ? (
+                    <img src={car.img} alt={getName(car)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#1b5e3f] to-[#0f3d28] flex items-center justify-center">
+                      <CarIcon className="w-12 h-12 text-white/30" />
+                    </div>
+                  )}
                   <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
                     <span className="text-xs font-bold text-[#1b5e3f]">{car.type}</span>
                   </div>

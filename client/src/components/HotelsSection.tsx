@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Star, MapPin, Wifi, Car, Coffee, Shield, Calendar } from 'lucide-react';
+import { Star, MapPin, Wifi, Car, Coffee, Shield, Calendar, Building2 } from 'lucide-react';
 import BookingModal from './BookingModal';
 import { trpc } from '@/lib/trpc';
 
@@ -101,7 +101,13 @@ export default function HotelsSection() {
           {hotels.map((hotel, i) => (
             <motion.div key={hotel.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100">
               <div className="relative h-48 overflow-hidden">
-                <img src={hotel.img} alt={getName(hotel)} className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" />
+                {hotel.img ? (
+                  <img src={hotel.img} alt={getName(hotel)} className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#1b5e3f] to-[#0f3d28] flex items-center justify-center">
+                    <Building2 className="w-12 h-12 text-white/30" />
+                  </div>
+                )}
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 font-bold text-sm text-[#c8a951]">
                   <Star className="w-3.5 h-3.5 fill-[#c8a951]" />
                   {hotel.rating}
