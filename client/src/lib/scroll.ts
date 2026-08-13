@@ -16,9 +16,17 @@ export function scrollToSection(id: string): void {
   const el = document.getElementById(targetId);
 
   if (el) {
-    const rect = el.getBoundingClientRect();
-    const y = window.scrollY + rect.top - NAVBAR_HEIGHT_PX;
+    // In some environments (iframed previews, certain mobile browsers, or
+    // embedded pages) window.scrollTo() does not scroll the page. Detect
+    // that and fall back to scrollIntoView, which the browser always routes
+    // to the correct scrollable ancestor.
+    const before = window.scrollY;
+    const y = before + el.getBoundingClientRect().top - NAVBAR_HEIGHT_PX;
     window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    // If the page did not move shortly after, use scrollIntoView instead.
+    if (window.scrollY === before && document.documentElement.scrollHeight > window.innerHeight) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } else {
     // Fallback: native hash navigation (browser handles it)
     window.location.hash = targetId;

@@ -45,3 +45,10 @@
 - [x] Add JS scrollToSection utility with fixed-navbar offset (Navbar, Hero CTA/arrow, Footer links)
 - [x] Fix broken concatenated image URL in CategoriesSection
 - [x] Verify live (desktop + mobile viewport), checkpoint, push to GitHub
+
+## User report: scroll fix not working on live site ("MATSLA7CH")
+
+- [ ] Test scrolling on live production (manus.space / Vercel), not just dev preview
+- [ ] Identify why JS scroll fix fails in production build
+- [ ] Implement definitive fix and verify on production
+- [ ] Checkpoint + push to GitHub + confirm to user
