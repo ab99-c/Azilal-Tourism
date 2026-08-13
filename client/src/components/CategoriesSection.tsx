@@ -20,7 +20,7 @@ export default function CategoriesSection() {
     },
     {
       icon: Landmark,
-      img: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=600https://images.unsplash.com/photo-1596323036195-11a32c458066?w=600&q=80q=80',
+      img: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&q=80',
       title: 'cat.culture',
       count: 'cat.culture.count',
     },

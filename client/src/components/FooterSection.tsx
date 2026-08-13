@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { scrollToSection } from '@/lib/scroll';
 
 export default function FooterSection() {
   const { t, lang } = useLanguage();
@@ -53,6 +54,10 @@ export default function FooterSection() {
                 <li key={link.key}>
                   <a
                     href={link.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollToSection(link.href);
+                    }}
                     className="text-white/60 text-sm hover:text-white transition-all hover:translate-x-[-3px] rtl:hover:translate-x-[-3px]"
                   >
                     {t(link.key)}

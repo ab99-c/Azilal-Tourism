@@ -34,7 +34,14 @@
 
 ## Place name audit: ADRAR = brand, Azilal = place
 
-- [ ] Audit all text strings (LanguageContext, components) for ADRAR/ادرار used as place/region name
-- [ ] Replace place references with Azilal/أزيلال in all 4 languages
-- [ ] Keep ADRAR only as brand (logo, hero title, footer brand line)
-- [ ] Verify visually, checkpoint, push to GitHub
+- [x] Audit all text strings (LanguageContext, components) for ADRAR/ادرار used as place/region name
+- [x] Replace place references with Azilal/أزيلال in all 4 languages (~63 occurrences)
+- [x] Keep ADRAR only as brand (navbar logo, hero alt, footer brand, About ADRAR, EN/FR hero titles)
+- [x] Verify visually, checkpoint (2013b0a6), push to GitHub (8ec4611)
+
+## Navbar scroll navigation fix
+
+- [x] Fix navbar links: clicking sections should smooth-scroll to the target section
+- [x] Add JS scrollToSection utility with fixed-navbar offset (Navbar, Hero CTA/arrow, Footer links)
+- [x] Fix broken concatenated image URL in CategoriesSection
+- [x] Verify live (desktop + mobile viewport), checkpoint, push to GitHub

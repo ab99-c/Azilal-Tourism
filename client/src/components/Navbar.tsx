@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage, type Lang } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Menu, X, MessageCircle } from 'lucide-react';
+import { scrollToSection } from '@/lib/scroll';
 
 const langNames: Record<Lang, string> = {
   ar: 'العربية',
@@ -43,6 +44,10 @@ export default function Navbar() {
         {/* Logo */}
         <a
           href="#home"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection('home');
+          }}
           className="flex items-center gap-3 transition-colors"
         >
           <img
@@ -64,6 +69,10 @@ export default function Navbar() {
             <li key={link.key}>
               <a
                 href={link.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(link.href);
+                }}
                 className={`text-sm font-medium transition-colors relative py-1 whitespace-nowrap ${
                   scrolled ? 'text-gray-700 hover:text-[#1b5e3f]' : 'text-white/90 hover:text-white'
                 }`}
@@ -109,6 +118,10 @@ export default function Navbar() {
           {/* Chat Button */}
           <a
             href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection('contact');
+            }}
             className="hidden sm:flex items-center gap-2 bg-[#1b5e3f] text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-[#0f3d28] transition-all hover:shadow-lg hover:shadow-[#1b5e3f]/30"
           >
             <MessageCircle className="w-4 h-4" />
@@ -140,7 +153,11 @@ export default function Navbar() {
                 <a
                   key={link.key}
                   href={link.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(link.href);
+                    setMobileOpen(false);
+                  }}
                   className="text-gray-700 hover:text-[#1b5e3f] font-medium py-2 transition-colors"
                 >
                   {t(link.key)}

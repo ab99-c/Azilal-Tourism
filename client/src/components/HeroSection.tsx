@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronDown, MapPin } from 'lucide-react';
+import { scrollToSection } from '@/lib/scroll';
 
 export default function HeroSection() {
   const { t } = useLanguage();
@@ -64,6 +65,10 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           href="#featured"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection('featured');
+          }}
           className="inline-flex items-center gap-3 bg-white text-[#1b5e3f] px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:shadow-white/20 transition-all hover:-translate-y-1"
         >
           {t('hero.cta')}
@@ -72,9 +77,10 @@ export default function HeroSection() {
 
       {/* Scroll Indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/70 cursor-pointer"
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
+        onClick={() => scrollToSection('featured')}
       >
         <ChevronDown className="w-8 h-8" />
       </motion.div>
