@@ -48,7 +48,7 @@
 
 ## User report: scroll fix not working on live site ("MATSLA7CH")
 
-- [ ] Test scrolling on live production (manus.space / Vercel), not just dev preview
-- [ ] Identify why JS scroll fix fails in production build
-- [ ] Implement definitive fix and verify on production
-- [ ] Checkpoint + push to GitHub + confirm to user
+- [x] Test scrolling on live production (manus.space): real click on "الفنادق" scrolled to hotels section (3655px)
+- [x] Add scrollIntoView fallback in scrollToSection when scrollTo does not move the page
+- [x] Verify on production (checkpoint 8b381298, auto-published)
+- [x] Push 8b381298 to GitHub (ab99-c/Azilal-Tourism main) — Vercel will auto-redeploy

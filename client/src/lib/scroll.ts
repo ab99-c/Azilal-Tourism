@@ -23,10 +23,14 @@ export function scrollToSection(id: string): void {
     const before = window.scrollY;
     const y = before + el.getBoundingClientRect().top - NAVBAR_HEIGHT_PX;
     window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-    // If the page did not move shortly after, use scrollIntoView instead.
-    if (window.scrollY === before && document.documentElement.scrollHeight > window.innerHeight) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // Smooth scrolling is async: check after the browser has had a frame to
+    // move. Only fall back if the page genuinely did not move (e.g. the
+    // document is not the scrollable container, or scrollTo is blocked).
+    requestAnimationFrame(() => {
+      if (window.scrollY === before && document.documentElement.scrollHeight > window.innerHeight) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   } else {
     // Fallback: native hash navigation (browser handles it)
     window.location.hash = targetId;
