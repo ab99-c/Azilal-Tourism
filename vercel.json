@@ -10,8 +10,8 @@
       "src": "client/index.html",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "buildCommand": "vite build"
+        "distDir": "dist/public",
+        "buildCommand": "npx vite build"
       }
     }
   ],
