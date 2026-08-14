@@ -66,3 +66,11 @@
 - [x] Owner dashboard: bookings tab with payment status + mark as paid action
 - [x] Tests (vitest): booking.payment.test.ts + existing suites — 16/16 passing
 - [x] Checkpoint + push to GitHub
+
+## User report: OAuth login fails ("OAuth callback failed", "MKIBGHICH IDKHUL")
+
+- [x] Reproduce: live logs show [OAuth] Callback failed: Table 'users' doesn't exist
+- [x] Root cause: users table missing from DB (fullstack upgrade created schema but table never migrated)
+- [x] Fix: created users table per drizzle schema; verified row inserted for owner (role=admin)
+- [x] Verify: user row intact (role=admin) after migration, site renders OK, vitest 16/16 passing
+- [x] Checkpoint + push to GitHub
