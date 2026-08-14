@@ -495,7 +495,7 @@ export default function CarOwnerDashboard() {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-b from-[#1b5e3f] to-[#0f3d28]">
+    <section id="owner-dashboard" className="py-16 bg-gradient-to-b from-[#1b5e3f] to-[#0f3d28]">
       <div className="container" dir={dir}>
         {/* Header */}
         <div className="text-center mb-10">

@@ -135,8 +135,14 @@
 
 ## User request: remove image button for restaurant/cafe owners
 
-- [ ] Server: restaurants.removeImage procedure (ownerProcedure + ownership check, clear image column, invalidate cache)
-- [ ] Server: cafes.removeImage procedure (same)
-- [ ] Frontend: "حذف الصورة" button in restaurant/cafe list items and form (visible only when image exists)
-- [ ] Tests (vitest): removeImage ownership gating for restaurants & cafes
-- [ ] Checkpoint + push to GitHub
+- [x] Server: restaurants.removeImage + cafes.removeImage procedures (ownerProcedure, requireOwnership, image→null, invalidateCache)
+- [x] Frontend: "حذف الصورة" button in restaurant/cafe expanded actions, visible only when image exists, with confirm dialog
+- [x] Tests (vitest): image-upload.test.ts — 6 removeImage gating tests; all 60 tests passing across 8 files
+- [x] Checkpoint 1de5640e saved (auto-published) + pushed to GitHub (ab99-c/Azilal-Tourism main)
+
+## User request: post-login two-choice flow
+
+- [x] Frontend: LoginChoiceDialog with two options: "بغيت نحجز" (scrolls to #hotels sections) vs "عندي فندق/مقهى/سيارة" (scrolls to #owner-dashboard); skip option; remembered once per session (sessionStorage)
+- [x] Add language labels for the choice flow (AR/EN/FR/BER)
+- [x] Wired into Navbar: dialog auto-opens right after OAuth login completes (auth state change), once per session; owner-dashboard section got id="owner-dashboard"
+- [ ] Verify rendering and flows, checkpoint, push to GitHub

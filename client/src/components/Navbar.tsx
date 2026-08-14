@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage, type Lang } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Menu, X, MessageCircle, CalendarCheck, LogIn } from 'lucide-react';
@@ -6,6 +6,7 @@ import { scrollToSection } from '@/lib/scroll';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { startLogin } from '@/const';
+import LoginChoiceDialog from '@/components/LoginChoiceDialog';
 
 const langNames: Record<Lang, string> = {
   ar: 'العربية',
@@ -19,6 +20,20 @@ export default function Navbar() {
   const { isAuthenticated } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showChoice, setShowChoice] = useState(false);
+
+  // Show the two-choice dialog once, right after the user completes login
+  const prevAuth = useRef(isAuthenticated);
+  useEffect(() => {
+    if (isAuthenticated && !prevAuth.current) {
+      const alreadyShown = sessionStorage.getItem('adrar_choice_done');
+      if (!alreadyShown) {
+        sessionStorage.setItem('adrar_choice_done', '1');
+        setShowChoice(true);
+      }
+    }
+    prevAuth.current = isAuthenticated;
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -237,6 +252,7 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+      <LoginChoiceDialog open={showChoice} onClose={() => setShowChoice(false)} />
     </nav>
   );
 }
