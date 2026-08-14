@@ -205,7 +205,8 @@ export async function createRestaurant(data: Partial<Restaurant>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const ownerId = (data as any).ownerId ?? 1;
-  return db.insert(restaurants).values({ ...data, ownerId } as any);
+  const result = await db.insert(restaurants).values({ ...data, ownerId } as any);
+  return { id: (result as any)?.[0]?.insertId ?? null };
 }
 
 export async function updateRestaurant(id: number, data: Partial<Restaurant>) {
@@ -244,7 +245,8 @@ export async function createCafe(data: Partial<Cafe>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const ownerId = (data as any).ownerId ?? 1;
-  return db.insert(cafes).values({ ...data, ownerId } as any);
+  const result = await db.insert(cafes).values({ ...data, ownerId } as any);
+  return { id: (result as any)?.[0]?.insertId ?? null };
 }
 
 export async function updateCafe(id: number, data: Partial<Cafe>) {

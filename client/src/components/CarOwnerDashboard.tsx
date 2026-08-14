@@ -13,7 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Plus, Pencil, Trash2, X, Car, ChevronDown,
   Save, RotateCcw, Image, ClipboardList, CheckCircle2,
-  CreditCard, Clock, Utensils, Coffee
+  CreditCard, Clock, Utensils, Coffee, Upload
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
@@ -130,6 +130,43 @@ export default function CarOwnerDashboard() {
     onError: (err) => toast.error(lang === 'ar' ? 'خطأ في حذف المقهى' : 'Error deleting café', { description: err.message }),
   });
 
+  // Image upload (restaurants & cafes)
+  const uploadRestaurantImageMutation = trpc.restaurants.uploadImage.useMutation({
+    onSuccess: () => { refetchRestaurants(); toast.success(lang === 'ar' ? 'تم رفع الصورة بنجاح' : 'Image uploaded successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'فشل رفع الصورة' : 'Failed to upload image', { description: err.message }),
+  });
+  const uploadCafeImageMutation = trpc.cafes.uploadImage.useMutation({
+    onSuccess: () => { refetchCafes(); toast.success(lang === 'ar' ? 'تم رفع الصورة بنجاح' : 'Image uploaded successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'فشل رفع الصورة' : 'Failed to upload image', { description: err.message }),
+  });
+
+  // Convert a file to base64 data URL for upload
+  const handleImageFile = (file: File) => {
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error(lang === 'ar' ? 'الصورة كبيرة جداً (الحد الأقصى 4 ميغابايت)' : 'Image too large (max 4MB)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      if (formKind === 'restaurant') {
+        if (editingId !== null) uploadRestaurantImageMutation.mutate({ id: editingId, base64, fileName: file.name });
+        else {
+          // No item yet: store preview in form, will be uploaded after create via item id
+          setFormData({ ...formData, img: base64 });
+          setPendingImage({ base64, fileName: file.name });
+        }
+      } else if (formKind === 'cafe') {
+        if (editingId !== null) uploadCafeImageMutation.mutate({ id: editingId, base64, fileName: file.name });
+        else {
+          setFormData({ ...formData, img: base64 });
+          setPendingImage({ base64, fileName: file.name });
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Reset form
   const resetForm = () => {
     setFormData({
@@ -146,12 +183,15 @@ export default function CarOwnerDashboard() {
       hours: '',
       phone: '',
     });
+    setPendingImage(null);
     setEditingId(null);
     setShowForm(false);
   };
 
   // Track which entity type the shared form targets: 'car' | 'restaurant' | 'cafe'
   const [formKind, setFormKind] = useState<'car' | 'restaurant' | 'cafe'>('car');
+  // Image pending upload for a brand-new restaurant/cafe (uploaded once created)
+  const [pendingImage, setPendingImage] = useState<{ base64: string; fileName: string } | null>(null);
 
   // Open add form
   const openAddForm = (kind: 'car' | 'restaurant' | 'cafe' = 'car') => {
@@ -184,6 +224,40 @@ export default function CarOwnerDashboard() {
 
   // Restaurant / cafe helpers
   const openEditRestaurant = (item: any) => openEditForm(item, 'restaurant');
+  const uploadExistingRestaurantImage = (item: any) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (file.size > 4 * 1024 * 1024) {
+        toast.error(lang === 'ar' ? 'الصورة كبيرة جداً (الحد الأقصى 4 ميغابايت)' : 'Image too large (max 4MB)');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => uploadRestaurantImageMutation.mutate({ id: item.id, base64: reader.result as string, fileName: file.name });
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+  const uploadExistingCafeImage = (item: any) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (file.size > 4 * 1024 * 1024) {
+        toast.error(lang === 'ar' ? 'الصورة كبيرة جداً (الحد الأقصى 4 ميغابايت)' : 'Image too large (max 4MB)');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => uploadCafeImageMutation.mutate({ id: item.id, base64: reader.result as string, fileName: file.name });
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
   const openEditCafe = (item: any) => openEditForm(item, 'cafe');
   const handleDeleteRestaurant = (id: number) => {
     if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا المطعم؟' : 'Delete this restaurant?')) deleteRestaurantMutation.mutate({ id });
@@ -205,13 +279,36 @@ export default function CarOwnerDashboard() {
     };
     if (formKind === 'restaurant') {
       const payload = { ...base, cuisineAr: formData.cuisine.ar, cuisineEn: formData.cuisine.en, cuisineFr: formData.cuisine.fr, cuisineBer: formData.cuisine.ber };
-      if (editingId !== null) updateRestaurantMutation.mutate({ id: editingId, ...payload } as any);
-      else createRestaurantMutation.mutate(payload as any);
+      if (editingId !== null) {
+        updateRestaurantMutation.mutate({ id: editingId, ...payload } as any);
+        return;
+      }
+      const pending = pendingImage;
+      createRestaurantMutation.mutate(payload as any, {
+        onSuccess: (res) => {
+          // Upload the pending image for the newly created restaurant (create then upload)
+          if (pending && res?.id) {
+            uploadRestaurantImageMutation.mutate({ id: res.id, base64: pending.base64, fileName: pending.fileName });
+            setPendingImage(null);
+          }
+        },
+      });
       return;
     }
     if (formKind === 'cafe') {
-      if (editingId !== null) updateCafeMutation.mutate({ id: editingId, ...base } as any);
-      else createCafeMutation.mutate(base as any);
+      if (editingId !== null) {
+        updateCafeMutation.mutate({ id: editingId, ...base } as any);
+        return;
+      }
+      const pending = pendingImage;
+      createCafeMutation.mutate(base as any, {
+        onSuccess: (res) => {
+          if (pending && res?.id) {
+            uploadCafeImageMutation.mutate({ id: res.id, base64: pending.base64, fileName: pending.fileName });
+            setPendingImage(null);
+          }
+        },
+      });
       return;
     }
     if (editingId !== null) {
@@ -312,6 +409,10 @@ export default function CarOwnerDashboard() {
     seatsHint: { ar: 'مثال: 5 مقاعد', en: 'e.g. 5 Seats', fr: 'ex: 5 Places', ber: 'ⴰⵎⴷⵢⴰ: 5 ⵉⵖⵔⵎⴰⵏ' },
     fuelHint: { ar: 'مثال: بنزين', en: 'e.g. Petrol', fr: 'ex: Essence', ber: 'ⴰⵎⴷⵢⴰ: ⴰⵙⵏⴰⵍ' },
     noImg: { ar: 'لا توجد صورة', en: 'No Image', fr: 'Pas d\'image', ber: 'ⵓⵍⵍⵉⵏ ⵜⵡⵍⴰⴼⵜ' },
+    imgUpload: { ar: 'صورة المكان', en: 'Photo', fr: 'Photo', ber: 'ⵜⵡⵍⴰⴼⵜ' },
+    chooseFile: { ar: 'اختيار صورة من الجهاز', en: 'Choose Photo', fr: 'Choisir une photo', ber: 'ⵙⵜⵉ ⵜⵡⵍⴰⴼⵜ' },
+    imgHint: { ar: 'JPG أو PNG أو WEBP — الحد الأقصى 4 ميغابايت', en: 'JPG, PNG or WEBP — max 4MB', fr: 'JPG, PNG ou WEBP — max 4Mo', ber: 'JPG/PNG/WEBP — ⴰⴼⵓⵙ 4MB' },
+    uploadPhoto: { ar: 'رفع صورة', en: 'Upload Photo', fr: 'Téléverser', ber: 'ⵙⵍⵉ ⵜⵡⵍⴰⴼⵜ' },
     tabCars: { ar: 'السيارات', en: 'Vehicles', fr: 'Véhicules', ber: 'ⵜⵙⵍⵍⴰⵙⵜ' },
     tabBookings: { ar: 'الحجوزات', en: 'Bookings', fr: 'Réservations', ber: 'ⵉⵙⵏⴷⵇⵏ' },
     bookingName: { ar: 'الاسم', en: 'Name', fr: 'Nom', ber: 'ⵉⵙⵎ' },
@@ -692,6 +793,10 @@ export default function CarOwnerDashboard() {
                             <Pencil className="w-3.5 h-3.5" />
                             {l('edit')}
                           </button>
+                          <button onClick={(e) => { e.stopPropagation(); uploadExistingRestaurantImage(item); }} disabled={uploadRestaurantImageMutation.isPending} className="flex-1 py-2 bg-white/10 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-white/20 transition-colors disabled:opacity-50">
+                            <Upload className="w-3.5 h-3.5" />
+                            {l('uploadPhoto')}
+                          </button>
                           <button onClick={(e) => { e.stopPropagation(); handleDeleteRestaurant(item.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                             {l('delete')}
@@ -759,6 +864,10 @@ export default function CarOwnerDashboard() {
                             <Pencil className="w-3.5 h-3.5" />
                             {l('edit')}
                           </button>
+                          <button onClick={(e) => { e.stopPropagation(); uploadExistingCafeImage(item); }} disabled={uploadCafeImageMutation.isPending} className="flex-1 py-2 bg-white/10 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-white/20 transition-colors disabled:opacity-50">
+                            <Upload className="w-3.5 h-3.5" />
+                            {l('uploadPhoto')}
+                          </button>
                           <button onClick={(e) => { e.stopPropagation(); handleDeleteCafe(item.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                             {l('delete')}
@@ -788,11 +897,32 @@ export default function CarOwnerDashboard() {
                 </div>
 
                 <div className="p-6 space-y-4">
-                  {/* Image URL */}
+                  {/* Image: file upload for restaurants & cafes (with preview), URL input for cars */}
+                  {formKind !== 'car' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{l('imgUpload')}</label>
+                    {formData.img && (
+                      <div className="mb-2 relative">
+                        <img src={formData.img} alt="preview" className="w-32 h-24 object-cover rounded-xl border border-gray-200" />
+                      </div>
+                    )}
+                    <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-[#1b5e3f]/30 bg-[#1b5e3f]/5 text-sm font-medium text-[#1b5e3f] cursor-pointer hover:bg-[#1b5e3f]/10 transition-colors">
+                      <Upload className="w-4 h-4" />
+                      {l('chooseFile')}
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleImageFile(f);
+                        e.target.value = '';
+                      }} />
+                    </label>
+                    <p className="text-xs text-gray-400 mt-1">{l('imgHint')}</p>
+                  </div>
+                  ) : (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('img')}</label>
                     <input type="url" value={formData.img} onChange={(e) => setFormData({ ...formData, img: e.target.value })} placeholder="https://example.com/image.jpg" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
+                  )}
 
                   {/* Type (cars only) */}
                   {formKind === 'car' && (

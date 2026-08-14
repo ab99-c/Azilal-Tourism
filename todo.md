@@ -120,4 +120,15 @@
 - [x] Frontend: owner dashboard section/tab for restaurants and cafes (add/edit/delete own listings)
 - [x] Frontend: RestaurantsSection/CafesSection read from trpc DB with static fallback
 - [x] Tests (vitest): restaurants-cafes-ownership.test.ts 9 tests — all 47 tests passing across 7 files
+- [x] Checkpoint 2d5a0883 saved (auto-published) + pushed to GitHub (ab99-c/Azilal-Tourism main)
+
+## User request: image upload for restaurants & cafes in owner dashboard
+
+- [x] Server: uploadImage procedures for restaurants & cafes (base64 input, S3 storagePut to restaurants/{uid}/ and cafes/{uid}/, save url to image column) with ownership check, ext allowlist (jpg/png/webp), 4MB limit
+- [x] Server: create procedures return inserted id so pending image uploads after create; db helpers updated
+- [x] Frontend: image upload UI in dashboard form (preview + dashed file input) for restaurants & cafes (cars keep URL input)
+- [x] Frontend: direct "رفع صورة" buttons on restaurant/cafe list items (upload after creation via onSuccess callback too)
+- [x] Frontend: RestaurantsSection/CafesSection already render item.image — uploaded images display automatically
+- [x] Tests (vitest): image-upload.test.ts 7 tests — all 54 tests passing across 8 files
+- [x] Fixed flaky pre-existing test (stable ownerId in create-th-then-view test)
 - [ ] Checkpoint + push to GitHub

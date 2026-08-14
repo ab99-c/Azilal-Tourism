@@ -41,9 +41,10 @@ describe('restaurants/cafes owner isolation', () => {
   });
 
   it('owner can create a restaurant and it appears in their own dashboard', async () => {
+    const ownerId = next();
     const data = makeData();
-    await appRouter.createCaller(makeCtx(next())).restaurants.create(data);
-    const mine = await appRouter.createCaller(makeCtx(next() + 1)).dashboard.myRestaurants();
+    await appRouter.createCaller(makeCtx(ownerId)).restaurants.create(data);
+    const mine = await appRouter.createCaller(makeCtx(ownerId)).dashboard.myRestaurants();
     expect(mine.length).toBeGreaterThanOrEqual(1);
     expect(mine.some((r: any) => r.nameEn.includes('Test Restaurant'))).toBe(true);
   });

@@ -18,6 +18,7 @@ import {
   getMyCars, getMyHotels, getMyBookings,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
+import { storagePut } from "./storage";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -35,6 +36,28 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
  * Owner-gated procedure: any logged-in user can create listings they own.
  * Writes are scoped to the caller's userId (the owner).
  */
+// Image upload helpers (restaurants & cafes)
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB hard limit
+const ALLOWED_IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "webp"]);
+const EXT_MIME: Record<string, string> = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+};
+
+function extractExt(fileName: string): string | null {
+  const lastDot = fileName.lastIndexOf(".");
+  return lastDot === -1 ? null : fileName.slice(lastDot + 1);
+}
+
+function safeName(fileName: string): string {
+  return fileName.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80) || "image";
+}
+
+function base64ToBuffer(base64: string): Buffer {
+  const idx = base64.indexOf(",");
+  const data = idx === -1 ? base64 : base64.slice(idx + 1);
+  return Buffer.from(data, "base64");
+}
+
 const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, ownerId: ctx.user.id } });
 });
@@ -260,8 +283,8 @@ export const appRouter = router({
         phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        await createRestaurant({ ...input, ownerId: ctx.user.id } as any);
-        return { success: true } as const;
+        const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id } as any);
+        return { success: true, id } as const;
       }),
     update: ownerProcedure
       .input(z.object({
@@ -293,6 +316,32 @@ export const appRouter = router({
         await deleteRestaurant(input.id);
         return { success: true } as const;
       }),
+    uploadImage: ownerProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        base64: z.string().max(5_500_000),
+        fileName: z.string().max(255).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const restaurant = await getRestaurantById(input.id);
+        await requireOwnership({ user: ctx.user } as any, restaurant as any, "restaurant");
+        const ext = (extractExt(input.fileName || "image.png") || "png").toLowerCase();
+        if (!ALLOWED_IMAGE_EXTS.has(ext)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
+        }
+        const bytes = base64ToBuffer(input.base64);
+        if (bytes.length > MAX_IMAGE_BYTES) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
+        }
+        const { url } = await storagePut(
+          `restaurants/${ctx.user.id}/${safeName(input.fileName || "image")}.${ext}`,
+          bytes,
+          EXT_MIME[ext] || "image/png",
+        );
+        await updateRestaurant(input.id, { image: url } as any);
+        invalidateCache("restaurants");
+        return { success: true, url } as const;
+      }),
   }),
 
   cafes: router({
@@ -312,8 +361,8 @@ export const appRouter = router({
         phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        await createCafe({ ...input, ownerId: ctx.user.id } as any);
-        return { success: true } as const;
+        const { id } = await createCafe({ ...input, ownerId: ctx.user.id } as any);
+        return { success: true, id } as const;
       }),
     update: ownerProcedure
       .input(z.object({
@@ -342,6 +391,32 @@ export const appRouter = router({
         await requireOwnership({ user: ctx.user } as any, cafe as any, "cafe");
         await deleteCafe(input.id);
         return { success: true } as const;
+      }),
+    uploadImage: ownerProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        base64: z.string().max(5_500_000),
+        fileName: z.string().max(255).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const cafe = await getCafeById(input.id);
+        await requireOwnership({ user: ctx.user } as any, cafe as any, "cafe");
+        const ext = (extractExt(input.fileName || "image.png") || "png").toLowerCase();
+        if (!ALLOWED_IMAGE_EXTS.has(ext)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
+        }
+        const bytes = base64ToBuffer(input.base64);
+        if (bytes.length > MAX_IMAGE_BYTES) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
+        }
+        const { url } = await storagePut(
+          `cafes/${ctx.user.id}/${safeName(input.fileName || "image")}.${ext}`,
+          bytes,
+          EXT_MIME[ext] || "image/png",
+        );
+        await updateCafe(input.id, { image: url } as any);
+        invalidateCache("cafes");
+        return { success: true, url } as const;
       }),
   }),
 
