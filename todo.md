@@ -86,3 +86,17 @@
 - [x] Migration: SQL assigned existing cars/hotels ownerId=1 (site admin)
 - [x] Tests (vitest): server/ownership.test.ts 7 tests + suites updated — 24/24 passing
 - [x] Verify renders OK; Checkpoint + push to GitHub
+
+## User report: SELECT on bookings fails (missing columns: itemId, ownerId, paymentMethod, paymentStatus)
+
+- [x] Inspect bookings: itemId was missing (paymentMethod/paymentStatus/ownerId existed); added itemId int + ownerId index
+- [x] Backfilled itemId for 7 existing bookings (matched by name; fallback id=1)
+- [x] Verified SELECT works, site renders, screenshots OK
+- [x] No code change needed (schema-only fix) — nothing to push
+
+## User request: verify owner dashboard shows only each owner's own bookings
+
+- [x] Runtime tRPC tests: owner 5's myBookings → getMyBookings(5) only; owner 7's myCars/myHotels → scoped to 7; admin → unfiltered getAll*; unauthenticated → UNAUTHORIZED
+- [x] Booking creation verified to route ownerId from car.ownerId/hotel.ownerId, not the guest's id
+- [x] All 30 vitest tests passing (5 files)
+- [ ] Checkpoint + push
