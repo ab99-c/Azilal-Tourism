@@ -29,6 +29,13 @@
       "when": 1786731419159,
       "tag": "0003_chubby_anita_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786733180616,
+      "tag": "0004_tearful_magma",
+      "breakpoints": true
     }
   ]
 }

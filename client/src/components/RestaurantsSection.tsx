@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Star, MapPin, Clock, Phone } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
-const restaurants = [
+const fallbackRestaurants = [
   {
     img: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
     name: {
@@ -107,29 +108,58 @@ const restaurants = [
 
 export default function RestaurantsSection() {
   const { t, lang } = useLanguage();
+  const { data: dbRestaurants, isLoading } = trpc.restaurants.list.useQuery();
 
-  const getName = (item: typeof restaurants[0]) => {
+  // Merge DB rows with the legacy static data as a fallback so nothing disappears.
+  const list = dbRestaurants && dbRestaurants.length > 0 ? dbRestaurants : fallbackRestaurants;
+  const fromDb = Boolean(dbRestaurants && dbRestaurants.length > 0);
+
+  const getName = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.nameAr;
+      if (lang === 'fr') return item.nameFr;
+      if (lang === 'ber') return item.nameBer;
+      return item.nameEn;
+    }
     if (lang === 'ar') return item.name.ar;
     if (lang === 'fr') return item.name.fr;
     if (lang === 'ber') return item.name.ber;
     return item.name.en;
   };
 
-  const getDesc = (item: typeof restaurants[0]) => {
+  const getDesc = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.descriptionAr;
+      if (lang === 'fr') return item.descriptionFr;
+      if (lang === 'ber') return item.descriptionBer;
+      return item.descriptionEn;
+    }
     if (lang === 'ar') return item.desc.ar;
     if (lang === 'fr') return item.desc.fr;
     if (lang === 'ber') return item.desc.ber;
     return item.desc.en;
   };
 
-  const getLocation = (item: typeof restaurants[0]) => {
+  const getLocation = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.locationAr;
+      if (lang === 'fr') return item.locationFr;
+      if (lang === 'ber') return item.locationBer;
+      return item.locationEn;
+    }
     if (lang === 'ar') return item.location.ar;
     if (lang === 'fr') return item.location.fr;
     if (lang === 'ber') return item.location.ber;
     return item.location.en;
   };
 
-  const getCuisine = (item: typeof restaurants[0]) => {
+  const getCuisine = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.cuisineAr;
+      if (lang === 'fr') return item.cuisineFr;
+      if (lang === 'ber') return item.cuisineBer;
+      return item.cuisineEn;
+    }
     if (lang === 'ar') return item.cuisine.ar;
     if (lang === 'fr') return item.cuisine.fr;
     if (lang === 'ber') return item.cuisine.ber;
@@ -157,9 +187,13 @@ export default function RestaurantsSection() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {restaurants.map((restaurant, i) => (
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-lg h-48 animate-pulse" />
+            ))
+          ) : list.length === 0 ? null : list.map((restaurant: any, i: number) => (
             <motion.div
-              key={i}
+              key={restaurant.id ?? i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -168,9 +202,10 @@ export default function RestaurantsSection() {
             >
               <div className="relative w-full md:w-2/5 h-48 md:h-auto overflow-hidden shrink-0">
                 <img
-                  src={restaurant.img}
+                  src={fromDb ? (restaurant.image || '') : restaurant.img}
                   alt={getName(restaurant)}
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
               <div className="flex-1 p-5 flex flex-col justify-between">
@@ -181,7 +216,7 @@ export default function RestaurantsSection() {
                     </span>
                     <div className="flex items-center gap-1 text-[#c8a951] text-sm font-bold">
                       <Star className="w-4 h-4 fill-[#c8a951]" />
-                      {restaurant.rating}
+                      {Number(restaurant.rating) ?? restaurant.rating}
                     </div>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{getName(restaurant)}</h3>

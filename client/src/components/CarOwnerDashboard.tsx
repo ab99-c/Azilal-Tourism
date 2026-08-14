@@ -13,7 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Plus, Pencil, Trash2, X, Car, ChevronDown,
   Save, RotateCcw, Image, ClipboardList, CheckCircle2,
-  CreditCard, Clock
+  CreditCard, Clock, Utensils, Coffee
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
@@ -26,15 +26,20 @@ export default function CarOwnerDashboard() {
     retry: false,
   });
   const { data: myHotels } = trpc.dashboard.myHotels.useQuery(undefined, { retry: false });
+  const { data: myRestaurants, refetch: refetchRestaurants } = trpc.dashboard.myRestaurants.useQuery(undefined, { retry: false });
+  const { data: myCafes, refetch: refetchCafes } = trpc.dashboard.myCafes.useQuery(undefined, { retry: false });
   const { data: bookingsData } = trpc.dashboard.myBookings.useQuery(undefined, {
     retry: false,
   });
   const [cars, setCars] = useState<any[]>([]);
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [cafes, setCafes] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cars' | 'bookings'>('cars');
+  const [activeTab, setActiveTab] = useState<'cars' | 'restaurants' | 'cafes' | 'bookings'>('cars');
+  const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'hotel' | 'car' | 'restaurant' | 'cafe'>('all');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -45,6 +50,10 @@ export default function CarOwnerDashboard() {
     fuel: { ar: '', en: '', fr: '', ber: '' },
     type: '',
     price: { ar: '', en: '', fr: '', ber: '' },
+    cuisine: { ar: '', en: '', fr: '', ber: '' },
+    location: { ar: '', en: '', fr: '', ber: '' },
+    rating: '4.5',
+    hours: '',
     phone: '',
   });
 
@@ -54,6 +63,12 @@ export default function CarOwnerDashboard() {
       setCars(dashboardData);
     }
   }, [dashboardData]);
+  useEffect(() => {
+    if (myRestaurants) setRestaurants(myRestaurants);
+  }, [myRestaurants]);
+  useEffect(() => {
+    if (myCafes) setCafes(myCafes);
+  }, [myCafes]);
 
   // Mutations
   const createCarMutation = trpc.cars.create.useMutation({
@@ -89,6 +104,32 @@ export default function CarOwnerDashboard() {
     },
   });
 
+  // Restaurants & Cafes mutations
+  const createRestaurantMutation = trpc.restaurants.create.useMutation({
+    onSuccess: () => { refetchRestaurants(); resetForm(); toast.success(lang === 'ar' ? 'تمت إضافة المطعم بنجاح' : 'Restaurant added successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ في إضافة المطعم' : 'Error adding restaurant', { description: err.message }),
+  });
+  const updateRestaurantMutation = trpc.restaurants.update.useMutation({
+    onSuccess: () => { refetchRestaurants(); resetForm(); toast.success(lang === 'ar' ? 'تم تحديث المطعم بنجاح' : 'Restaurant updated successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ في تحديث المطعم' : 'Error updating restaurant', { description: err.message }),
+  });
+  const deleteRestaurantMutation = trpc.restaurants.delete.useMutation({
+    onSuccess: () => { refetchRestaurants(); setExpandedId(null); toast.success(lang === 'ar' ? 'تم حذف المطعم بنجاح' : 'Restaurant deleted successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ في حذف المطعم' : 'Error deleting restaurant', { description: err.message }),
+  });
+  const createCafeMutation = trpc.cafes.create.useMutation({
+    onSuccess: () => { refetchCafes(); resetForm(); toast.success(lang === 'ar' ? 'تمت إضافة المقهى بنجاح' : 'Café added successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ في إضافة المقهى' : 'Error adding café', { description: err.message }),
+  });
+  const updateCafeMutation = trpc.cafes.update.useMutation({
+    onSuccess: () => { refetchCafes(); resetForm(); toast.success(lang === 'ar' ? 'تم تحديث المقهى بنجاح' : 'Café updated successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ في تحديث المقهى' : 'Error updating café', { description: err.message }),
+  });
+  const deleteCafeMutation = trpc.cafes.delete.useMutation({
+    onSuccess: () => { refetchCafes(); setExpandedId(null); toast.success(lang === 'ar' ? 'تم حذف المقهى بنجاح' : 'Café deleted successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ في حذف المقهى' : 'Error deleting café', { description: err.message }),
+  });
+
   // Reset form
   const resetForm = () => {
     setFormData({
@@ -99,37 +140,80 @@ export default function CarOwnerDashboard() {
       fuel: { ar: '', en: '', fr: '', ber: '' },
       type: '',
       price: { ar: '', en: '', fr: '', ber: '' },
+      cuisine: { ar: '', en: '', fr: '', ber: '' },
+      location: { ar: '', en: '', fr: '', ber: '' },
+      rating: '4.5',
+      hours: '',
       phone: '',
     });
     setEditingId(null);
     setShowForm(false);
   };
 
+  // Track which entity type the shared form targets: 'car' | 'restaurant' | 'cafe'
+  const [formKind, setFormKind] = useState<'car' | 'restaurant' | 'cafe'>('car');
+
   // Open add form
-  const openAddForm = () => {
+  const openAddForm = (kind: 'car' | 'restaurant' | 'cafe' = 'car') => {
     resetForm();
+    setFormKind(kind);
     setShowForm(true);
   };
 
   // Open edit form
-  const openEditForm = (car: any) => {
+  const openEditForm = (item: any, kind: 'car' | 'restaurant' | 'cafe' = 'car') => {
+    setFormKind(kind);
     setFormData({
-      img: car.image || '',
-      name: { ar: car.nameAr, en: car.nameEn, fr: car.nameFr, ber: car.nameBer },
-      desc: { ar: car.descriptionAr || '', en: car.descriptionEn || '', fr: car.descriptionFr || '', ber: car.descriptionBer || '' },
-      seats: { ar: car.seats, en: car.seats, fr: car.seats, ber: car.seats },
-      fuel: { ar: car.fuel, en: car.fuel, fr: car.fuel, ber: car.fuel },
-      type: car.typeAr,
-      price: { ar: car.priceAr, en: car.priceEn, fr: car.priceFr, ber: car.priceBer },
-      phone: car.phone || '',
+      img: item.image || '',
+      name: { ar: item.nameAr, en: item.nameEn, fr: item.nameFr, ber: item.nameBer },
+      desc: { ar: item.descriptionAr || '', en: item.descriptionEn || '', fr: item.descriptionFr || '', ber: item.descriptionBer || '' },
+      seats: { ar: item.seats ?? '', en: item.seats ?? '', fr: item.seats ?? '', ber: item.seats ?? '' },
+      fuel: { ar: item.fuel ?? '', en: item.fuel ?? '', fr: item.fuel ?? '', ber: item.fuel ?? '' },
+      type: kind === 'car' ? item.typeAr : '',
+      price: kind === 'car' ? { ar: item.priceAr ?? '', en: item.priceEn ?? '', fr: item.priceFr ?? '', ber: item.priceBer ?? '' } : { ar: '', en: '', fr: '', ber: '' },
+      cuisine: { ar: item.cuisineAr ?? '', en: item.cuisineEn ?? '', fr: item.cuisineFr ?? '', ber: item.cuisineBer ?? '' },
+      location: { ar: item.locationAr ?? '', en: item.locationEn ?? '', fr: item.locationFr ?? '', ber: item.locationBer ?? '' },
+      rating: item.rating ?? '4.5',
+      hours: item.hours ?? '',
+      phone: item.phone || '',
     });
-    setEditingId(car.id);
+    setEditingId(item.id);
     setShowForm(true);
     setExpandedId(null);
   };
 
-  // Submit form (add or update)
+  // Restaurant / cafe helpers
+  const openEditRestaurant = (item: any) => openEditForm(item, 'restaurant');
+  const openEditCafe = (item: any) => openEditForm(item, 'cafe');
+  const handleDeleteRestaurant = (id: number) => {
+    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا المطعم؟' : 'Delete this restaurant?')) deleteRestaurantMutation.mutate({ id });
+  };
+  const handleDeleteCafe = (id: number) => {
+    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا المقهى؟' : 'Delete this café?')) deleteCafeMutation.mutate({ id });
+  };
+
+  // Submit form (add or update) — supports cars, restaurants, and cafes
   const handleSubmit = () => {
+    const base = {
+      image: formData.img,
+      nameAr: formData.name.ar, nameEn: formData.name.en, nameFr: formData.name.fr, nameBer: formData.name.ber,
+      descriptionAr: formData.desc.ar, descriptionEn: formData.desc.en, descriptionFr: formData.desc.fr, descriptionBer: formData.desc.ber,
+      locationAr: formData.location.ar, locationEn: formData.location.en, locationFr: formData.location.fr, locationBer: formData.location.ber,
+      rating: formData.rating,
+      hours: formData.hours,
+      phone: formData.phone,
+    };
+    if (formKind === 'restaurant') {
+      const payload = { ...base, cuisineAr: formData.cuisine.ar, cuisineEn: formData.cuisine.en, cuisineFr: formData.cuisine.fr, cuisineBer: formData.cuisine.ber };
+      if (editingId !== null) updateRestaurantMutation.mutate({ id: editingId, ...payload } as any);
+      else createRestaurantMutation.mutate(payload as any);
+      return;
+    }
+    if (formKind === 'cafe') {
+      if (editingId !== null) updateCafeMutation.mutate({ id: editingId, ...base } as any);
+      else createCafeMutation.mutate(base as any);
+      return;
+    }
     if (editingId !== null) {
       updateCarMutation.mutate({
         id: editingId,
@@ -247,6 +331,22 @@ export default function CarOwnerDashboard() {
     emptyBookings: { ar: 'لا توجد حجوزات حتى الآن', en: 'No bookings yet', fr: 'Aucune réservation', ber: 'ⵓⵍⵍⵉⵏ ⵉⵙⵏⴷⵇⵏ' },
     bookingsHint: { ar: 'الحجوزات الجديدة تظهر هنا — تحقق من الدفع عند وصول العميل وسجله', en: 'New bookings appear here — verify payment on arrival and record it', fr: 'Les nouvelles réservations apparaissent ici — vérifiez le paiement à l\'arrivée', ber: 'ⵉⵙⵏⴷⵇⵏ ⵉⵎⴰⵢⵏⵓⵜⵏ ⴷⴰ ⵉⵜⵜⴰⴼⴼⵏ' },
     needLogin: { ar: 'سجل الدخول لرؤية الحجوزات', en: 'Log in to view bookings', fr: 'Connectez-vous pour voir les réservations', ber: 'ⵙⵜⵉⵏ ⴰⵅⵛⵓⵎ' },
+    tabRestaurants: { ar: 'المطاعم', en: 'Restaurants', fr: 'Restaurants', ber: 'ⵉⵎⵙⵙⴽⵜⵏ' },
+    tabCafes: { ar: 'المقاهي', en: 'Cafés', fr: 'Cafés', ber: 'ⵉⵇⵀⵡⴰⵢⵏ' },
+    addRestaurant: { ar: 'إضافة مطعم', en: 'Add Restaurant', fr: 'Ajouter Restaurant', ber: 'ⵔⵏⵓ ⵉⵎⵙⵙⴽ' },
+    addCafe: { ar: 'إضافة مقهى', en: 'Add Café', fr: 'Ajouter Café', ber: 'ⵔⵏⵓ ⴰⵇⵀⵡⴰ' },
+    editRestaurant: { ar: 'تعديل المطعم', en: 'Edit Restaurant', fr: 'Modifier Restaurant', ber: 'ⵙⵏⴼⵍ ⵉⵎⵙⵙⴽ' },
+    editCafe: { ar: 'تعديل المقهى', en: 'Edit Café', fr: 'Modifier Café', ber: 'ⵙⵏⴼⵍ ⴰⵇⵀⵡⴰ' },
+    emptyRestaurant: { ar: 'لا توجد مطاعم. أضف مطعمك!', en: 'No restaurants yet. Add yours!', fr: 'Aucun restaurant. Ajoutez le vôtre!', ber: 'ⵓⵍⵍⵉⵏ ⵉⵎⵙⵙⴽⵜⵏ' },
+    emptyCafe: { ar: 'لا توجد مقاهي. أضف مقهاك!', en: 'No cafés yet. Add yours!', fr: 'Aucun café. Ajoutez le vôtre!', ber: 'ⵓⵍⵍⵉⵏ ⵉⵇⵀⵡⴰⵢⵏ' },
+    cuisine: { ar: 'نوع المأكولات', en: 'Cuisine', fr: 'Cuisine', ber: 'ⵜⴰⵎⴰⵛⴰⵏⵜ' },
+    location: { ar: 'المكان', en: 'Location', fr: 'Lieu', ber: 'ⴰⵏⵙⴰ' },
+    rating: { ar: 'التقييم', en: 'Rating', fr: 'Note', ber: 'ⴰⵙⵡⵓⴷⴷⵓ' },
+    hours: { ar: 'أوقات العمل', en: 'Working Hours', fr: 'Heures d\'ouverture', ber: 'ⴰⴽⵓⴷ ⵏ ⵜⵡⵓⵔⵉ' },
+    confirmDeleteRestaurant: { ar: 'هل أنت متأكد؟ سيتم حذف هذا المطعم', en: 'Are you sure? This restaurant will be deleted', fr: 'Êtes-vous sûr? Ce restaurant sera supprimé', ber: 'ⵉⵙⵙⵏⴽⴽ ⵜⴳⵉⴷ? ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⵉⵎⵙⵙⴽ' },
+    confirmDeleteCafe: { ar: 'هل أنت متأكد؟ سيتم حذف هذا المقهى', en: 'Are you sure? This café will be deleted', fr: 'Êtes-vous sûr? Ce café sera supprimé', ber: 'ⵉⵙⵙⵏⴽⴽ ⵜⴳⵉⴷ? ⴰⴷ ⵉⵜⵜⵡⴰⴽⴽⵙ ⴰⵇⵀⵡⴰ' },
+    bookingTypeRestaurant: { ar: 'مطعم', en: 'Restaurant', fr: 'Restaurant', ber: 'ⵉⵎⵙⵙⴽ' },
+    bookingTypeCafe: { ar: 'مقهى', en: 'Café', fr: 'Café', ber: 'ⴰⵇⵀⵡⴰ' },
   };
 
   const l = (key: keyof typeof labels) => labels[key][lang as Lang] || labels[key].en;
@@ -314,6 +414,22 @@ export default function CarOwnerDashboard() {
               <Car className="w-4 h-4 inline me-1.5" />{l('tabCars')}
             </button>
             <button
+              onClick={() => setActiveTab('restaurants')}
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'restaurants' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Utensils className="w-4 h-4 inline me-1.5" />{l('tabRestaurants')}
+            </button>
+            <button
+              onClick={() => setActiveTab('cafes')}
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'cafes' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Coffee className="w-4 h-4 inline me-1.5" />{l('tabCafes')}
+            </button>
+            <button
               onClick={() => setActiveTab('bookings')}
               className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
                 activeTab === 'bookings' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
@@ -327,13 +443,33 @@ export default function CarOwnerDashboard() {
         {/* Action Buttons (cars tab) */}
         {activeTab === 'cars' && (
           <div className="flex flex-wrap gap-3 mb-8 justify-center">
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={openAddForm} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openAddForm('car')} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
               <Plus className="w-4 h-4" />
               {l('addCar')}
             </motion.button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowResetConfirm(true)} className="px-5 py-2.5 bg-white/10 text-white rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10">
               <RotateCcw className="w-4 h-4" />
               {l('resetDefault')}
+            </motion.button>
+          </div>
+        )}
+
+        {/* Action Buttons (restaurants tab) */}
+        {activeTab === 'restaurants' && (
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openAddForm('restaurant')} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
+              <Plus className="w-4 h-4" />
+              {l('addRestaurant')}
+            </motion.button>
+          </div>
+        )}
+
+        {/* Action Buttons (cafes tab) */}
+        {activeTab === 'cafes' && (
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openAddForm('cafe')} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
+              <Plus className="w-4 h-4" />
+              {l('addCafe')}
             </motion.button>
           </div>
         )}
@@ -367,7 +503,7 @@ export default function CarOwnerDashboard() {
                           <span className="text-white/40 text-xs block">{l('bookingItem')}</span>
                           <p className="text-white text-sm font-semibold">{b.itemName}</p>
                           <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${b.type === 'hotel' ? 'bg-[#1b5e3f] text-[#c8a951]' : 'bg-[#c8a951] text-[#1b5e3f]'}`}>
-                            {b.type === 'hotel' ? l('bookingTypeHotel') : l('bookingTypeCar')}
+                            {b.type === 'hotel' ? l('bookingTypeHotel') : b.type === 'restaurant' ? l('bookingTypeRestaurant') : b.type === 'cafe' ? l('bookingTypeCafe') : l('bookingTypeCar')}
                           </span>
                         </div>
                         <div>
@@ -425,6 +561,7 @@ export default function CarOwnerDashboard() {
         )}
 
         {/* Cars List */}
+        {activeTab === 'cars' && (
         <div className="max-w-3xl mx-auto space-y-3">
           {cars.length === 0 && (
             <div className="text-center py-12 text-white/60">
@@ -497,6 +634,145 @@ export default function CarOwnerDashboard() {
             ))}
           </AnimatePresence>
         </div>
+        )}
+
+        {/* Restaurants List */}
+        {activeTab === 'restaurants' && (
+        <div className="max-w-3xl mx-auto space-y-3">
+          {restaurants.length === 0 && (
+            <div className="text-center py-12 text-white/60">
+              <Utensils className="w-12 h-12 mx-auto mb-3 opacity-40" />
+              <p>{l('emptyRestaurant')}</p>
+            </div>
+          )}
+          <AnimatePresence>
+            {restaurants.map((item: any, i: number) => (
+              <motion.div key={item.id} initial={{ opacity: 0, x: isRTL ? 30 : -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isRTL ? -30 : 30 }} transition={{ delay: i * 0.05 }} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+                <div className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}>
+                  <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
+                    {item.image ? (
+                      <img src={item.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Image className="w-full h-full p-3 text-white/30" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-sm truncate">{lang === 'ar' ? item.nameAr : lang === 'fr' ? item.nameFr : lang === 'ber' ? item.nameBer : item.nameEn}</p>
+                    <p className="text-white/50 text-xs">{lang === 'ar' ? item.locationAr : lang === 'fr' ? item.locationFr : lang === 'ber' ? item.locationBer : item.locationEn}</p>
+                  </div>
+                  <div className="text-[#c8a951] font-bold text-sm">★ {Number(item.rating) || item.rating}</div>
+                  <motion.div animate={{ rotate: expandedId === item.id ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown className="w-4 h-4 text-white/50" />
+                  </motion.div>
+                </div>
+                <AnimatePresence>
+                  {expandedId === item.id && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                      <div className="px-4 pb-4 pt-2 border-t border-white/10">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-xs">
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('cuisine')}</span>
+                            <span className="text-white text-sm font-medium">{lang === 'ar' ? item.cuisineAr : lang === 'fr' ? item.cuisineFr : lang === 'ber' ? item.cuisineBer : item.cuisineEn}</span>
+                          </div>
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('hours')}</span>
+                            <span className="text-white text-sm font-medium">{item.hours}</span>
+                          </div>
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('phone')}</span>
+                            <span className="text-white text-sm font-medium">{item.phone}</span>
+                          </div>
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('desc')}</span>
+                            <span className="text-white text-xs truncate block">{lang === 'ar' ? item.descriptionAr : lang === 'fr' ? item.descriptionFr : lang === 'ber' ? item.descriptionBer : item.descriptionEn}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={(e) => { e.stopPropagation(); openEditRestaurant(item); }} className="flex-1 py-2 bg-[#c8a951]/20 text-[#c8a951] rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-[#c8a951]/30 transition-colors">
+                            <Pencil className="w-3.5 h-3.5" />
+                            {l('edit')}
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteRestaurant(item.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                            {l('delete')}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+        )}
+
+        {/* Cafes List */}
+        {activeTab === 'cafes' && (
+        <div className="max-w-3xl mx-auto space-y-3">
+          {cafes.length === 0 && (
+            <div className="text-center py-12 text-white/60">
+              <Coffee className="w-12 h-12 mx-auto mb-3 opacity-40" />
+              <p>{l('emptyCafe')}</p>
+            </div>
+          )}
+          <AnimatePresence>
+            {cafes.map((item: any, i: number) => (
+              <motion.div key={item.id} initial={{ opacity: 0, x: isRTL ? 30 : -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: isRTL ? -30 : 30 }} transition={{ delay: i * 0.05 }} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+                <div className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}>
+                  <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
+                    {item.image ? (
+                      <img src={item.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Image className="w-full h-full p-3 text-white/30" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-sm truncate">{lang === 'ar' ? item.nameAr : lang === 'fr' ? item.nameFr : lang === 'ber' ? item.nameBer : item.nameEn}</p>
+                    <p className="text-white/50 text-xs">{lang === 'ar' ? item.locationAr : lang === 'fr' ? item.locationFr : lang === 'ber' ? item.locationBer : item.locationEn}</p>
+                  </div>
+                  <div className="text-[#c8a951] font-bold text-sm">★ {Number(item.rating) || item.rating}</div>
+                  <motion.div animate={{ rotate: expandedId === item.id ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <ChevronDown className="w-4 h-4 text-white/50" />
+                  </motion.div>
+                </div>
+                <AnimatePresence>
+                  {expandedId === item.id && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                      <div className="px-4 pb-4 pt-2 border-t border-white/10">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3 text-xs">
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('hours')}</span>
+                            <span className="text-white text-sm font-medium">{item.hours}</span>
+                          </div>
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('phone')}</span>
+                            <span className="text-white text-sm font-medium">{item.phone}</span>
+                          </div>
+                          <div className="bg-white/5 rounded-lg p-2">
+                            <span className="text-white/40 block">{l('desc')}</span>
+                            <span className="text-white text-xs truncate block">{lang === 'ar' ? item.descriptionAr : lang === 'fr' ? item.descriptionFr : lang === 'ber' ? item.descriptionBer : item.descriptionEn}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={(e) => { e.stopPropagation(); openEditCafe(item); }} className="flex-1 py-2 bg-[#c8a951]/20 text-[#c8a951] rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-[#c8a951]/30 transition-colors">
+                            <Pencil className="w-3.5 h-3.5" />
+                            {l('edit')}
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteCafe(item.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                            {l('delete')}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+        )}
 
         {/* Add/Edit Form Modal */}
         <AnimatePresence>
@@ -518,11 +794,13 @@ export default function CarOwnerDashboard() {
                     <input type="url" value={formData.img} onChange={(e) => setFormData({ ...formData, img: e.target.value })} placeholder="https://example.com/image.jpg" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
 
-                  {/* Type */}
+                  {/* Type (cars only) */}
+                  {formKind === 'car' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('type')}</label>
                     <input type="text" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} placeholder="SUV / 4x4 / Economy / Luxury" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
+                  )}
 
                   {/* Name fields per language */}
                   <div>
@@ -540,7 +818,16 @@ export default function CarOwnerDashboard() {
                     <textarea value={formData.desc.ar} onChange={(e) => setFormData({ ...formData, desc: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} rows={2} placeholder={l('desc')} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
                   </div>
 
-                  {/* Seats & Fuel */}
+                  {/* Cuisine (restaurants only) */}
+                  {formKind === 'restaurant' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{l('cuisine')}</label>
+                    <input type="text" value={formData.cuisine.ar} onChange={(e) => setFormData({ ...formData, cuisine: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} placeholder={lang === 'ar' ? 'مثال: أمازيغي تقليدي' : 'e.g. Traditional Amazigh'} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
+                  </div>
+                  )}
+
+                  {/* Seats & Fuel (cars only) */}
+                  {formKind === 'car' && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">{l('seats')}</label>
@@ -551,8 +838,10 @@ export default function CarOwnerDashboard() {
                       <input type="text" value={formData.fuel.ar} onChange={(e) => setFormData({ ...formData, fuel: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} placeholder={l('fuelHint')} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
                     </div>
                   </div>
+                  )}
 
-                  {/* Price */}
+                  {/* Price (cars only) */}
+                  {formKind === 'car' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('price')}</label>
                     <div className="grid grid-cols-2 gap-2">
@@ -560,6 +849,29 @@ export default function CarOwnerDashboard() {
                       <input type="text" value={formData.price.en} onChange={(e) => setFormData({ ...formData, price: { ...formData.price, en: e.target.value } })} placeholder="400 MAD/day" className="px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
                     </div>
                   </div>
+                  )}
+
+                  {/* Rating & Hours (restaurants & cafes) */}
+                  {formKind !== 'car' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{l('rating')}</label>
+                      <input type="number" step="0.1" min="1" max="5" value={formData.rating} onChange={(e) => setFormData({ ...formData, rating: e.target.value })} placeholder="4.5" className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{l('hours')}</label>
+                      <input type="text" value={formData.hours} onChange={(e) => setFormData({ ...formData, hours: e.target.value })} placeholder="9:00 - 23:00" className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-xs" />
+                    </div>
+                  </div>
+                  )}
+
+                  {/* Location (restaurants & cafes) */}
+                  {formKind !== 'car' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{l('location')}</label>
+                    <input type="text" value={formData.location.ar} onChange={(e) => setFormData({ ...formData, location: { ar: e.target.value, en: e.target.value, fr: e.target.value, ber: e.target.value } })} placeholder={lang === 'ar' ? 'مثال: وسط مدينة أزيلال' : 'e.g. Azilal City Center'} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
+                  </div>
+                  )}
 
                   {/* Phone */}
                   <div>

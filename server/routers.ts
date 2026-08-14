@@ -8,8 +8,11 @@ import { z } from "zod";
 import {
   getAllCars, getCarById, createCar, updateCar, deleteCar,
   getAllHotels, getHotelById, createHotel, updateHotel, deleteHotel,
+  getAllRestaurants, getRestaurantById, createRestaurant, updateRestaurant, deleteRestaurant,
+  getAllCafes, getCafeById, createCafe, updateCafe, deleteCafe,
   createBooking, getAllBookings, updateBooking, markBookingPaid, confirmBooking, getBookingById,
   getGuestBookings, cancelBooking,
+  getMyRestaurants, getMyCafes,
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
@@ -238,6 +241,110 @@ export const appRouter = router({
       }),
   }),
 
+  restaurants: router({
+    list: publicProcedure.query(async () => {
+      return getAllRestaurants();
+    }),
+    create: ownerProcedure
+      .input(z.object({
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        locationAr: z.string().max(MAX_NAME).optional(), locationEn: z.string().max(MAX_NAME).optional(),
+        locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
+        cuisineAr: z.string().max(MAX_SHORT).optional(), cuisineEn: z.string().max(MAX_SHORT).optional(),
+        cuisineFr: z.string().max(MAX_SHORT).optional(), cuisineBer: z.string().max(MAX_SHORT).optional(),
+        rating: z.string().max(10).default('4.5'),
+        hours: z.string().max(MAX_SHORT).default('9:00 - 23:00'),
+        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await createRestaurant({ ...input, ownerId: ctx.user.id } as any);
+        return { success: true } as const;
+      }),
+    update: ownerProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        locationAr: z.string().max(MAX_NAME).optional(), locationEn: z.string().max(MAX_NAME).optional(),
+        locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
+        cuisineAr: z.string().max(MAX_SHORT).optional(), cuisineEn: z.string().max(MAX_SHORT).optional(),
+        cuisineFr: z.string().max(MAX_SHORT).optional(), cuisineBer: z.string().max(MAX_SHORT).optional(),
+        rating: z.string().max(10),
+        hours: z.string().max(MAX_SHORT),
+        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { id, ...data } = input;
+        const restaurant = await getRestaurantById(id);
+        await requireOwnership({ user: ctx.user } as any, restaurant as any, "restaurant");
+        await updateRestaurant(id, data);
+        return { success: true } as const;
+      }),
+    delete: ownerProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const restaurant = await getRestaurantById(input.id);
+        await requireOwnership({ user: ctx.user } as any, restaurant as any, "restaurant");
+        await deleteRestaurant(input.id);
+        return { success: true } as const;
+      }),
+  }),
+
+  cafes: router({
+    list: publicProcedure.query(async () => {
+      return getAllCafes();
+    }),
+    create: ownerProcedure
+      .input(z.object({
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        locationAr: z.string().max(MAX_NAME).optional(), locationEn: z.string().max(MAX_NAME).optional(),
+        locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
+        rating: z.string().max(10).default('4.5'),
+        hours: z.string().max(MAX_SHORT).default('8:00 - 24:00'),
+        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await createCafe({ ...input, ownerId: ctx.user.id } as any);
+        return { success: true } as const;
+      }),
+    update: ownerProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
+        nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
+        descriptionAr: z.string().max(MAX_TEXT).optional(), descriptionEn: z.string().max(MAX_TEXT).optional(),
+        descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
+        locationAr: z.string().max(MAX_NAME).optional(), locationEn: z.string().max(MAX_NAME).optional(),
+        locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
+        rating: z.string().max(10),
+        hours: z.string().max(MAX_SHORT),
+        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { id, ...data } = input;
+        const cafe = await getCafeById(id);
+        await requireOwnership({ user: ctx.user } as any, cafe as any, "cafe");
+        await updateCafe(id, data);
+        return { success: true } as const;
+      }),
+    delete: ownerProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const cafe = await getCafeById(input.id);
+        await requireOwnership({ user: ctx.user } as any, cafe as any, "cafe");
+        await deleteCafe(input.id);
+        return { success: true } as const;
+      }),
+  }),
+
   bookings: router({
     create: publicProcedure
       .input(z.object({
@@ -365,6 +472,14 @@ export const appRouter = router({
     myBookings: ownerProcedure.query(async ({ ctx }) => {
       if (ctx.user.role === "admin") return getAllBookings();
       return getMyBookings(ctx.user.id);
+    }),
+    myRestaurants: ownerProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role === "admin") return getAllRestaurants();
+      return getMyRestaurants(ctx.user.id);
+    }),
+    myCafes: ownerProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role === "admin") return getAllCafes();
+      return getMyCafes(ctx.user.id);
     }),
   }),
 });

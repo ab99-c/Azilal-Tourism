@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, cars, hotels, bookings, favorites, type Car, type Hotel, type Booking } from "../drizzle/schema";
+import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, type Car, type Hotel, type Restaurant, type Cafe, type Booking } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -179,6 +179,84 @@ export async function deleteHotel(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.delete(hotels).where(eq(hotels.id, id));
+}
+
+// ===== RESTAURANTS =====
+export async function getAllRestaurants() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(restaurants).where(eq(restaurants.isActive, true)).orderBy(desc(restaurants.createdAt));
+}
+
+export async function getRestaurantById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(restaurants).where(eq(restaurants.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getMyRestaurants(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(restaurants).where(eq(restaurants.ownerId, ownerId)).orderBy(desc(restaurants.createdAt));
+}
+
+export async function createRestaurant(data: Partial<Restaurant>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const ownerId = (data as any).ownerId ?? 1;
+  return db.insert(restaurants).values({ ...data, ownerId } as any);
+}
+
+export async function updateRestaurant(id: number, data: Partial<Restaurant>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(restaurants).set(data as any).where(eq(restaurants.id, id));
+}
+
+export async function deleteRestaurant(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(restaurants).where(eq(restaurants.id, id));
+}
+
+// ===== CAFES =====
+export async function getAllCafes() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt));
+}
+
+export async function getCafeById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(cafes).where(eq(cafes.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getMyCafes(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cafes).where(eq(cafes.ownerId, ownerId)).orderBy(desc(cafes.createdAt));
+}
+
+export async function createCafe(data: Partial<Cafe>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const ownerId = (data as any).ownerId ?? 1;
+  return db.insert(cafes).values({ ...data, ownerId } as any);
+}
+
+export async function updateCafe(id: number, data: Partial<Cafe>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(cafes).set(data as any).where(eq(cafes.id, id));
+}
+
+export async function deleteCafe(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(cafes).where(eq(cafes.id, id));
 }
 
 // ===== BOOKINGS =====

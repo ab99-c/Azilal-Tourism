@@ -110,4 +110,14 @@
 - [x] Frontend: Navbar shows "حجوزاتي / My Bookings" for logged-in users, "تسجيل الدخول / Login" for guests
 - [x] BookingModal passes guestUserId and invalidates guest bookings cache after success
 - [x] Tests (vitest): 8 guest-scoping + cancel-gating tests; all 38 tests passing across 6 files
+- [x] Checkpoint 2e008c5a saved (auto-published to azilaltour-j2sx2a5n.manus.space) + pushed to GitHub (ab99-c/Azilal-Tourism main)
+
+## User request: owner isolation for restaurants, cafes, and other businesses (cars/hotels already done)
+
+- [x] Audit restaurants/cafes schema and data: verify ownerId column exists, add if missing + migration (tables created, migrated, seeded 4 restaurants + 4 cafes with ownerId=1)
+- [x] Server: restaurants owner-scoped CRUD (ownerProcedure, requireOwnership) + dashboard.myRestaurants
+- [x] Server: cafes owner-scoped CRUD + dashboard.myCafes
+- [x] Frontend: owner dashboard section/tab for restaurants and cafes (add/edit/delete own listings)
+- [x] Frontend: RestaurantsSection/CafesSection read from trpc DB with static fallback
+- [x] Tests (vitest): restaurants-cafes-ownership.test.ts 9 tests — all 47 tests passing across 7 files
 - [ ] Checkpoint + push to GitHub

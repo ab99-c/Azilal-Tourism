@@ -139,3 +139,73 @@ export const hotels = mysqlTable("hotels", {
 
 export type Hotel = typeof hotels.$inferSelect;
 export type InsertHotel = typeof hotels.$inferInsert;
+
+/**
+ * Restaurants table - stores restaurant listings owned by individual owners.
+ */
+export const restaurants = mysqlTable("restaurants", {
+  id: int("id").autoincrement().primaryKey(),
+  nameAr: varchar("nameAr", { length: 255 }).notNull(),
+  nameEn: varchar("nameEn", { length: 255 }).notNull(),
+  nameFr: varchar("nameFr", { length: 255 }).notNull(),
+  nameBer: varchar("nameBer", { length: 255 }).notNull(),
+  descriptionAr: text("descriptionAr"),
+  descriptionEn: text("descriptionEn"),
+  descriptionFr: text("descriptionFr"),
+  descriptionBer: text("descriptionBer"),
+  locationAr: varchar("locationAr", { length: 255 }),
+  locationEn: varchar("locationEn", { length: 255 }),
+  locationFr: varchar("locationFr", { length: 255 }),
+  locationBer: varchar("locationBer", { length: 255 }),
+  cuisineAr: varchar("cuisineAr", { length: 255 }),
+  cuisineEn: varchar("cuisineEn", { length: 255 }),
+  cuisineFr: varchar("cuisineFr", { length: 255 }),
+  cuisineBer: varchar("cuisineBer", { length: 255 }),
+  rating: varchar("rating", { length: 10 }).notNull().default('4.5'),
+  hours: varchar("hours", { length: 50 }).notNull().default('9:00 - 23:00'),
+  phone: varchar("phone", { length: 50 }),
+  image: text("image"),
+  isActive: boolean("isActive").default(true).notNull(),
+  ownerId: int("ownerId").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  isActiveIdx: index("idx_restaurants_isActive").on(t.isActive),
+  ownerIdIdx: index("idx_restaurants_ownerId").on(t.ownerId),
+}));
+
+export type Restaurant = typeof restaurants.$inferSelect;
+export type InsertRestaurant = typeof restaurants.$inferInsert;
+
+/**
+ * Cafes table - stores cafe listings owned by individual owners.
+ */
+export const cafes = mysqlTable("cafes", {
+  id: int("id").autoincrement().primaryKey(),
+  nameAr: varchar("nameAr", { length: 255 }).notNull(),
+  nameEn: varchar("nameEn", { length: 255 }).notNull(),
+  nameFr: varchar("nameFr", { length: 255 }).notNull(),
+  nameBer: varchar("nameBer", { length: 255 }).notNull(),
+  descriptionAr: text("descriptionAr"),
+  descriptionEn: text("descriptionEn"),
+  descriptionFr: text("descriptionFr"),
+  descriptionBer: text("descriptionBer"),
+  locationAr: varchar("locationAr", { length: 255 }),
+  locationEn: varchar("locationEn", { length: 255 }),
+  locationFr: varchar("locationFr", { length: 255 }),
+  locationBer: varchar("locationBer", { length: 255 }),
+  rating: varchar("rating", { length: 10 }).notNull().default('4.5'),
+  hours: varchar("hours", { length: 50 }).notNull().default('8:00 - 24:00'),
+  phone: varchar("phone", { length: 50 }),
+  image: text("image"),
+  isActive: boolean("isActive").default(true).notNull(),
+  ownerId: int("ownerId").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  isActiveIdx: index("idx_cafes_isActive").on(t.isActive),
+  ownerIdIdx: index("idx_cafes_ownerId").on(t.ownerId),
+}));
+
+export type Cafe = typeof cafes.$inferSelect;
+export type InsertCafe = typeof cafes.$inferInsert;

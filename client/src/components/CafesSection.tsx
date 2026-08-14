@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Star, MapPin, Clock, Wifi, Coffee } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
-const cafes = [
+const fallbackCafes = [
   {
     img: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&q=80',
     name: {
@@ -107,29 +108,58 @@ const cafes = [
 
 export default function CafesSection() {
   const { t, lang } = useLanguage();
+  const { data: dbCafes, isLoading } = trpc.cafes.list.useQuery();
 
-  const getName = (item: typeof cafes[0]) => {
+  // Merge DB rows with the legacy static data as a fallback so nothing disappears.
+  const list = dbCafes && dbCafes.length > 0 ? dbCafes : fallbackCafes;
+  const fromDb = Boolean(dbCafes && dbCafes.length > 0);
+
+  const getName = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.nameAr;
+      if (lang === 'fr') return item.nameFr;
+      if (lang === 'ber') return item.nameBer;
+      return item.nameEn;
+    }
     if (lang === 'ar') return item.name.ar;
     if (lang === 'fr') return item.name.fr;
     if (lang === 'ber') return item.name.ber;
     return item.name.en;
   };
 
-  const getDesc = (item: typeof cafes[0]) => {
+  const getDesc = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.descriptionAr;
+      if (lang === 'fr') return item.descriptionFr;
+      if (lang === 'ber') return item.descriptionBer;
+      return item.descriptionEn;
+    }
     if (lang === 'ar') return item.desc.ar;
     if (lang === 'fr') return item.desc.fr;
     if (lang === 'ber') return item.desc.ber;
     return item.desc.en;
   };
 
-  const getLocation = (item: typeof cafes[0]) => {
+  const getLocation = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.locationAr;
+      if (lang === 'fr') return item.locationFr;
+      if (lang === 'ber') return item.locationBer;
+      return item.locationEn;
+    }
     if (lang === 'ar') return item.location.ar;
     if (lang === 'fr') return item.location.fr;
     if (lang === 'ber') return item.location.ber;
     return item.location.en;
   };
 
-  const getSpecialty = (item: typeof cafes[0]) => {
+  const getSpecialty = (item: any) => {
+    if (fromDb) {
+      if (lang === 'ar') return item.specialtyAr;
+      if (lang === 'fr') return item.specialtyFr;
+      if (lang === 'ber') return item.specialtyBer;
+      return item.specialtyEn;
+    }
     if (lang === 'ar') return item.specialty.ar;
     if (lang === 'fr') return item.specialty.fr;
     if (lang === 'ber') return item.specialty.ber;
@@ -157,9 +187,13 @@ export default function CafesSection() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {cafes.map((cafe, i) => (
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-[#f5f5f0] rounded-2xl overflow-hidden shadow-lg h-60 animate-pulse" />
+            ))
+          ) : list.length === 0 ? null : list.map((cafe: any, i: number) => (
             <motion.div
-              key={i}
+              key={cafe.id ?? i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -168,13 +202,14 @@ export default function CafesSection() {
             >
               <div className="relative h-44 overflow-hidden">
                 <img
-                  src={cafe.img}
+                  src={fromDb ? (cafe.image || '') : cafe.img}
                   alt={getName(cafe)}
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 font-bold text-sm text-[#c8a951]">
                   <Star className="w-3.5 h-3.5 fill-[#c8a951]" />
-                  {cafe.rating}
+                  {Number(cafe.rating) ?? cafe.rating}
                 </div>
                 {cafe.hasWifi && (
                   <div className="absolute top-3 right-3 w-8 h-8 bg-[#1b5e3f] rounded-full flex items-center justify-center">
