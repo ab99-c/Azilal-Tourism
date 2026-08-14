@@ -43,10 +43,12 @@ export const cars = mysqlTable("cars", {
   phone: varchar("phone", { length: 50 }),
   image: text("image"),
   isActive: boolean("isActive").default(true).notNull(),
+  ownerId: int("ownerId").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => ({
   isActiveIdx: index("idx_cars_isActive").on(t.isActive),
+  ownerIdIdx: index("idx_cars_ownerId").on(t.ownerId),
 }));
 
 export type Car = typeof cars.$inferSelect;
@@ -72,6 +74,8 @@ export const bookings = mysqlTable("bookings", {
   paymentMethod: mysqlEnum("paymentMethod", ["pay_on_arrival"]).default("pay_on_arrival").notNull(),
   paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid"]).default("unpaid").notNull(),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
+  itemId: int("itemId").default(0).notNull(),
+  ownerId: int("ownerId").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (t) => ({
   typeIdx: index("idx_bookings_type").on(t.type),
@@ -122,10 +126,12 @@ export const hotels = mysqlTable("hotels", {
   amenities: json("amenities"),
   image: text("image"),
   isActive: boolean("isActive").default(true).notNull(),
+  ownerId: int("ownerId").default(1).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => ({
   isActiveIdx: index("idx_hotels_isActive").on(t.isActive),
+  ownerIdIdx: index("idx_hotels_ownerId").on(t.ownerId),
 }));
 
 export type Hotel = typeof hotels.$inferSelect;

@@ -1,6 +1,24 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import { TRPCError } from "@trpc/server";
+
+// Mock DB so create does not hit the real database
+vi.mock("./db", async importOriginal => {
+  const actual = await importOriginal<typeof import("./db")>();
+  return {
+    ...actual,
+    createBooking: vi.fn(async (input: any) => input),
+    getBookingById: vi.fn(async (id: number) => ({ id, ownerId: 1, status: "pending", paymentStatus: "unpaid" })),
+    getCarById: vi.fn(async () => ({ id: 1, ownerId: 1, isActive: true })),
+    getHotelById: vi.fn(async () => ({ id: 1, ownerId: 1, isActive: true })),
+    markBookingPaid: vi.fn(async (id: number) => ({ id })),
+    confirmBooking: vi.fn(async (id: number) => ({ id })),
+    getAllCars: vi.fn(async () => []),
+    getUserFavorites: vi.fn(async () => []),
+    addFavorite: vi.fn(async () => ({ success: true })),
+    removeFavorite: vi.fn(async () => ({ success: true })),
+  };
+});
 
 function createContext(overrides: any = {}) {
   return {
@@ -16,19 +34,22 @@ function createCaller(ctx: any = {}) {
 }
 
 describe("admin authorization gating", () => {
-  it("public user cannot create a car", async () => {
-    const caller = createCaller({ user: { openId: "public-1", role: "user" } });
+  const adminUser = { id: 1, openId: "admin-1", name: "Admin", email: "a@x.com", loginMethod: "manus", role: "admin", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
+  const otherUser = { id: 2, openId: "owner-2", name: "Other", email: "o@x.com", loginMethod: "manus", role: "user", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
+
+  it("unauthenticated visitor cannot create a car", async () => {
+    const caller = createCaller({ user: null });
     await expect(
       caller.cars.create({
         nameAr: "ت", nameEn: "x", nameFr: "x", nameBer: "x",
         typeAr: "a", typeEn: "a", typeFr: "a", typeBer: "a",
         price: "100 MAD",
       }),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
-  it("admin can create a car (invalidation runs)", async () => {
-    const caller = createCaller({ user: { openId: "owner-1", role: "admin" } });
+  it("logged-in owner can create a car they own", async () => {
+    const caller = createCaller({ user: otherUser });
     const result = await caller.cars.create({
       nameAr: "تست", nameEn: "test", nameFr: "test", nameBer: "test",
       typeAr: "a", typeEn: "a", typeFr: "a", typeBer: "a",
@@ -49,7 +70,8 @@ describe("admin authorization gating", () => {
 });
 
 describe("booking input validation", () => {
-  const caller = createCaller();
+  const baseUser = { id: 1, openId: "u-1", name: "U", email: "u@x.com", loginMethod: "manus", role: "user", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
+  const caller = createCaller({ user: baseUser });
 
   it("rejects checkOut before checkIn", async () => {
     await expect(
@@ -78,8 +100,10 @@ describe("booking input validation", () => {
   });
 
   it("accepts valid booking", async () => {
-    const result = await caller.bookings.create({
+    const authenticatedCaller = createCaller({ user: { id: 1, openId: "u-1", name: "U", email: "u@x.com", loginMethod: "manus", role: "user", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() } });
+    const result = await authenticatedCaller.bookings.create({
       type: "hotel",
+      itemId: 1,
       itemName: "Hotel B",
       guestName: "Valid Guest",
       guestEmail: "valid@example.com",

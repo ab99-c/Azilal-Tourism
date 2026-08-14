@@ -8,9 +8,10 @@ import { z } from "zod";
 import {
   getAllCars, getCarById, createCar, updateCar, deleteCar,
   getAllHotels, getHotelById, createHotel, updateHotel, deleteHotel,
-  createBooking, getAllBookings, updateBooking, markBookingPaid, confirmBooking,
+  createBooking, getAllBookings, updateBooking, markBookingPaid, confirmBooking, getBookingById,
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, upsertUser,
+  getMyCars, getMyHotels, getMyBookings,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
 
@@ -25,6 +26,36 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   }
   return next({ ctx });
 });
+
+/**
+ * Owner-gated procedure: any logged-in user can create listings they own.
+ * Writes are scoped to the caller's userId (the owner).
+ */
+const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
+  return next({ ctx: { ...ctx, ownerId: ctx.user.id } });
+});
+
+/** Ensure the actor may mutate a listing: admin OR the item's owner. */
+async function requireOwnership(
+  ctx: any,
+  item: { ownerId: number } | undefined,
+  itemKind: string,
+) {
+  if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+  if (ctx.user.role !== "admin" && item.ownerId !== ctx.user.id) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
+  }
+}
+
+/** Resolve a booking and assert access: admin OR the booking's owner (item owner). */
+async function requireBookingAccess(ctx: any, id: number) {
+  const booking = await getBookingById(id);
+  if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "BOOKING_NOT_FOUND" });
+  if (ctx.user.role !== "admin" && booking.ownerId !== ctx.user.id) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
+  }
+  return booking;
+}
 
 // --- Query cache entries (principle #8: Caching) ---
 const carsListCache = cached<any[]>("cars:list");
@@ -86,7 +117,7 @@ export const appRouter = router({
       carsListCache.set(mapped);
       return mapped;
     }),
-    create: adminProcedure
+    create: ownerProcedure
       .input(z.object({
         nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
         nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
@@ -98,12 +129,12 @@ export const appRouter = router({
         price: z.string().max(MAX_SHORT), phone: z.string().max(MAX_SHORT).optional(),
         image: z.string().max(2000).optional(),
       }))
-      .mutation(async ({ input }) => {
-        await createCar(input);
+      .mutation(async ({ input, ctx }) => {
+        await createCar({ ...input, ownerId: ctx.user.id } as any);
         invalidateCache("cars");
         return { success: true } as const;
       }),
-    update: adminProcedure
+    update: ownerProcedure
       .input(z.object({
         id: z.number().int().positive(),
         nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
@@ -116,15 +147,19 @@ export const appRouter = router({
         price: z.string().max(MAX_SHORT), phone: z.string().max(MAX_SHORT).optional(),
         image: z.string().max(2000).optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;
+        const car = await getCarById(id);
+        await requireOwnership({ user: ctx.user } as any, car as any, "car");
         await updateCar(id, data);
         invalidateCache("cars");
         return { success: true } as const;
       }),
-    delete: adminProcedure
+    delete: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const car = await getCarById(input.id);
+        await requireOwnership({ user: ctx.user } as any, car as any, "car");
         await deleteCar(input.id);
         invalidateCache("cars");
         return { success: true } as const;
@@ -151,7 +186,7 @@ export const appRouter = router({
       hotelsListCache.set(mapped);
       return mapped;
     }),
-    create: adminProcedure
+    create: ownerProcedure
       .input(z.object({
         nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
         nameFr: z.string().max(MAX_NAME), nameBer: z.string().max(MAX_NAME),
@@ -164,12 +199,12 @@ export const appRouter = router({
         priceFr: z.string().max(MAX_SHORT), priceBer: z.string().max(MAX_SHORT),
         amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
-      .mutation(async ({ input }) => {
-        await createHotel(input);
+      .mutation(async ({ input, ctx }) => {
+        await createHotel({ ...input, ownerId: ctx.user.id } as any);
         invalidateCache("hotels");
         return { success: true } as const;
       }),
-    update: adminProcedure
+    update: ownerProcedure
       .input(z.object({
         id: z.number().int().positive(),
         nameAr: z.string().max(MAX_NAME), nameEn: z.string().max(MAX_NAME),
@@ -183,15 +218,19 @@ export const appRouter = router({
         priceFr: z.string().max(MAX_SHORT), priceBer: z.string().max(MAX_SHORT),
         amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;
+        const hotel = await getHotelById(id);
+        await requireOwnership({ user: ctx.user } as any, hotel as any, "hotel");
         await updateHotel(id, data);
         invalidateCache("hotels");
         return { success: true } as const;
       }),
-    delete: adminProcedure
+    delete: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const hotel = await getHotelById(input.id);
+        await requireOwnership({ user: ctx.user } as any, hotel as any, "hotel");
         await deleteHotel(input.id);
         invalidateCache("hotels");
         return { success: true } as const;
@@ -213,12 +252,23 @@ export const appRouter = router({
         guests: z.number().int().min(1).max(50).default(1),
         notes: z.string().max(MAX_TEXT).optional(),
         totalPrice: z.string().max(MAX_SHORT).optional(),
+        itemId: z.number().int().positive(),
       }).refine(d => {
         const a = new Date(d.checkIn);
         const b = new Date(d.checkOut);
         return !isNaN(a.getTime()) && !isNaN(b.getTime()) && b.getTime() >= a.getTime();
       }, { message: "checkOut must be after checkIn" }))
       .mutation(async ({ input }) => {
+        // Resolve the listing (car/hotel) so the booking is routed to its owner.
+        let ownerId = 1;
+        let itemId = 0;
+        if (input.type === 'car') {
+          const car = await getCarById(input.itemId);
+          if (car) { ownerId = car.ownerId; itemId = car.id; }
+        } else {
+          const hotel = await getHotelById(input.itemId);
+          if (hotel) { ownerId = hotel.ownerId; itemId = hotel.id; }
+        }
         await createBooking({
           type: input.type,
           itemName: input.itemName,
@@ -235,6 +285,8 @@ export const appRouter = router({
           paymentMethod: 'pay_on_arrival',
           paymentStatus: 'unpaid',
           status: 'pending',
+          ownerId,
+          itemId,
         } as any);
         return { success: true, message: 'Booking request submitted successfully' } as const;
       }),
@@ -242,17 +294,19 @@ export const appRouter = router({
     list: adminProcedure.query(async () => {
       return getAllBookings();
     }),
-    // Mark a booking as paid (admin only)
-    markPaid: adminProcedure
+    // Mark a booking as paid: admin OR the listing's owner
+    markPaid: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        await requireBookingAccess({ user: ctx.user } as any, input.id);
         await markBookingPaid(input.id);
         return { success: true } as const;
       }),
-    // Confirm a booking and mark it paid (admin only)
-    confirm: adminProcedure
+    // Confirm a booking and mark it paid: admin OR the listing's owner
+    confirm: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        await requireBookingAccess({ user: ctx.user } as any, input.id);
         await confirmBooking(input.id);
         return { success: true } as const;
       }),
@@ -272,6 +326,23 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return { success: true } as const;
       }),
+  }),
+
+  // Owner-scoped dashboard: each owner sees ONLY their own listings and bookings.
+  // Admins see everything (full listing), other users see nothing of their own.
+  dashboard: router({
+    myCars: ownerProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role === "admin") return getAllCars();
+      return getMyCars(ctx.user.id);
+    }),
+    myHotels: ownerProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role === "admin") return getAllHotels();
+      return getMyHotels(ctx.user.id);
+    }),
+    myBookings: ownerProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role === "admin") return getAllBookings();
+      return getMyBookings(ctx.user.id);
+    }),
   }),
 });
 

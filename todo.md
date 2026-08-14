@@ -74,3 +74,15 @@
 - [x] Fix: created users table per drizzle schema; verified row inserted for owner (role=admin)
 - [x] Verify: user row intact (role=admin) after migration, site renders OK, vitest 16/16 passing
 - [x] Checkpoint + push to GitHub
+
+## User request: dashboard must be per-owner (each owner controls only their own listings/bookings)
+
+- [x] Audit current permissions: who can create cars/hotels, whose bookings the dashboard shows
+- [x] Design: ownerId on cars/hotels; bookings carry ownerId + itemId; indexes added
+- [x] Server: car/hotel create/update/delete scoped to ownerProcedure with requireOwnership; create sets ownerId
+- [x] Server: bookings.create routes to item owner; markPaid/confirm gated by requireBookingAccess (owner OR admin)
+- [x] Site admin (you) can still see/manage everything via adminProcedure (dashboard.my* lists)
+- [x] Frontend: dashboard switched to trpc.dashboard.myCars/myHotels/myBookings (owner-scoped)
+- [x] Migration: SQL assigned existing cars/hotels ownerId=1 (site admin)
+- [x] Tests (vitest): server/ownership.test.ts 7 tests + suites updated — 24/24 passing
+- [x] Verify renders OK; Checkpoint + push to GitHub

@@ -148,6 +148,7 @@ export default function HotelsSection() {
         isOpen={!!selectedHotel}
         onClose={() => setSelectedHotel(null)}
         type="hotel"
+        itemId={selectedHotel?.id}
         itemName={selectedHotel ? getName(selectedHotel) : ''}
         price={selectedHotel ? getPrice(selectedHotel) : ''}
         image={selectedHotel?.img}

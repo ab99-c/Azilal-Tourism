@@ -9,12 +9,12 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   type: 'hotel' | 'car';
+  itemId?: number;
   itemName: string;
   price: string;
   image?: string;
 }
-
-export default function BookingModal({ isOpen, onClose, type, itemName, price, image }: BookingModalProps) {
+export default function BookingModal({ isOpen, onClose, type, itemId, itemName, price, image }: BookingModalProps) {
   const { lang, t } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -275,6 +275,7 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
     setIsSubmitting(true);
     createBookingMutation.mutate({
       type: type,
+      itemId: itemId ?? 0,
       itemName: itemName,
       guestName: formData.fullName,
       guestEmail: formData.email,

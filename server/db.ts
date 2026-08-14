@@ -89,6 +89,32 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+// ===== OWNERSHIP SCOPED QUERIES =====
+export async function getMyCars(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cars).where(eq(cars.ownerId, ownerId)).orderBy(desc(cars.createdAt));
+}
+
+export async function getMyHotels(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(hotels).where(eq(hotels.ownerId, ownerId)).orderBy(desc(hotels.createdAt));
+}
+
+export async function getMyBookings(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookings).where(eq(bookings.ownerId, ownerId)).orderBy(desc(bookings.createdAt));
+}
+
+export async function getBookingById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
 // ===== CARS =====
 export async function getAllCars() {
   const db = await getDb();
@@ -106,7 +132,8 @@ export async function getCarById(id: number) {
 export async function createCar(data: Partial<Car>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.insert(cars).values(data as any);
+  const ownerId = (data as any).ownerId ?? 1;
+  return db.insert(cars).values({ ...data, ownerId } as any);
 }
 
 export async function updateCar(id: number, data: Partial<Car>) {
@@ -138,7 +165,8 @@ export async function getHotelById(id: number) {
 export async function createHotel(data: Partial<Hotel>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.insert(hotels).values(data as any);
+  const ownerId = (data as any).ownerId ?? 1;
+  return db.insert(hotels).values({ ...data, ownerId } as any);
 }
 
 export async function updateHotel(id: number, data: Partial<Hotel>) {
@@ -157,7 +185,9 @@ export async function deleteHotel(id: number) {
 export async function createBooking(data: Partial<Booking>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.insert(bookings).values(data as any);
+  const ownerId = (data as any).ownerId ?? 1;
+  const itemId = (data as any).itemId ?? 0;
+  return db.insert(bookings).values({ ...data, ownerId, itemId } as any);
 }
 
 export async function getAllBookings() {

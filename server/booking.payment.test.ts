@@ -27,6 +27,9 @@ function createCtx(role: "admin" | "user"): TrpcContext {
 vi.mock("./db", () => ({
   createBooking: vi.fn(async (input: any) => input),
   getAllBookings: vi.fn(async () => []),
+  getBookingById: vi.fn(async (id: number) => ({ id, ownerId: 1, status: "pending", paymentStatus: "unpaid" })),
+  getCarById: vi.fn(async () => ({ id: 5, ownerId: 1, isActive: true })),
+  getHotelById: vi.fn(async () => ({ id: 3, ownerId: 1, isActive: true })),
   markBookingPaid: vi.fn(async (id: number) => ({ id, paymentStatus: "paid" })),
   confirmBooking: vi.fn(async (id: number) => ({ id, paymentStatus: "paid", status: "confirmed" })),
   getAllCars: vi.fn(async () => []),
@@ -48,6 +51,7 @@ describe("bookings.create payment fields", () => {
 
     const result = await caller.bookings.create({
       type: "hotel",
+      itemId: 3,
       itemName: "فندق أدرار",
       guestName: "Youssef B.",
       guestEmail: "youssef@example.com",
@@ -65,6 +69,8 @@ describe("bookings.create payment fields", () => {
     expect(persisted.status).toBe("pending");
     expect(persisted.totalPrice).toBe("900 MAD");
     expect(persisted.checkIn).toEqual(new Date("2026-09-01T14:00:00.000Z"));
+    expect(persisted.ownerId).toBe(1);
+    expect(persisted.itemId).toBe(3);
   });
 
   it("rejects checkOut before checkIn", async () => {
@@ -74,6 +80,7 @@ describe("bookings.create payment fields", () => {
     await expect(
       caller.bookings.create({
         type: "car",
+        itemId: 5,
         itemName: "Dacia Duster",
         guestName: "Youssef B.",
         guestEmail: "youssef@example.com",
@@ -91,6 +98,7 @@ describe("bookings.create payment fields", () => {
 
     const result = await caller.bookings.create({
       type: "hotel",
+      itemId: 3,
       itemName: "Hotel Test",
       guestName: "Amina A.",
       guestEmail: "amina@example.com",
@@ -132,12 +140,22 @@ describe("bookings admin payment actions", () => {
     expect(db.getAllBookings).not.toHaveBeenCalled();
   });
 
-  it("regular user cannot mark booking as paid", async () => {
+  it("regular user cannot mark booking as paid unless they are the owner", async () => {
     const { appRouter } = await import("./routers");
-    const caller = appRouter.createCaller(createCtx("user"));
+    // Booking ownerId is 1 in the mock; a DIFFERENT user (id 2) must be rejected
+    const caller = appRouter.createCaller({ ...createCtx("user"), user: { ...(createCtx("user").user as any), id: 2 } } as any);
 
     await expect(caller.bookings.markPaid({ id: 1 })).rejects.toThrow();
     expect(db.markBookingPaid).not.toHaveBeenCalled();
+  });
+
+  it("regular user who IS the booking owner can mark it as paid", async () => {
+    const { appRouter } = await import("./routers");
+    const caller = appRouter.createCaller(createCtx("user"));
+
+    const result = await caller.bookings.markPaid({ id: 1 });
+    expect(result.success).toBe(true);
+    expect(db.markBookingPaid).toHaveBeenCalledWith(1);
   });
 
   it("unauthenticated visitor cannot mark booking as paid", async () => {

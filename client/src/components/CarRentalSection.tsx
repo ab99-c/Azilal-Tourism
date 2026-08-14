@@ -303,7 +303,7 @@ export default function CarRentalSection() {
         )}
 
         {/* Booking Modal */}
-        <BookingModal isOpen={!!selectedCar} onClose={() => setSelectedCar(null)} type="car" itemName={selectedCar ? getName(selectedCar) : ''} price={selectedCar ? getPrice(selectedCar) : ''} image={selectedCar?.img} />
+        <BookingModal isOpen={!!selectedCar} onClose={() => setSelectedCar(null)} type="car" itemId={selectedCar?.id} itemName={selectedCar ? getName(selectedCar) : ''} price={selectedCar ? getPrice(selectedCar) : ''} image={selectedCar?.img} />
       </div>
     </section>
   );

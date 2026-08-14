@@ -22,8 +22,11 @@ type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
 export default function CarOwnerDashboard() {
   const { t, lang } = useLanguage();
-  const { data: carsData, refetch } = trpc.cars.list.useQuery();
-  const { data: bookingsData } = trpc.bookings.list.useQuery(undefined, {
+  const { data: dashboardData, refetch } = trpc.dashboard.myCars.useQuery(undefined, {
+    retry: false,
+  });
+  const { data: myHotels } = trpc.dashboard.myHotels.useQuery(undefined, { retry: false });
+  const { data: bookingsData } = trpc.dashboard.myBookings.useQuery(undefined, {
     retry: false,
   });
   const [cars, setCars] = useState<any[]>([]);
@@ -47,10 +50,10 @@ export default function CarOwnerDashboard() {
 
   // Load cars from database
   useEffect(() => {
-    if (carsData) {
-      setCars(carsData);
+    if (dashboardData) {
+      setCars(dashboardData);
     }
-  }, [carsData]);
+  }, [dashboardData]);
 
   // Mutations
   const createCarMutation = trpc.cars.create.useMutation({
@@ -180,7 +183,9 @@ export default function CarOwnerDashboard() {
   });
   const utils = trpc.useUtils();
   const refetchBookings = () => {
-    utils.bookings.list.invalidate();
+    utils.dashboard.myBookings.invalidate();
+    utils.dashboard.myCars.invalidate();
+    utils.dashboard.myHotels.invalidate();
   };
 
   const isAdmin = (() => {
