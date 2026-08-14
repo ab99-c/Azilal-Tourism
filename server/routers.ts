@@ -342,6 +342,15 @@ export const appRouter = router({
         invalidateCache("restaurants");
         return { success: true, url } as const;
       }),
+    removeImage: ownerProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const restaurant = await getRestaurantById(input.id);
+        await requireOwnership({ user: ctx.user } as any, restaurant as any, "restaurant");
+        await updateRestaurant(input.id, { image: null } as any);
+        invalidateCache("restaurants");
+        return { success: true } as const;
+      }),
   }),
 
   cafes: router({
@@ -417,6 +426,15 @@ export const appRouter = router({
         await updateCafe(input.id, { image: url } as any);
         invalidateCache("cafes");
         return { success: true, url } as const;
+      }),
+    removeImage: ownerProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const cafe = await getCafeById(input.id);
+        await requireOwnership({ user: ctx.user } as any, cafe as any, "cafe");
+        await updateCafe(input.id, { image: null } as any);
+        invalidateCache("cafes");
+        return { success: true } as const;
       }),
   }),
 

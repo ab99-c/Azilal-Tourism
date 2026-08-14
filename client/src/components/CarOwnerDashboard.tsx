@@ -140,6 +140,26 @@ export default function CarOwnerDashboard() {
     onError: (err) => toast.error(lang === 'ar' ? 'فشل رفع الصورة' : 'Failed to upload image', { description: err.message }),
   });
 
+  // Image removal (restaurants & cafes)
+  const removeRestaurantImageMutation = trpc.restaurants.removeImage.useMutation({
+    onSuccess: () => { refetchRestaurants(); toast.success(lang === 'ar' ? 'تم حذف الصورة بنجاح' : 'Image removed successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'فشل حذف الصورة' : 'Failed to remove image', { description: err.message }),
+  });
+  const removeCafeImageMutation = trpc.cafes.removeImage.useMutation({
+    onSuccess: () => { refetchCafes(); toast.success(lang === 'ar' ? 'تم حذف الصورة بنجاح' : 'Image removed successfully'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'فشل حذف الصورة' : 'Failed to remove image', { description: err.message }),
+  });
+  const handleRemoveRestaurantImage = (id: number) => {
+    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف الصورة؟' : 'Remove this photo?')) {
+      removeRestaurantImageMutation.mutate({ id });
+    }
+  };
+  const handleRemoveCafeImage = (id: number) => {
+    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف الصورة؟' : 'Remove this photo?')) {
+      removeCafeImageMutation.mutate({ id });
+    }
+  };
+
   // Convert a file to base64 data URL for upload
   const handleImageFile = (file: File) => {
     if (file.size > 4 * 1024 * 1024) {
@@ -413,6 +433,7 @@ export default function CarOwnerDashboard() {
     chooseFile: { ar: 'اختيار صورة من الجهاز', en: 'Choose Photo', fr: 'Choisir une photo', ber: 'ⵙⵜⵉ ⵜⵡⵍⴰⴼⵜ' },
     imgHint: { ar: 'JPG أو PNG أو WEBP — الحد الأقصى 4 ميغابايت', en: 'JPG, PNG or WEBP — max 4MB', fr: 'JPG, PNG ou WEBP — max 4Mo', ber: 'JPG/PNG/WEBP — ⴰⴼⵓⵙ 4MB' },
     uploadPhoto: { ar: 'رفع صورة', en: 'Upload Photo', fr: 'Téléverser', ber: 'ⵙⵍⵉ ⵜⵡⵍⴰⴼⵜ' },
+    removePhoto: { ar: 'حذف الصورة', en: 'Remove Photo', fr: 'Supprimer', ber: 'ⴽⴽⵙ ⵜⵡⵍⴰⴼⵜ' },
     tabCars: { ar: 'السيارات', en: 'Vehicles', fr: 'Véhicules', ber: 'ⵜⵙⵍⵍⴰⵙⵜ' },
     tabBookings: { ar: 'الحجوزات', en: 'Bookings', fr: 'Réservations', ber: 'ⵉⵙⵏⴷⵇⵏ' },
     bookingName: { ar: 'الاسم', en: 'Name', fr: 'Nom', ber: 'ⵉⵙⵎ' },
@@ -797,6 +818,12 @@ export default function CarOwnerDashboard() {
                             <Upload className="w-3.5 h-3.5" />
                             {l('uploadPhoto')}
                           </button>
+                          {item.image && (
+                            <button onClick={(e) => { e.stopPropagation(); handleRemoveRestaurantImage(item.id); }} disabled={removeRestaurantImageMutation.isPending} className="flex-1 py-2 bg-orange-500/20 text-orange-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-orange-500/30 transition-colors disabled:opacity-50">
+                              <Trash2 className="w-3.5 h-3.5" />
+                              {l('removePhoto')}
+                            </button>
+                          )}
                           <button onClick={(e) => { e.stopPropagation(); handleDeleteRestaurant(item.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                             {l('delete')}
@@ -868,6 +895,12 @@ export default function CarOwnerDashboard() {
                             <Upload className="w-3.5 h-3.5" />
                             {l('uploadPhoto')}
                           </button>
+                          {item.image && (
+                            <button onClick={(e) => { e.stopPropagation(); handleRemoveCafeImage(item.id); }} disabled={removeCafeImageMutation.isPending} className="flex-1 py-2 bg-orange-500/20 text-orange-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-orange-500/30 transition-colors disabled:opacity-50">
+                              <Trash2 className="w-3.5 h-3.5" />
+                              {l('removePhoto')}
+                            </button>
+                          )}
                           <button onClick={(e) => { e.stopPropagation(); handleDeleteCafe(item.id); }} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-red-500/30 transition-colors">
                             <Trash2 className="w-3.5 h-3.5" />
                             {l('delete')}

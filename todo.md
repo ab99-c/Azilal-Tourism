@@ -131,4 +131,12 @@
 - [x] Frontend: RestaurantsSection/CafesSection already render item.image — uploaded images display automatically
 - [x] Tests (vitest): image-upload.test.ts 7 tests — all 54 tests passing across 8 files
 - [x] Fixed flaky pre-existing test (stable ownerId in create-th-then-view test)
+- [x] Checkpoint 37aabdaa saved (auto-published) + pushed to GitHub (ab99-c/Azilal-Tourism main)
+
+## User request: remove image button for restaurant/cafe owners
+
+- [ ] Server: restaurants.removeImage procedure (ownerProcedure + ownership check, clear image column, invalidate cache)
+- [ ] Server: cafes.removeImage procedure (same)
+- [ ] Frontend: "حذف الصورة" button in restaurant/cafe list items and form (visible only when image exists)
+- [ ] Tests (vitest): removeImage ownership gating for restaurants & cafes
 - [ ] Checkpoint + push to GitHub

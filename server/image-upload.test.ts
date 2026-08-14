@@ -105,3 +105,69 @@ describe("cafes.uploadImage ownership gating", () => {
     }
   });
 });
+
+describe("restaurants.removeImage ownership gating", () => {
+  it("requires authentication", async () => {
+    const caller = appRouter.createCaller(makeCtx(null));
+    await expect(() => caller.restaurants.removeImage({ id: 1 })).rejects.toThrow(UNAUTHED_ERR_MSG);
+  });
+
+  it("rejects removal when the item belongs to another owner", async () => {
+    const restaurant = await createTestRestaurant();
+    try {
+      const caller = appRouter.createCaller(makeCtx({ id: OTHER_OWNER_ID, role: "user", openId: "other-test-user" }));
+      await expect(() => caller.restaurants.removeImage({ id: restaurant.id })).rejects.toThrow();
+      const stillHasImage = await getRestaurantById(restaurant.id);
+      expect((stillHasImage as any)?.image).toBeNull();
+    } finally {
+      await deleteRestaurant(restaurant.id);
+    }
+  });
+
+  it("allows the owner to remove their image", async () => {
+    const restaurant = await createTestRestaurant();
+    try {
+      // Give it an image first
+      const ownerCaller = appRouter.createCaller(makeCtx({ id: OWNER_ID, role: "user", openId: "owner-test-user" }));
+      const up = await ownerCaller.restaurants.uploadImage({ id: restaurant.id, base64: VALID_PNG_BASE64, fileName: "resto.png" });
+      expect(up.success).toBe(true);
+      const res = await ownerCaller.restaurants.removeImage({ id: restaurant.id });
+      expect(res.success).toBe(true);
+      const updated = await getRestaurantById(restaurant.id);
+      expect((updated as any)?.image).toBeNull();
+    } finally {
+      await deleteRestaurant(restaurant.id);
+    }
+  });
+});
+
+describe("cafes.removeImage ownership gating", () => {
+  it("requires authentication", async () => {
+    const caller = appRouter.createCaller(makeCtx(null));
+    await expect(() => caller.cafes.removeImage({ id: 1 })).rejects.toThrow(UNAUTHED_ERR_MSG);
+  });
+
+  it("rejects removal when the cafe belongs to another owner", async () => {
+    const cafe = await createTestCafe();
+    try {
+      const caller = appRouter.createCaller(makeCtx({ id: OTHER_OWNER_ID, role: "user", openId: "other-test-user" }));
+      await expect(() => caller.cafes.removeImage({ id: cafe.id })).rejects.toThrow();
+    } finally {
+      await deleteCafe(cafe.id);
+    }
+  });
+
+  it("allows the owner to remove their cafe image", async () => {
+    const cafe = await createTestCafe();
+    try {
+      const ownerCaller = appRouter.createCaller(makeCtx({ id: OWNER_ID, role: "user", openId: "owner-test-user" }));
+      await ownerCaller.cafes.uploadImage({ id: cafe.id, base64: VALID_PNG_BASE64, fileName: "cafe.png" });
+      const res = await ownerCaller.cafes.removeImage({ id: cafe.id });
+      expect(res.success).toBe(true);
+      const updated = await getCafeById(cafe.id);
+      expect((updated as any)?.image).toBeNull();
+    } finally {
+      await deleteCafe(cafe.id);
+    }
+  });
+});
