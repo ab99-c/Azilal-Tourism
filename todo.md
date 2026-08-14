@@ -145,4 +145,4 @@
 - [x] Frontend: LoginChoiceDialog with two options: "بغيت نحجز" (scrolls to #hotels sections) vs "عندي فندق/مقهى/سيارة" (scrolls to #owner-dashboard); skip option; remembered once per session (sessionStorage)
 - [x] Add language labels for the choice flow (AR/EN/FR/BER)
 - [x] Wired into Navbar: dialog auto-opens right after OAuth login completes (auth state change), once per session; owner-dashboard section got id="owner-dashboard"
-- [ ] Verify rendering and flows, checkpoint, push to GitHub
+- [x] Verified: tsc 0 errors, 60/60 vitest passing, dialog renders (screenshot OK); checkpoint 6730ffe0 auto-published; pushed to GitHub (ab99-c/Azilal-Tourism main)
