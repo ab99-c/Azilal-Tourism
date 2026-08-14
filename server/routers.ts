@@ -9,6 +9,7 @@ import {
   getAllCars, getCarById, createCar, updateCar, deleteCar,
   getAllHotels, getHotelById, createHotel, updateHotel, deleteHotel,
   createBooking, getAllBookings, updateBooking, markBookingPaid, confirmBooking, getBookingById,
+  getGuestBookings, cancelBooking,
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
@@ -241,6 +242,7 @@ export const appRouter = router({
     create: publicProcedure
       .input(z.object({
         type: z.enum(['hotel', 'car']),
+        guestUserId: z.number().int().positive().optional(),
         itemName: z.string().min(1).max(MAX_NAME),
         guestName: z.string().min(2).max(MAX_NAME),
         guestEmail: z.string().email().max(320),
@@ -258,8 +260,12 @@ export const appRouter = router({
         const b = new Date(d.checkOut);
         return !isNaN(a.getTime()) && !isNaN(b.getTime()) && b.getTime() >= a.getTime();
       }, { message: "checkOut must be after checkIn" }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         // Resolve the listing (car/hotel) so the booking is routed to its owner.
+        // The persisted guest identity comes from the server-side session only —
+        // any client-provided guestUserId is ignored so anonymous callers cannot
+        // spoof another user's account link.
+        const guestUserId: number | null = ctx.user ? ctx.user.id : null;
         let ownerId = 1;
         let itemId = 0;
         if (input.type === 'car') {
@@ -287,6 +293,7 @@ export const appRouter = router({
           status: 'pending',
           ownerId,
           itemId,
+          guestUserId,
         } as any);
         return { success: true, message: 'Booking request submitted successfully' } as const;
       }),
@@ -308,6 +315,22 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         await requireBookingAccess({ user: ctx.user } as any, input.id);
         await confirmBooking(input.id);
+        return { success: true } as const;
+      }),
+    // Guest dashboard: logged-in guest sees ONLY their own bookings
+    myBookings: protectedProcedure.query(async ({ ctx }) => {
+      return getGuestBookings(ctx.user.id);
+    }),
+    // Cancel a booking: guest may cancel only their own bookings
+    cancel: protectedProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        const booking = await getBookingById(input.id);
+        if (!booking) throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' });
+        if (booking.guestUserId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You can only cancel your own booking' });
+        }
+        await cancelBooking(input.id);
         return { success: true } as const;
       }),
   }),

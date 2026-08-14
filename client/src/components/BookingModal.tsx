@@ -16,6 +16,7 @@ interface BookingModalProps {
 }
 export default function BookingModal({ isOpen, onClose, type, itemId, itemName, price, image }: BookingModalProps) {
   const { lang, t } = useLanguage();
+  const utils = trpc.useUtils();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -253,9 +254,17 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
     setStep((prev) => (prev > 1 ? (prev - 1) as 1 | 2 | 3 | 4 : 1));
   };
 
+  const { user, isAuthenticated } = (() => {
+    const auth = trpc.auth.me.useQuery(undefined, {
+      enabled: !!isOpen,
+    });
+    return { user: auth.data ?? null, isAuthenticated: !!auth.data };
+  })();
+
   const createBookingMutation = trpc.bookings.create.useMutation({
     onSuccess: () => {
       setIsSubmitting(false);
+      utils.bookings.myBookings.invalidate();
       toast.success(t_book('booking.success'), {
         description: t_book('booking.successDesc'),
         duration: 4000,
@@ -287,6 +296,7 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
       guests: parseInt(formData.guests) || 1,
       notes: formData.notes,
       totalPrice: price,
+      guestUserId: isAuthenticated && user ? user.id : undefined,
     });
   };
 

@@ -214,6 +214,19 @@ export async function confirmBooking(id: number) {
   return db.update(bookings).set({ status: 'confirmed', paymentStatus: 'paid' } as any).where(eq(bookings.id, id));
 }
 
+// ===== GUEST-SCOPED QUERIES (guest dashboard) =====
+export async function getGuestBookings(guestUserId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookings).where(eq(bookings.guestUserId, guestUserId)).orderBy(desc(bookings.createdAt));
+}
+
+export async function cancelBooking(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(bookings).set({ status: 'cancelled' } as any).where(eq(bookings.id, id));
+}
+
 // ===== FAVORITES =====
 export async function getUserFavorites(userId: number, itemType?: string) {
   const db = await getDb();

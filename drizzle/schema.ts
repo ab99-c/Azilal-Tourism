@@ -76,10 +76,13 @@ export const bookings = mysqlTable("bookings", {
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
   itemId: int("itemId").default(0).notNull(),
   ownerId: int("ownerId").default(1).notNull(),
+  // Logged-in guest who made this booking (NULL for anonymous guests).
+  guestUserId: int("guestUserId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (t) => ({
   typeIdx: index("idx_bookings_type").on(t.type),
   statusIdx: index("idx_bookings_status").on(t.status),
+  guestIdx: index("idx_bookings_guest_user").on(t.guestUserId),
 }));
 
 export type Booking = typeof bookings.$inferSelect;

@@ -99,4 +99,15 @@
 - [x] Runtime tRPC tests: owner 5's myBookings → getMyBookings(5) only; owner 7's myCars/myHotels → scoped to 7; admin → unfiltered getAll*; unauthenticated → UNAUTHORIZED
 - [x] Booking creation verified to route ownerId from car.ownerId/hotel.ownerId, not the guest's id
 - [x] All 30 vitest tests passing (5 files)
-- [ ] Checkpoint + push
+- [x] Checkpoint d42b35a0 saved (auto-published) + pushed to GitHub (ab99-c/Azilal-Tourism main)
+
+## User request: guest booking dashboard + keep owner dashboard scoped
+
+- [x] Server: bookings.myBookings — guest-scoped listing by guestUserId === ctx.user.id (protectedProcedure)
+- [x] Server: bookings.cancel — guest can cancel only own bookings (guestUserId check → FORBIDDEN); sets status='cancelled'
+- [x] Server: bookings.create passes guestUserId from authenticated user when logged in
+- [x] Frontend: GuestDashboard section (#guest-dashboard): own bookings list, status badges, pay-on-arrival info, cancel with confirm dialog (AR/EN/FR/BER)
+- [x] Frontend: Navbar shows "حجوزاتي / My Bookings" for logged-in users, "تسجيل الدخول / Login" for guests
+- [x] BookingModal passes guestUserId and invalidates guest bookings cache after success
+- [x] Tests (vitest): 8 guest-scoping + cancel-gating tests; all 38 tests passing across 6 files
+- [ ] Checkpoint + push to GitHub

@@ -11,6 +11,7 @@ import RestaurantsSection from './components/RestaurantsSection';
 import CafesSection from './components/CafesSection';
 import CarRentalSection from './components/CarRentalSection';
 import CarOwnerDashboard from './components/CarOwnerDashboard';
+import GuestDashboard from './components/GuestDashboard';
 import FooterSection from './components/FooterSection';
 import ChatWidget from './components/ChatWidget';
 import { Toaster } from "@/components/ui/sonner";
@@ -37,6 +38,7 @@ function App() {
               <CafesSection />
               <CarRentalSection />
               <CarOwnerDashboard />
+              <GuestDashboard />
               <MapSection />
               <FooterSection />
             </main>
