@@ -15,6 +15,13 @@
       "when": 1786644467268,
       "tag": "0001_hard_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786728215601,
+      "tag": "0002_tiny_tempest",
+      "breakpoints": true
     }
   ]
 }

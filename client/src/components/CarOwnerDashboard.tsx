@@ -12,7 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Plus, Pencil, Trash2, X, Car, ChevronDown,
-  Save, RotateCcw, Image
+  Save, RotateCcw, Image, ClipboardList, CheckCircle2,
+  CreditCard, Clock
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
@@ -22,11 +23,15 @@ type Lang = 'ar' | 'en' | 'fr' | 'ber';
 export default function CarOwnerDashboard() {
   const { t, lang } = useLanguage();
   const { data: carsData, refetch } = trpc.cars.list.useQuery();
+  const { data: bookingsData } = trpc.bookings.list.useQuery(undefined, {
+    retry: false,
+  });
   const [cars, setCars] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'cars' | 'bookings'>('cars');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -164,6 +169,27 @@ export default function CarOwnerDashboard() {
     toast.info(lang === 'ar' ? 'تم إعادة تحميل البيانات الافتراضية' : 'Default data reloaded');
   };
 
+  // Booking mutations (admin: mark paid / confirm)
+  const markPaidMutation = trpc.bookings.markPaid.useMutation({
+    onSuccess: () => { refetchBookings(); toast.success(lang === 'ar' ? 'تم تسجيل الدفعة' : 'Payment recorded'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ' : 'Error', { description: err.message }),
+  });
+  const confirmMutation = trpc.bookings.confirm.useMutation({
+    onSuccess: () => { refetchBookings(); toast.success(lang === 'ar' ? 'تم تأكيد الحجز' : 'Booking confirmed'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'خطأ' : 'Error', { description: err.message }),
+  });
+  const utils = trpc.useUtils();
+  const refetchBookings = () => {
+    utils.bookings.list.invalidate();
+  };
+
+  const isAdmin = (() => {
+    try {
+      const me = (window as any).__arkarAdminCache;
+      return Boolean(me);
+    } catch { return false; }
+  })();
+
   const isRTL = lang === 'ar';
   const dir = isRTL ? 'rtl' : 'ltr';
 
@@ -197,6 +223,25 @@ export default function CarOwnerDashboard() {
     seatsHint: { ar: 'مثال: 5 مقاعد', en: 'e.g. 5 Seats', fr: 'ex: 5 Places', ber: 'ⴰⵎⴷⵢⴰ: 5 ⵉⵖⵔⵎⴰⵏ' },
     fuelHint: { ar: 'مثال: بنزين', en: 'e.g. Petrol', fr: 'ex: Essence', ber: 'ⴰⵎⴷⵢⴰ: ⴰⵙⵏⴰⵍ' },
     noImg: { ar: 'لا توجد صورة', en: 'No Image', fr: 'Pas d\'image', ber: 'ⵓⵍⵍⵉⵏ ⵜⵡⵍⴰⴼⵜ' },
+    tabCars: { ar: 'السيارات', en: 'Vehicles', fr: 'Véhicules', ber: 'ⵜⵙⵍⵍⴰⵙⵜ' },
+    tabBookings: { ar: 'الحجوزات', en: 'Bookings', fr: 'Réservations', ber: 'ⵉⵙⵏⴷⵇⵏ' },
+    bookingName: { ar: 'الاسم', en: 'Name', fr: 'Nom', ber: 'ⵉⵙⵎ' },
+    bookingItem: { ar: 'الحجز', en: 'Item', fr: 'Article', ber: 'ⴰⵀⴰⵢⵢⴰ' },
+    bookingDates: { ar: 'التواريخ', en: 'Dates', fr: 'Dates', ber: 'ⴰⵙⵙ' },
+    bookingPhone: { ar: 'الهاتف', en: 'Phone', fr: 'Téléphone', ber: 'ⵜⴰⵍⵖⴰ' },
+    bookingTotal: { ar: 'المبلغ', en: 'Amount', fr: 'Montant', ber: 'ⵙⵛⵎⵎ' },
+    bookingStatus: { ar: 'الحالة', en: 'Status', fr: 'Statut', ber: 'ⴰⵎⵎⴰⵢ' },
+    bookingPayStatus: { ar: 'الدفع', en: 'Payment', fr: 'Paiement', ber: 'ⴰⵅⵍⴰⵙ' },
+    payOnArrival: { ar: 'الدفع عند الوصول', en: 'Pay on Arrival', fr: 'Paiement sur place', ber: 'ⵃⵜⵜⴰ ⴷ ⴰⵔⵔⴰⵡ' },
+    payUnpaid: { ar: 'غير مدفوع', en: 'Unpaid', fr: 'Non payé', ber: 'ⴰⵔ ⵉⵜⵜⵓⵅⵍⴰⵙ' },
+    payPaid: { ar: 'مدفوع', en: 'Paid', fr: 'Payé', ber: 'ⵉⵜⵜⵓⵅⵍⴰⵙ' },
+    bookingTypeHotel: { ar: 'فندق', en: 'Hotel', fr: 'Hôtel', ber: 'ⵜⴰⵔⵉⴽⵜ' },
+    bookingTypeCar: { ar: 'سيارة', en: 'Car', fr: 'Voiture', ber: 'ⵜⴰⵙⵍⵍⴰⵙⵜ' },
+    markPaid: { ar: 'تسجيل الدفع', en: 'Mark Paid', fr: 'Marquer payé', ber: 'ⵎⴰⵔⴽ ⵉⵜⵜⵓⵅⵍⴰⵙ' },
+    confirmBooking: { ar: 'تأكيد الحجز', en: 'Confirm', fr: 'Confirmer', ber: 'ⵙⵜⵉⵏ' },
+    emptyBookings: { ar: 'لا توجد حجوزات حتى الآن', en: 'No bookings yet', fr: 'Aucune réservation', ber: 'ⵓⵍⵍⵉⵏ ⵉⵙⵏⴷⵇⵏ' },
+    bookingsHint: { ar: 'الحجوزات الجديدة تظهر هنا — تحقق من الدفع عند وصول العميل وسجله', en: 'New bookings appear here — verify payment on arrival and record it', fr: 'Les nouvelles réservations apparaissent ici — vérifiez le paiement à l\'arrivée', ber: 'ⵉⵙⵏⴷⵇⵏ ⵉⵎⴰⵢⵏⵓⵜⵏ ⴷⴰ ⵉⵜⵜⴰⴼⴼⵏ' },
+    needLogin: { ar: 'سجل الدخول لرؤية الحجوزات', en: 'Log in to view bookings', fr: 'Connectez-vous pour voir les réservations', ber: 'ⵙⵜⵉⵏ ⴰⵅⵛⵓⵎ' },
   };
 
   const l = (key: keyof typeof labels) => labels[key][lang as Lang] || labels[key].en;
@@ -242,20 +287,137 @@ export default function CarOwnerDashboard() {
               <span className="text-white/80 text-sm">{l('carCount')}</span>
               <span className="text-2xl font-bold text-[#c8a951]">{cars.length}</span>
             </div>
+            {bookingsData && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 flex items-center gap-3 border border-white/10">
+                <ClipboardList className="w-5 h-5 text-[#c8a951]" />
+                <span className="text-white/80 text-sm">{l('tabBookings')}</span>
+                <span className="text-2xl font-bold text-[#c8a951]">{bookingsData.length}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-3 mb-8 justify-center">
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={openAddForm} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
-            <Plus className="w-4 h-4" />
-            {l('addCar')}
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowResetConfirm(true)} className="px-5 py-2.5 bg-white/10 text-white rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10">
-            <RotateCcw className="w-4 h-4" />
-            {l('resetDefault')}
-          </motion.button>
+        {/* Tab Switcher */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/10">
+            <button
+              onClick={() => setActiveTab('cars')}
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'cars' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Car className="w-4 h-4 inline me-1.5" />{l('tabCars')}
+            </button>
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'bookings' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4 inline me-1.5" />{l('tabBookings')}
+            </button>
+          </div>
         </div>
+
+        {/* Action Buttons (cars tab) */}
+        {activeTab === 'cars' && (
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={openAddForm} className="px-5 py-2.5 bg-[#c8a951] text-[#1b5e3f] rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#d4b75e] transition-colors">
+              <Plus className="w-4 h-4" />
+              {l('addCar')}
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowResetConfirm(true)} className="px-5 py-2.5 bg-white/10 text-white rounded-xl font-medium text-sm flex items-center gap-2 hover:bg-white/20 transition-colors backdrop-blur-sm border border-white/10">
+              <RotateCcw className="w-4 h-4" />
+              {l('resetDefault')}
+            </motion.button>
+          </div>
+        )}
+
+        {/* Bookings Panel */}
+        {activeTab === 'bookings' && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="max-w-4xl mx-auto">
+            {!bookingsData ? (
+              <div className="text-center py-12 text-white/60 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10">
+                <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{l('needLogin')}</p>
+              </div>
+            ) : bookingsData.length === 0 ? (
+              <div className="text-center py-12 text-white/60 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10">
+                <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{l('emptyBookings')}</p>
+                <p className="text-xs mt-2 text-white/40">{l('bookingsHint')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-center mb-4">
+                  <p className="text-white/60 text-xs">{l('bookingsHint')}</p>
+                </div>
+                {bookingsData.map((b: any) => {
+                  const isPaid = b.paymentStatus === 'paid';
+                  const isConfirmed = b.status === 'confirmed';
+                  return (
+                    <div key={b.id} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-start">
+                        <div>
+                          <span className="text-white/40 text-xs block">{l('bookingItem')}</span>
+                          <p className="text-white text-sm font-semibold">{b.itemName}</p>
+                          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${b.type === 'hotel' ? 'bg-[#1b5e3f] text-[#c8a951]' : 'bg-[#c8a951] text-[#1b5e3f]'}`}>
+                            {b.type === 'hotel' ? l('bookingTypeHotel') : l('bookingTypeCar')}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-white/40 text-xs block">{l('bookingName')}</span>
+                          <p className="text-white text-sm font-semibold">{b.guestName}</p>
+                          <p className="text-white/50 text-xs">{b.guestPhone || b.guestEmail}</p>
+                        </div>
+                        <div>
+                          <span className="text-white/40 text-xs block">{l('bookingDates')}</span>
+                          <p className="text-white text-xs font-medium">{new Date(b.checkIn).toLocaleDateString()}</p>
+                          <p className="text-white/50 text-xs">→ {new Date(b.checkOut).toLocaleDateString()}</p>
+                          {b.type === 'car' && b.pickUpTime && <p className="text-white/50 text-[10px]">{b.pickUpTime} - {b.dropOffTime}</p>}
+                        </div>
+                        <div>
+                          <span className="text-white/40 text-xs block">{l('bookingPayStatus')}</span>
+                          <p className={`text-xs font-bold flex items-center gap-1 mt-0.5 ${isPaid ? 'text-[#c8a951]' : 'text-white/70'}`}>
+                            {isPaid ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                            {isPaid ? l('payPaid') : l('payUnpaid')}
+                          </p>
+                          <p className="text-white/40 text-[10px] mt-0.5">{l('payOnArrival')}</p>
+                          {b.totalPrice && <p className="text-[#c8a951] text-xs font-semibold mt-1">{b.totalPrice}</p>}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {!isPaid && (
+                            <button
+                              onClick={() => markPaidMutation.mutate({ id: b.id })}
+                              disabled={markPaidMutation.isPending}
+                              className="px-3 py-1.5 bg-[#c8a951] text-[#1b5e3f] rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-[#d4b75e] transition-colors disabled:opacity-50"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />{l('markPaid')}
+                            </button>
+                          )}
+                          {!isConfirmed && (
+                            <button
+                              onClick={() => confirmMutation.mutate({ id: b.id })}
+                              disabled={confirmMutation.isPending}
+                              className="px-3 py-1.5 bg-white/10 text-white rounded-lg text-xs font-medium flex items-center justify-center gap-1 hover:bg-white/20 transition-colors border border-white/10 disabled:opacity-50"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />{l('confirmBooking')}
+                            </button>
+                          )}
+                          {isConfirmed && (
+                            <span className="text-[#c8a951] text-xs font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />{lang === 'ar' ? 'مؤكد' : lang === 'fr' ? 'Confirmé' : 'Confirmed'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Cars List */}
         <div className="max-w-3xl mx-auto space-y-3">

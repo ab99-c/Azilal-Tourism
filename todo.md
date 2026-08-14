@@ -52,3 +52,17 @@
 - [x] Add scrollIntoView fallback in scrollToSection when scrollTo does not move the page
 - [x] Verify on production (checkpoint 8b381298, auto-published)
 - [x] Push 8b381298 to GitHub (ab99-c/Azilal-Tourism main) — Vercel will auto-redeploy
+
+## Stripe (deferred — user ineligible for Sandbox; will add keys later)
+
+- [x] Investigated Stripe setup; user must supply own Stripe keys (not yet provided)
+
+## Pay on Arrival payment system for bookings (user chose this)
+
+- [x] Extend bookings schema: paymentMethod (pay_on_arrival) + paymentStatus columns (totalPrice persisted)
+- [x] Server: persist paymentMethod + paymentStatus on booking create; admin markPaid/confirm procedures
+- [x] Frontend: BookingModal 4-step flow with payment method step (Pay on Arrival) + total price preview
+- [x] Frontend: booking confirmation screen explaining pay-directly-on-arrival
+- [x] Owner dashboard: bookings tab with payment status + mark as paid action
+- [x] Tests (vitest): booking.payment.test.ts + existing suites — 16/16 passing
+- [x] Checkpoint + push to GitHub

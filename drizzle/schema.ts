@@ -69,6 +69,8 @@ export const bookings = mysqlTable("bookings", {
   guests: int("guests").default(1),
   notes: text("notes"),
   totalPrice: varchar("totalPrice", { length: 100 }),
+  paymentMethod: mysqlEnum("paymentMethod", ["pay_on_arrival"]).default("pay_on_arrival").notNull(),
+  paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid"]).default("unpaid").notNull(),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (t) => ({

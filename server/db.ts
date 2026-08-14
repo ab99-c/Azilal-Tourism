@@ -166,6 +166,24 @@ export async function getAllBookings() {
   return db.select().from(bookings).orderBy(desc(bookings.createdAt));
 }
 
+export async function updateBooking(id: number, data: Partial<Booking>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(bookings).set(data as any).where(eq(bookings.id, id));
+}
+
+export async function markBookingPaid(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(bookings).set({ paymentStatus: 'paid' } as any).where(eq(bookings.id, id));
+}
+
+export async function confirmBooking(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(bookings).set({ status: 'confirmed', paymentStatus: 'paid' } as any).where(eq(bookings.id, id));
+}
+
 // ===== FAVORITES =====
 export async function getUserFavorites(userId: number, itemType?: string) {
   const db = await getDb();

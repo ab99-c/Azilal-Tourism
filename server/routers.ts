@@ -8,7 +8,7 @@ import { z } from "zod";
 import {
   getAllCars, getCarById, createCar, updateCar, deleteCar,
   getAllHotels, getHotelById, createHotel, updateHotel, deleteHotel,
-  createBooking, getAllBookings,
+  createBooking, getAllBookings, updateBooking, markBookingPaid, confirmBooking,
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, upsertUser,
 } from "./db";
@@ -232,6 +232,8 @@ export const appRouter = router({
           guests: input.guests,
           notes: input.notes,
           totalPrice: input.totalPrice,
+          paymentMethod: 'pay_on_arrival',
+          paymentStatus: 'unpaid',
           status: 'pending',
         } as any);
         return { success: true, message: 'Booking request submitted successfully' } as const;
@@ -240,6 +242,20 @@ export const appRouter = router({
     list: adminProcedure.query(async () => {
       return getAllBookings();
     }),
+    // Mark a booking as paid (admin only)
+    markPaid: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await markBookingPaid(input.id);
+        return { success: true } as const;
+      }),
+    // Confirm a booking and mark it paid (admin only)
+    confirm: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await confirmBooking(input.id);
+        return { success: true } as const;
+      }),
   }),
 
   favorites: router({

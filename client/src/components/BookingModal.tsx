@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { X, Calendar, Clock, Users, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Calendar, Clock, Users, Mail, Phone, CheckCircle, AlertCircle, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 
@@ -27,7 +27,18 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
     returnTime: '18:00',
     notes: '',
   });
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // Compute total price: hotels = nights * per-night rate; cars = days * per-day rate
+  const computedTotal = (() => {
+    if (!formData.startDate || !formData.endDate) return null;
+    const a = new Date(formData.startDate);
+    const b = new Date(formData.endDate);
+    if (isNaN(a.getTime()) || isNaN(b.getTime()) || b.getTime() < a.getTime()) return null;
+    const nights = Math.max(1, Math.round((b.getTime() - a.getTime()) / 86400000));
+    const num = parseFloat(String(price).replace(/[^0-9.]/g, '')) || 0;
+    return nights * num;
+  })();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isRTL = lang === 'ar';
@@ -39,7 +50,8 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
         'booking.title.car': 'حجز سيارة',
         'booking.step1': 'التواريخ',
         'booking.step2': 'المعلومات الشخصية',
-        'booking.step3': 'التأكيد',
+        'booking.step3': 'طريقة الدفع',
+        'booking.step4': 'التأكيد',
         'booking.name': 'الاسم الكامل',
         'booking.namePh': 'أدخل اسمك الكامل',
         'booking.email': 'البريد الإلكتروني',
@@ -65,13 +77,23 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
         'booking.perNight': '/ليلة',
         'booking.perDay': '/يوم',
         'booking.required': 'هذا الحقل مطلوب',
+        'booking.payMethod': 'طريقة الدفع',
+        'booking.payOnArrival': 'الدفع عند الوصول',
+        'booking.payOnArrivalDesc': 'أنت تدفع مباشرة للفندق أو صاحب السيارة عند الوصول — بدون أي رسوم إضافية',
+        'booking.payOnArrivalNote': '⚠️ الدفع عند الوصول / الدفع نقدًا أو بتحويل بنكي',
+        'booking.total': 'المجموع التقديري',
+        'booking.nights': 'ليلة',
+        'booking.days': 'يوم',
+        'booking.pleaseLogin': 'يرجى تسجيل الدخول لإكمال الحجز',
+        'booking.confirmPay': 'تأكيد الحجز — الدفع عند الوصول',
       },
       en: {
         'booking.title.hotel': 'Book Hotel',
         'booking.title.car': 'Book Car',
         'booking.step1': 'Dates',
         'booking.step2': 'Personal Info',
-        'booking.step3': 'Confirmation',
+        'booking.step3': 'Payment',
+        'booking.step4': 'Confirmation',
         'booking.name': 'Full Name',
         'booking.namePh': 'Enter your full name',
         'booking.email': 'Email',
@@ -97,13 +119,22 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
         'booking.perNight': '/night',
         'booking.perDay': '/day',
         'booking.required': 'This field is required',
+        'booking.payMethod': 'Payment Method',
+        'booking.payOnArrival': 'Pay on Arrival',
+        'booking.payOnArrivalDesc': 'You pay directly to the hotel or car owner upon arrival — no extra fees',
+        'booking.payOnArrivalNote': '⚠️ Pay on arrival / pay in cash or by bank transfer',
+        'booking.total': 'Estimated Total',
+        'booking.nights': 'night(s)',
+        'booking.days': 'day(s)',
+        'booking.confirmPay': 'Confirm Booking — Pay on Arrival',
       },
       fr: {
         'booking.title.hotel': 'Réserver Hôtel',
         'booking.title.car': 'Louer Voiture',
         'booking.step1': 'Dates',
         'booking.step2': 'Informations',
-        'booking.step3': 'Confirmation',
+        'booking.step3': 'Paiement',
+        'booking.step4': 'Confirmation',
         'booking.name': 'Nom Complet',
         'booking.namePh': 'Entrez votre nom complet',
         'booking.email': 'Email',
@@ -129,13 +160,22 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
         'booking.perNight': '/nuit',
         'booking.perDay': '/jour',
         'booking.required': 'Ce champ est requis',
+        'booking.payMethod': 'Mode de Paiement',
+        'booking.payOnArrival': 'Paiement sur place',
+        'booking.payOnArrivalDesc': 'Vous payez directement à l\'hôtel ou au propriétaire de la voiture à votre arrivée — sans frais supplémentaires',
+        'booking.payOnArrivalNote': '⚠️ Paiement sur place / en espèces ou par virement',
+        'booking.total': 'Total estimé',
+        'booking.nights': 'nuit(s)',
+        'booking.days': 'jour(s)',
+        'booking.confirmPay': 'Confirmer — Paiement sur place',
       },
       ber: {
         'booking.title.hotel': 'ⵙⵏⴷⵇ',
         'booking.title.car': 'ⵜⵔⵎ ⵜⴰⵙⵍⵍⴰⵙⵜ',
         'booking.step1': 'ⴰⵙⵙ',
         'booking.step2': 'ⵉⵙⴼⴽⴰ',
-        'booking.step3': 'ⵙⵜⵉⵏ',
+        'booking.step3': 'ⴰⵅⵍⴰⵙ',
+        'booking.step4': 'ⵙⵜⵉⵏ',
         'booking.name': 'ⵉⵙⵎ',
         'booking.namePh': 'ⴰⵔⵔⴰ ⵉⵙⵎ ⵏⵏⴽ',
         'booking.email': 'ⵉⵎⴰⵢⵍ',
@@ -161,10 +201,22 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
         'booking.perNight': '/ⵉⴷ',
         'booking.perDay': '/ⴰⵙⵙ',
         'booking.required': 'ⵉⵍⴰ ⴰⴷ ⵜⵎⵍⴰⵜ',
+        'booking.payMethod': 'ⵜⴰⵍⵍⴰⵙⵜ ⵏ ⵓⵅⵍⴰⵙ',
+        'booking.payOnArrival': 'ⵃⵜⵜⴰ ⴷ ⴰⵔⵔⴰⵡ',
+        'booking.payOnArrivalDesc': 'ⵜⵅⵍⴰⵙⴷ ⵉ ⵜⴰⵔⵉⴽⵜ ⵏⵖ ⴱⴰⴱ ⵏ ⵜⴰⵙⵍⵍⴰⵙⵜ ⵃⵜⵜⴰ ⴷ ⴰⵔⵔⴰⵡ',
+        'booking.payOnArrivalNote': 'ⵃⵜⵜⴰ ⴷ ⴰⵔⵔⴰⵡ — ⵙ ⵜⴰⵀⴰⵎⵜ ⵏⵖ ⵙ ⵓⵡⵜⵜⴰⵙ',
+        'booking.total': 'ⵓⵎⴷⴷⴰⵢ',
+        'booking.nights': 'ⵉⴷⴷⵉⵙⵏ',
+        'booking.days': 'ⴰⵙⵙⵏ',
+        'booking.confirmPay': 'ⵙⵜⵉⵏ — ⵃⵜⵜⴰ ⴷ ⴰⵔⵔⴰⵡ',
       },
     };
     return translations[lang]?.[key] || key;
   };
+
+  const totalLabel = computedTotal ? (
+    `${Math.round(computedTotal).toLocaleString()} MAD — ${computedTotal === Math.round(computedTotal) ? '' : ''}${type === 'hotel' ? `${Math.max(1, Math.round((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / 86400000))} ${t_book('booking.nights')}` : `${Math.max(1, Math.round((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / 86400000))} ${t_book('booking.days')}`}`
+  ) : null;
 
   type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
@@ -192,11 +244,13 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
       setStep(2);
     } else if (step === 2 && validateStep2()) {
       setStep(3);
+    } else if (step === 3) {
+      setStep(4);
     }
   };
 
   const handlePrev = () => {
-    setStep((prev) => (prev > 1 ? (prev - 1) as 1 | 2 | 3 : 1));
+    setStep((prev) => (prev > 1 ? (prev - 1) as 1 | 2 | 3 | 4 : 1));
   };
 
   const createBookingMutation = trpc.bookings.create.useMutation({
@@ -284,7 +338,7 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
 
               {/* Progress Steps */}
               <div className="flex items-center gap-2 mt-5">
-                {[1, 2, 3].map((s) => (
+                {[1, 2, 3, 4].map((s) => (
                   <div key={s} className="flex items-center gap-2 flex-1">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
@@ -300,7 +354,7 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
                       {s === 2 && t_book('booking.step2')}
                       {s === 3 && t_book('booking.step3')}
                     </span>
-                    {s < 3 && <div className="flex-1 h-px bg-white/20" />}
+                    {s < 4 && <div className="flex-1 h-px bg-white/20" />}
                   </div>
                 ))}
               </div>
@@ -472,6 +526,51 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
               )}
 
               {step === 3 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Banknote className="w-3.5 h-3.5 inline me-1" />
+                      {t_book('booking.payMethod')}
+                    </label>
+                    <div className="border-2 border-[#1b5e3f] bg-[#1b5e3f]/5 rounded-xl p-4 flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-[#1b5e3f] mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-bold text-gray-800 text-sm">{t_book('booking.payOnArrival')}</p>
+                        <p className="text-xs text-gray-500 mt-1">{t_book('booking.payOnArrivalDesc')}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Total estimate */}
+                  <div className="bg-[#f5f5f0] rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">
+                        {price} <span className="text-xs font-normal text-gray-400">
+                          {type === 'hotel' ? t_book('booking.perNight') : t_book('booking.perDay')}
+                        </span>
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {type === 'hotel'
+                          ? `${Math.max(1, Math.round((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / 86400000))} ${t_book('booking.nights')}`
+                          : `${Math.max(1, Math.round((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / 86400000))} ${t_book('booking.days')}`
+                        }
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-2 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-700">{t_book('booking.total')}</span>
+                      <span className="text-xl font-bold text-[#1b5e3f]">
+                        {computedTotal !== null ? `${Math.round(computedTotal).toLocaleString()} MAD` : price}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                    {t_book('booking.payOnArrivalNote')}
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 4 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                   {isSubmitting ? (
                     <div className="text-center py-8">
@@ -486,6 +585,18 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
                         <h4 className="font-bold text-[#1b5e3f] text-sm mb-3">
                           {lang === 'ar' ? 'ملخص الحجز' : lang === 'fr' ? 'Résumé de la réservation' : lang === 'ber' ? 'ⴰⵎⵣⵔⵓⵢ' : 'Booking Summary'}
                         </h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-400 text-xs">{t_book('booking.payMethod')}</span>
+                            <p className="font-semibold text-gray-800">{t_book('booking.payOnArrival')}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-400 text-xs">{t_book('booking.total')}</span>
+                            <p className="font-semibold text-[#1b5e3f]">
+                              {computedTotal !== null ? `${Math.round(computedTotal).toLocaleString()} MAD` : price}
+                            </p>
+                          </div>
+                        </div>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
                             <span className="text-gray-400 text-xs">{t_book('booking.item')}</span>
@@ -532,7 +643,7 @@ export default function BookingModal({ isOpen, onClose, type, itemName, price, i
                         className="w-full py-3.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm hover:bg-[#0f3d28] transition-all hover:shadow-lg hover:shadow-[#1b5e3f]/30 active:scale-[0.98]"
                       >
                         <CheckCircle className="w-4 h-4 inline me-2" />
-                        {t_book('booking.confirm')}
+                        {t_book('booking.confirmPay')}
                       </button>
                     </>
                   )}

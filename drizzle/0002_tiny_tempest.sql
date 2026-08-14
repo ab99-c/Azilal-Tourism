@@ -1,0 +1,2 @@
+ALTER TABLE `bookings` ADD `paymentMethod` enum('pay_on_arrival') DEFAULT 'pay_on_arrival' NOT NULL;--> statement-breakpoint
+ALTER TABLE `bookings` ADD `paymentStatus` enum('unpaid','paid') DEFAULT 'unpaid' NOT NULL;
