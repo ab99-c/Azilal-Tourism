@@ -10,14 +10,18 @@ import "./index.css";
 
 const queryClient = new QueryClient();
 
+// The API endpoint may be absent on static external hosts (e.g. Vercel builds
+// without the Manus backend). In that case an "unauthorized" error is actually
+// just a missing endpoint (404) — never auto-redirect to login there.
+const apiAvailable = () =>
+  typeof document !== "undefined" && import.meta.env.VITE_APP_ID !== "";
+
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
-
+  if (!apiAvailable()) return;
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
   if (!isUnauthorized) return;
-
   startLogin();
 };
 

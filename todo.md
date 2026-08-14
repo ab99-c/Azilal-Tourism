@@ -146,3 +146,15 @@
 - [x] Add language labels for the choice flow (AR/EN/FR/BER)
 - [x] Wired into Navbar: dialog auto-opens right after OAuth login completes (auth state change), once per session; owner-dashboard section got id="owner-dashboard"
 - [x] Verified: tsc 0 errors, 60/60 vitest passing, dialog renders (screenshot OK); checkpoint 6730ffe0 auto-published; pushed to GitHub (ab99-c/Azilal-Tourism main)
+
+## User request: deploy latest state to Vercel (same as Manus)
+
+- [x] Latest commit 68a69671 pushed to GitHub main; Vercel auto-deployed production build (dpl_CER4wv54pL6hhimKuGabGSNYXTcp, state READY)
+- [x] Live Vercel site verified: https://azilal-tourism.vercel.app serves the new build (bundle contains LoginChoiceDialog + choice flow)
+
+## User report: mobile login not working + blank page on Vercel site
+
+- [x] Diagnosed: Vercel static build lacks VITE_OAUTH_PORTAL_URL and VITE_APP_ID at build time → startLogin built an invalid URL and crashed the page; main.tsx already skips auto-redirect-to-login when the API is unavailable (no infinite loop on Vercel)
+- [x] Fix: hardcoded fallbacks in client/src/const.ts — portal https://manus.im + OAuth app id J2SX2a5nNx9zeqeJ7oPCCo (verified identical values in the live Manus bundle); startLogin now always navigates or fails closed safely
+- [x] Verified: fallbacks present in a Vercel-like static build (empty envs), 60/60 vitest passing, tsc clean, mobile viewport (375x812) renders fully with no blank page
+- [x] Redeploy to Vercel via GitHub push, confirm live, report to user
