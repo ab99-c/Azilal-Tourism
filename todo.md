@@ -185,10 +185,18 @@
 
 ## User report: navbar overflows phone screen width (black bar on left edge)
 
-- [ ] Diagnose horizontal overflow: navbar/content wider than viewport on phone (RTL), dark strip visible at screen edge
-- [ ] Fix: constrain navbar and all sections to viewport width (w-full min-w-0), prevent RTL layout shift / scrollbar push
-- [ ] Position language button: centered or within bounds on phone
-- [ ] Verify 375x812 + 1080x2400 (user phone ratio) viewports, checkpoint + push to GitHub/Vercel, report to user
+- [x] Diagnose horizontal overflow: navbar/content wider than viewport on phone (RTL), dark strip visible at screen edge
+- [x] Fix: constrain navbar and all sections to viewport width (w-full min-w-0), prevent RTL layout shift / scrollbar push
+- [x] Position language button: centered or within bounds on phone
+- [x] Verify 375x812 + 1080x2400 (user phone ratio) viewports, checkpoint + push to GitHub/Vercel, report to user
 
 ### Diagnosis notes (user screenshots 17:54, GlobalBrowser)
 User's phone screenshots show content pushed RIGHT with a dark/black strip along the LEFT edge — the page content is wider than viewport and shifted. Navbar top bar (logo+lang) extends past screen left edge. This looks like horizontal overflow + RTL scroll offset on his browser. Root fix: add `overflow-x-clip` on body, ensure navbar fixed with inset-0, ensure no element exceeds 100vw. Also user wants language selector centered-ish on phone.
+
+## User report (18:04 GlobalBrowser): page renders black/empty — CDN hero bg image blocked, navbar fine now
+
+- [ ] Investigate current HeroSection implementation (CSS background-image from CDN URL)
+- [ ] Create compressed WebP/PNG fallback of hero image and destination images (small size, ~100-150KB)
+- [ ] Implement fallback: try CDN first, swap to embedded data-URI / local asset on load failure (onError for img; for bg use two-layer div with local bg as base)
+- [ ] Apply to HeroSection, destination cards, restaurants/cafes/hotels/car images
+- [ ] Verify on 360x800 mobile, checkpoint + push to GitHub, confirm Vercel READY, report to user

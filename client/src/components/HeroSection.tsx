@@ -1,24 +1,39 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronDown, MapPin } from 'lucide-react';
 import { scrollToSection } from '@/lib/scroll';
+import { HERO_BG_FALLBACK } from '@/lib/heroFallback';
+
+/** CDN hero background — fails over to an embedded data-URI when blocked. */
+const CDN_BG = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/JbWhaFzOFzgfRJac.jpg';
 
 export default function HeroSection() {
   const { t } = useLanguage();
+
+  // Start with CDN; swap to embedded fallback on load failure (browsers that block external images)
+  const [bgUrl, setBgUrl] = useState(CDN_BG);
 
   return (
     <section
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Background Image — CSS background-image for maximum browser compatibility (works on embedders, in-app browsers & low-end phones that fail <img> loads) */}
+      {/* Background Image — CSS background-image for max compatibility, with embedded data-URI fallback so the hero is NEVER empty/black */}
       <div
+        key={bgUrl}
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage:
-            'url("https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/JbWhaFzOFzgfRJac.jpg")',
-        }}
+        style={{ backgroundImage: `url("${bgUrl}")` }}
+        onLoad={() => {}}
       >
+        {/* Hidden <img> that detects CDN failure and triggers the embedded fallback */}
+        <img
+          src={CDN_BG}
+          alt=""
+          className="hidden"
+          loading="eager"
+          onError={() => setBgUrl(HERO_BG_FALLBACK)}
+        />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0f3d28]/85 via-[#1b5e3f]/70 to-[#0f3d28]/90" />
         {/* Berber Pattern Overlay */}
         <div
