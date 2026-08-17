@@ -167,7 +167,19 @@
 
 ## User report: missing hero bg + broken navbar logo on Vercel (mobile screenshot)
 
-- [ ] Diagnose and fix missing hero background on Vercel (likely /manus-storage proxy not served on static Vercel build)
-- [ ] Diagnose and fix broken navbar logo image on Vercel (alt "Logo" shown)
-- [ ] Audit all image URLs in code: replace /manus-storage paths with permanent absolute URLs for Vercel compatibility
-- [ ] Verify on Vercel live site, checkpoint + push to GitHub, report to user
+- [x] Diagnose and fix missing hero background on Vercel (likely /manus-storage proxy not served on static Vercel build)
+- [x] Diagnose and fix broken navbar logo image on Vercel (alt "Logo" shown)
+- [x] Audit all image URLs in code: replace /manus-storage paths with permanent absolute URLs for Vercel compatibility
+- [x] Fix hero background for all browsers: switched from <img> to CSS background-image (bg-cover/center) for max compatibility with embedded/in-app mobile browsers (checkpoint 4dca9eb5)
+
+## Vercel git link broken (webhook dead) — user must reconnect repo
+
+- [x] Webhook fixed automatically by GitHub push (user re-linked repo earlier): push of 4dca9eb5 triggered Vercel build
+- [x] Verified fresh READY production deployment (dpl_D8A1kkrt...) from commit 4dca9eb5 with all CDN image refs (no manus-storage), LoginChoiceDialog, OAuth fallbacks in live bundle at azilal-tourism.vercel.app
+
+## User report: images/logo invisible on Mi GlobalBrowser (phone)
+
+- [ ] Create inline SVG fallback logo component (embedded in code, no external load needed) used when CDN logo fails
+- [ ] Add global image onError fallback utility: swap CDN URL to local/data fallback on load failure
+- [ ] Apply fallback to Navbar logo, Hero background, and all sections' images
+- [ ] Verify on 375x812 mobile viewport, checkpoint + auto-publish, report to user
