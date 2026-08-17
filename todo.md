@@ -204,6 +204,13 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 ## User report: page renders blank/white on Vercel (navbar visible, content empty)
 
 - [x] Diagnose blank page on live Vercel build: bundle OK; root cause = /api/trpc on Vercel static returns HTML → tRPC JSON parse crash → root ErrorBoundary rendered blank fallback
-- [ ] Fix the root cause in code (static build: server calls / tRPC usage in client that fails on Vercel static)
-- [ ] Verify page renders fully (hero + sections) on desktop + mobile viewports
-- [ ] Checkpoint + push GitHub + confirm Vercel READY
+- [x] Fix root crash on static hosts: ErrorBoundary renders friendly multilingual CrashFallback (reload + main-site link) instead of blank page
+- [x] Verified page renders fully on desktop after ErrorBoundary fix (screenshot OK)
+- [x] Pushed 4217398 to GitHub main; Vercel auto-built READY production deployment (4217398) at 17:19:45
+
+## User report: Vercel STILL renders blank after CrashFallback (root cause: render-phase tRPC errors abort silently)
+
+- [ ] Make tRPC link static-host-safe: intercept non-JSON/error responses and resolve undefined instead of throwing (no render crash on Vercel static)
+- [ ] Verify DB-backed sections (hotels/restaurants/cafes/cars) fall back to their static hardcoded data when API unavailable
+- [ ] Ensure sections tolerate data===undefined (default []), verify desktop+mobile rendering
+- [ ] Checkpoint + push GitHub + confirm Vercel READY + verify live page non-blank

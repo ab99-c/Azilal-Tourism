@@ -1,7 +1,8 @@
 import { trpc } from "@/lib/trpc";
 import { COOKIE_NAME, UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, TRPCClientError } from "@trpc/client";
+import { httpBatchLink, TRPCClientError, TRPCLink } from "@trpc/client";
+import { observable } from "@trpc/server/observable";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
@@ -11,7 +12,26 @@ import "./index.css";
 import { registerServiceWorker } from "./lib/pwa";
 registerServiceWorker();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // On static hosts (Vercel) the backend is absent; never refetch a wall of
+      // errors that could abort rendering — surface empty results instead.
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+/**
+ * Is the current host a static mirror without the Manus backend (e.g. Vercel)?
+ * The API endpoints live only on Manus hosts, so anything else is treated as
+ * static — queries there must render fallback content instead of crashing.
+ */
+export const isStaticHost = () =>
+  typeof location !== "undefined" &&
+  !/manus\.space|manus\.computer|manusvm\.com|localhost/.test(location.host);
+
 
 // The API endpoint may be absent on static external hosts (e.g. Vercel builds
 // without the Manus backend). In that case an "unauthorized" error is actually
@@ -44,8 +64,39 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
+/**
+ * Transport-safety link for static hosts (e.g. Vercel builds without the
+ * Manus backend): when /api/trpc returns HTML or the fetch fails, errors are
+ * swallowed and every operation settles with an undefined result so sections
+ * render their static fallback content instead of crashing the page.
+ * On Manus hosts the link is a transparent passthrough (retry disabled so a
+ * genuine API error never retries or aborts rendering).
+ */
+const staticHostSafeLink: TRPCLink<any> = runtime => ({ op, next }) =>
+  observable(observer => {
+    if (!isStaticHost()) {
+      // Manus host: pass through untouched.
+      return next(op).subscribe(observer);
+    }
+    return next(op).subscribe({
+      next(result) {
+        observer.next(result);
+      },
+      error() {
+        // Transport/parse failure — resolve as empty result (undefined data)
+        // so sections render their static fallback content instead of crashing.
+        observer.next({ result: { type: "data", data: undefined } });
+        observer.complete();
+      },
+      complete() {
+        observer.complete();
+      },
+    });
+  });
+
 const trpcClient = trpc.createClient({
   links: [
+    staticHostSafeLink,
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
