@@ -245,3 +245,18 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Check if sw.js (service worker) on Vercel caches stale shell and blanks page — confirmed: adrar-shell-v1 caches `/`; stale shell + deleted hashed bundle = blank page
 - [x] Fix: sw.js bumped to adrar-shell-v2 with SKIP_WAITING listener; pwa.ts detects SW updates and forces a full reload to re-fetch fresh index.html
 - [x] Checkpoint 1d13a0c6 (auto-published) — push to GitHub pending to update Vercel, then instruct user to open incognito once
+
+## User report: repo not safely Vercel-ready (vercel.json risks)
+
+- [x] Audit vercel.json vs Vite+Express+tRPC architecture: SPA rewrites make /api/trpc serve index.html; mitigated in code by staticHostSafeLink; build:vercel (vite build) verified locally producing self-contained dist/public
+- [x] Fix silent-failure risk on Vercel: BookingModal shows 4-language notice + redirect to azilaltour-j2sx2a5n.manus.space when opened on a static host (no backend)
+- [x] tsc clean + vitest 60/60 + local static build + mobile screenshot verified; checkpoint 42dac731
+- [x] Push latest commits (42dac731 + sw-cache-busting) to GitHub so Vercel gets sw.js v2 and the booking guard
+- [x] Verify Vercel production deployment READY from 42dac731; live sw.js is adrar-shell-v2 and booking guard present in live bundle
+
+## User video VID_20260817_210621.mp4: page goes blank after interaction (laptop Chrome, main site)
+
+- [x] Reproduce from video: hero CTA "ابدأ رحلتك" triggers scroll → scrolled=true → Navbar was `fixed inset-0 ... bg-white/95`, a FULL-SCREEN white overlay that washed out the whole page (only nav controls visible) — exactly the video symptom
+- [x] Root cause: Navbar.tsx `inset-0` made the nav a full-viewport overlay instead of a top bar
+- [x] Fix: Navbar is now `fixed top-0 left-0 right-0 w-full z-50` — top bar only; tsc 0 errors, vitest 60/60, mobile screenshots verified
+- [ ] Checkpoint + push GitHub + verify Vercel READY + report to user
