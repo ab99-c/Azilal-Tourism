@@ -158,3 +158,9 @@
 - [x] Fix: hardcoded fallbacks in client/src/const.ts — portal https://manus.im + OAuth app id J2SX2a5nNx9zeqeJ7oPCCo (verified identical values in the live Manus bundle); startLogin now always navigates or fails closed safely
 - [x] Verified: fallbacks present in a Vercel-like static build (empty envs), 60/60 vitest passing, tsc clean, mobile viewport (375x812) renders fully with no blank page
 - [x] Redeploy to Vercel via GitHub push, confirm live, report to user
+
+## User request: PWA installable app with ADRAR icon/logo on mobile
+
+- [x] Generate branded PWA app icons (ADRAR logo, Amazigh/Atlas aesthetic) — emerald green with golden Atlas peaks + Amazigh yennayer sun, flattened opaque squares at 512/192/180px
+- [x] Manifest updated (maskable icon, emerald background, portrait) + iOS PWA meta tags (apple-mobile-web-app-capable, status-bar-style, app title); manifest and icons verified served correctly
+- [x] Verify on mobile viewport (375x812): site renders fully, manifest served with branded icons, install prompt available natively on mobile browsers; checkpoint + push to GitHub

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage, type Lang } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Menu, X, MessageCircle, CalendarCheck, LogIn } from 'lucide-react';
+import { Globe, Menu, X, MessageCircle, CalendarCheck, LogIn, Smartphone } from 'lucide-react';
+import { getDeferredPrompt, installApp } from '@/lib/pwa';
 import { scrollToSection } from '@/lib/scroll';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
@@ -21,6 +22,20 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showChoice, setShowChoice] = useState(false);
+  const [installReady, setInstallReady] = useState(!!getDeferredPrompt());
+  const [installed, setInstalled] = useState(false);
+
+  // Listen for the native install prompt becoming available (Chrome/Android)
+  useEffect(() => {
+    const onReady = () => setInstallReady(true);
+    window.addEventListener('adrar:pwa-ready', onReady);
+    const onInstalled = () => setInstalled(true);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('adrar:pwa-ready', onReady);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
 
   // Show the two-choice dialog once, right after the user completes login
   const prevAuth = useRef(isAuthenticated);
@@ -161,6 +176,24 @@ export default function Navbar() {
             </button>
           )}
 
+          {/* PWA Install Button (desktop) */}
+          {installReady && !installed ? (
+            <button
+              onClick={async () => {
+                const ok = await installApp();
+                if (ok) setInstalled(true);
+              }}
+              className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                scrolled
+                  ? 'bg-[#f59e0b] text-[#14532d] hover:bg-[#d97706]'
+                  : 'bg-[#f59e0b] text-[#14532d] hover:bg-[#d97706] shadow-lg shadow-[#f59e0b]/30'
+              }`}
+            >
+              <Smartphone className="w-4 h-4" />
+              {t('pwa.install')}
+            </button>
+          ) : null}
+
           {/* Chat Button (contact via WhatsApp/chat) */}
           <a
             href="#contact"
@@ -234,6 +267,19 @@ export default function Navbar() {
                     {t('nav.login')}
                   </button>
                 )}
+                {installReady && !installed ? (
+                  <button
+                    onClick={async () => {
+                      const ok = await installApp();
+                      if (ok) setInstalled(true);
+                      setMobileOpen(false);
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-[#f59e0b] text-[#14532d] hover:bg-[#d97706] transition-colors"
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    {t('pwa.install')}
+                  </button>
+                ) : null}
                 {Object.entries(langNames).map(([key, name]) => (
                   <button
                     key={key}

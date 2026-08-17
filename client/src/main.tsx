@@ -7,6 +7,9 @@ import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
 import "./index.css";
+// PWA install support: service worker + native install prompt
+import { registerServiceWorker } from "./lib/pwa";
+registerServiceWorker();
 
 const queryClient = new QueryClient();
 
