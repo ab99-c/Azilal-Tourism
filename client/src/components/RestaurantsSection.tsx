@@ -200,14 +200,19 @@ export default function RestaurantsSection() {
               transition={{ delay: i * 0.1 }}
               className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 flex flex-col md:flex-row"
             >
-              <div className="relative w-full md:w-2/5 h-48 md:h-auto overflow-hidden shrink-0">
-                <img
-                  src={fromDb ? (restaurant.image || '') : restaurant.img}
-                  alt={getName(restaurant)}
-                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-              </div>
+              {(() => {
+                const imgSrc = fromDb ? restaurant.image : restaurant.img;
+                return imgSrc ? (
+                  <div className="relative w-full md:w-2/5 h-48 md:h-auto overflow-hidden shrink-0">
+                    <img
+                      src={imgSrc}
+                      alt={getName(restaurant)}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                ) : null;
+              })()}
               <div className="flex-1 p-5 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2">

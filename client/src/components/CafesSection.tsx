@@ -200,13 +200,18 @@ export default function CafesSection() {
               transition={{ delay: i * 0.1 }}
               className="group bg-[#f5f5f0] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
             >
-              <div className="relative h-44 overflow-hidden">
-                <img
-                  src={fromDb ? (cafe.image || '') : cafe.img}
-                  alt={getName(cafe)}
-                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
+              <div className="relative h-44 overflow-hidden bg-[#e8e8e0] flex items-center justify-center">
+                {(() => {
+                  const imgSrc = fromDb ? cafe.image : cafe.img;
+                  return imgSrc ? (
+                    <img
+                      src={imgSrc}
+                      alt={getName(cafe)}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : null;
+                })()}
                 <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 font-bold text-sm text-[#c8a951]">
                   <Star className="w-3.5 h-3.5 fill-[#c8a951]" />
                   {Number(cafe.rating) ?? cafe.rating}
