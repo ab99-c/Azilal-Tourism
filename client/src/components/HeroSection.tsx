@@ -11,13 +11,14 @@ export default function HeroSection() {
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <img
-          src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/JbWhaFzOFzgfRJac.jpg"
-          alt="ADRAR Atlas Mountains"
-          className="w-full h-full object-cover"
-        />
+      {/* Background Image — CSS background-image for maximum browser compatibility (works on embedders, in-app browsers & low-end phones that fail <img> loads) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage:
+            'url("https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/JbWhaFzOFzgfRJac.jpg")',
+        }}
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-[#0f3d28]/85 via-[#1b5e3f]/70 to-[#0f3d28]/90" />
         {/* Berber Pattern Overlay */}
         <div
