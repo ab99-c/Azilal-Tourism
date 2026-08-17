@@ -182,3 +182,13 @@
 - [x] User confirmed site renders fully on mobile Chrome/Vercel (screenshot 17:38): hero bg + logo + nav OK — external-image fallback work skipped as unnecessary; issue was stale build in embedded browser
 - [x] Verified sync chain: checkpoint 5d955b6 pushed to GitHub (main=5d955b6) and Vercel auto-built READY production deployment (5d955b6) — webhook working end to end
 - [x] Confirmed no manus-storage refs in live Vercel bundle; CDN images, OAuth fallbacks, PWA manifest all present
+
+## User report: navbar overflows phone screen width (black bar on left edge)
+
+- [ ] Diagnose horizontal overflow: navbar/content wider than viewport on phone (RTL), dark strip visible at screen edge
+- [ ] Fix: constrain navbar and all sections to viewport width (w-full min-w-0), prevent RTL layout shift / scrollbar push
+- [ ] Position language button: centered or within bounds on phone
+- [ ] Verify 375x812 + 1080x2400 (user phone ratio) viewports, checkpoint + push to GitHub/Vercel, report to user
+
+### Diagnosis notes (user screenshots 17:54, GlobalBrowser)
+User's phone screenshots show content pushed RIGHT with a dark/black strip along the LEFT edge — the page content is wider than viewport and shifted. Navbar top bar (logo+lang) extends past screen left edge. This looks like horizontal overflow + RTL scroll offset on his browser. Root fix: add `overflow-x-clip` on body, ensure navbar fixed with inset-0, ensure no element exceeds 100vw. Also user wants language selector centered-ish on phone.

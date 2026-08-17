@@ -76,7 +76,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed inset-0 left-0 right-0 w-full z-50 transition-all duration-500 ${
         scrolled
           ? 'bg-white/95 backdrop-blur-xl shadow-lg py-3'
           : 'bg-transparent py-4'
@@ -138,9 +138,9 @@ export default function Navbar() {
               }`}
             >
               <Globe className="w-4 h-4" />
-              <span>{langNames[lang]}</span>
+              <span className="whitespace-nowrap">{langNames[lang]}</span>
             </button>
-            <div className="absolute top-full mt-2 right-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 bg-white rounded-xl shadow-xl p-2 min-w-[140px]">
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 bg-white rounded-xl shadow-xl p-2 min-w-[140px]">
               {Object.entries(langNames).map(([key, name]) => (
                 <button
                   key={key}
@@ -218,7 +218,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 rounded-lg"
+            className="lg:hidden p-2 rounded-lg flex-shrink-0"
             style={{ color: scrolled ? '#1b5e3f' : '#ffffff' }}
           >
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
