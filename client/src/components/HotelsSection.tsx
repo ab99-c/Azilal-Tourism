@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Star, MapPin, Wifi, Car, Coffee, Shield, Calendar, Building2 } from 'lucide-react';
@@ -33,6 +33,15 @@ function normalizeHotel(hotel: any): NormalizedHotel {
   };
 }
 
+// Static fallback dataset — mirrors the seeded DB rows so sections render
+// content on static hosts (Vercel) that have no backend.
+const DEFAULT_HOTELS: any[] = [
+  { id: 1, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80', nameAr: 'فندق أدرار الأطلس', nameEn: 'ADRAR Atlas Hotel', nameFr: 'Hôtel ADRAR Atlas', nameBer: 'ⴰⵙⵏⴷⵇ ⵏ ⴰⴷⵔⴰⵔ ⴰⵟⵍⴰⵙ', descriptionAr: 'فندق عصري وسط المدينة مع إطلالات خلابة على جبال الأطلس وخدمة راقية.', descriptionEn: 'Modern hotel in the city center with stunning Atlas views.', descriptionFr: 'Hôtel moderne au centre-ville avec vue sur l\'Atlas.', descriptionBer: 'ⴰⵙⵏⴷⵇ ⴰⵏⴰⵎⵉⵔ ⴷ ⵜⴰⵡⵉⵙⵉ ⵉⵍⵍⴰⵏ.', locationAr: 'وسط مدينة أزيلال', locationEn: 'Azilal city center', locationFr: 'Centre-ville d\'Azilal', locationBer: 'ⵜⴰⵎⴷⵉⵏⵜ ⵏ ⴰⵣⵉⵍⴰⵍ', rating: '4.8', priceAr: '800 درهم/ليلة', priceEn: '800 MAD/night', priceFr: '800 MAD/nuit', priceBer: '800 MAD', amenities: '["wifi","parking","restaurant","pool"]' },
+  { id: 2, image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80', nameAr: 'نزل بيربر التقليدي', nameEn: 'Traditional Berber Lodge', nameFr: 'Gîte Berbère Traditionnel', nameBer: 'ⴰⵙⵏⴷⵇ ⴰⵎⴰⵣⵉⵖ', descriptionAr: 'تجربة أمازيغية أصيلة في قلب القرى الجبلية مع الطعام المحلي.', descriptionEn: 'Authentic Amazigh experience in mountain villages with local food.', descriptionFr: 'Expérience amazighe authentique dans les villages.', descriptionBer: 'ⵜⴰⵔⵎⵉⵜ ⵜⴰⵎⴰⵣⵉⵖⵜ ⵜⴰⵏⴰⵎⵉⵔⵜ.', locationAr: 'قرية أيت بومهدي', locationEn: 'Ait Boumehdi village', locationFr: 'Village Ait Boumehdi', locationBer: 'ⴰⵢⵜ ⴱⵓⵎⵀⴷⵉ', rating: '4.5', priceAr: '450 درهم/ليلة', priceEn: '450 MAD/night', priceFr: '450 MAD/nuit', priceBer: '450 MAD', amenities: '["wifi","restaurant","hiking"]' },
+  { id: 3, image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80', nameAr: 'رياد بين الويدان', nameEn: 'Bin el Ouidane Riad', nameFr: 'Riad Bin el Ouidane', nameBer: 'ⵔⵉⵢⴰⴷ ⵏ ⴱⵉⵏ ⵍⵡⵉⴷⴰⵏ', descriptionAr: 'رياد هادئ على ضفاف بحيرة بين الويدان، مثالي للراحة والاسترخاء.', descriptionEn: 'Peaceful riad by Bin el Ouidane lake, perfect for relaxation.', descriptionFr: 'Riad paisible au bord du lac Bin el Ouidane.', descriptionBer: 'ⵔⵉⵢⴰⴷ ⵏ ⵓⴹⵍⵉⵙ ⴱⵉⵏ ⵍⵡⵉⴷⴰⵏ.', locationAr: 'بحيرة بين الويدان', locationEn: 'Bin el Ouidane Lake', locationFr: 'Lac Bin el Ouidane', locationBer: 'ⴰⴳⴰⵎⴰⵎ ⵏ ⴱⵉⵏ ⵍⵡⵉⴷⴰⵏ', rating: '4.7', priceAr: '650 درهم/ليلة', priceEn: '650 MAD/night', priceFr: '650 MAD/nuit', priceBer: '650 MAD', amenities: '["wifi","parking","pool","restaurant"]' },
+  { id: 4, image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=600&q=80', nameAr: 'مخيم الأطلس المغامر', nameEn: 'Atlas Adventure Camp', nameFr: 'Camp d\'Aventure Atlas', nameBer: 'ⴰⴳⵏⵉ ⵏ ⵜⵓⵔⴰⵔⵜ ⴰⵟⵍⴰⵙ', descriptionAr: 'مخيم في الطبيعة مع مرشدين محليين وجولات استكشافية في الجبال.', descriptionEn: 'Nature camp with local guides and mountain exploration tours.', descriptionFr: 'Camp nature avec guides locaux.', descriptionBer: 'ⴰⴳⵏⵉ ⴷ ⵉⵎⵙⴼⴰⵔ ⵉⵏⴰⵎⵉⵔⵏ.', locationAr: 'وادي أدرار', locationEn: 'Ait Bougmez Valley', locationFr: 'Vallée d\'Ait Bougmez', locationBer: 'ⴰⵙⵉⴼ ⵏ ⴰⴷⵔⴰⵔ', rating: '4.3', priceAr: '250 درهم/ليلة', priceEn: '250 MAD/night', priceFr: '250 MAD/nuit', priceBer: '250 MAD', amenities: '["hiking","campfire","guide"]' },
+];
+
 const amenityIcons: Record<string, { icon: typeof Wifi; color: string }> = {
   wifi: { icon: Wifi, color: '#1b5e3f' },
   parking: { icon: Car, color: '#1b5e3f' },
@@ -46,12 +55,14 @@ const amenityIcons: Record<string, { icon: typeof Wifi; color: string }> = {
 export default function HotelsSection() {
   const { t, lang } = useLanguage();
   const { data: hotelsData, isLoading } = trpc.hotels.list.useQuery();
-  const [hotels, setHotels] = useState<NormalizedHotel[]>([]);
+  const [hotels, setHotels] = useState<NormalizedHotel[]>(() => DEFAULT_HOTELS.map(normalizeHotel));
   const [selectedHotel, setSelectedHotel] = useState<NormalizedHotel | null>(null);
 
-  if (hotelsData && hotels.length === 0) {
-    setHotels(hotelsData.map(normalizeHotel));
-  }
+  useEffect(() => {
+    if (hotelsData && hotelsData.length > 0) {
+      setHotels(hotelsData.map(normalizeHotel));
+    }
+  }, [hotelsData]);
 
   const getName = (item: NormalizedHotel) => {
     if (lang === 'ar') return item.name.ar;

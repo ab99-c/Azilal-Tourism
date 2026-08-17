@@ -40,6 +40,15 @@ function extractPriceNum(price: string): number {
   return match ? parseInt(match[1]) : 0;
 }
 
+// Static fallback dataset — mirrors the seeded DB rows so the section renders
+// content on static hosts (Vercel) that have no backend.
+const DEFAULT_CARS: any[] = [
+  { id: 1, image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80', nameAr: 'سيارة عائلية', nameEn: 'Family SUV 4x4', nameFr: 'SUV Familial 4x4', nameBer: 'ⵜⴰⵇⵇⴰⵔⵜ ⵏ ⵜⵓⵏⵜ', typeAr: '4x4', typeEn: '4x4', typeFr: '4x4', typeBer: '4x4', descriptionAr: 'سيارة عائلية واسعة مثالية لرحلات الجبال والطرق الوعرة.', descriptionEn: 'Spacious family SUV for mountain trips and off-road.', descriptionFr: 'SUV familial spacieux pour la montagne.', descriptionBer: 'ⵜⴰⵇⵇⴰⵔⵜ ⵜⵓⵏⵜ ⵉⵜⵜⵢⴰⴼⵏ.', seats: '7 مقاعد', fuel: 'ديزل', price: '400 درهم/يوم', phone: '' },
+  { id: 2, image: 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=600&q=80', nameAr: 'سيارة اقتصادية', nameEn: 'Economy Car', nameFr: 'Voiture Économique', nameBer: 'ⵜⴰⵇⵇⴰⵔⵜ ⵜⴰⵏⴼⴳⴰⵏⵜ', typeAr: 'Economy', typeEn: 'Economy', typeFr: 'Économique', typeBer: 'Economy', descriptionAr: 'سيارة صغيرة موفرة للوقود لرحلات المدينة والقرى.', descriptionEn: 'Fuel-efficient compact car for city and village trips.', descriptionFr: 'Voiture compacte économique.', descriptionBer: 'ⵜⴰⵇⵇⴰⵔⵜ ⵜⵉⵙⵜⵉⵜ.', seats: '5 مقاعد', fuel: 'بنزين', price: '200 درهم/يوم', phone: '' },
+  { id: 3, image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80', nameAr: 'سيارة فاخرة', nameEn: 'Luxury Car', nameFr: 'Voiture de Luxe', nameBer: 'ⵜⴰⵇⵇⴰⵔⵜ ⵏ ⵜⵔⴳⴰ', typeAr: 'Luxury', typeEn: 'Luxury', typeFr: 'Luxe', typeBer: 'Luxe', descriptionAr: 'سيارة فاخرة لرحلاتك بأكبر قدر من الراحة والأناقة.', descriptionEn: 'Luxury car with maximum comfort and style.', descriptionFr: 'Voiture de luxe pour vos voyages.', descriptionBer: 'ⵜⴰⵇⵇⴰⵔⵜ ⵏ ⵜⵔⴳⴰ.', seats: '5 مقاعد', fuel: 'ديزل', price: '700 درهم/يوم', phone: '' },
+  { id: 4, image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&q=80', nameAr: 'دراجة نارية', nameEn: 'Adventure Motorcycle', nameFr: 'Moto Aventure', nameBer: 'ⵜⴰⵙⵇⵍⵜ ⵏ ⵜⵓⵔⴰⵔⵜ', typeAr: 'Adventure', typeEn: 'Adventure', typeFr: 'Aventure', typeBer: 'Adventure', descriptionAr: 'دراجة نارية لمغامرات الطرق الجبلية والمناظر الخلابة.', descriptionEn: 'Adventure motorcycle for mountain road trips.', descriptionFr: 'Moto d\'aventure pour la montagne.', descriptionBer: 'ⵜⴰⵙⵇⵍⵜ ⵏ ⵜⵓⵔⴰⵔⵜ.', seats: '2 مقاعد', fuel: 'بنزين', price: '150 درهم/يوم', phone: '' },
+];
+
 function extractSeatCount(seats: string): number {
   const match = seats.match(/(\d+)/);
   return match ? parseInt(match[1]) : 0;
@@ -48,7 +57,7 @@ function extractSeatCount(seats: string): number {
 export default function CarRentalSection() {
   const { t, lang } = useLanguage();
   const { data: carsData, isLoading } = trpc.cars.list.useQuery();
-  const [cars, setCars] = useState<NormalizedCar[]>([]);
+  const [cars, setCars] = useState<NormalizedCar[]>(() => DEFAULT_CARS.map(normalizeCar));
   const [selectedCar, setSelectedCar] = useState<NormalizedCar | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +68,7 @@ export default function CarRentalSection() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    if (carsData) {
+    if (carsData && carsData.length > 0) {
       setCars(carsData.map(normalizeCar));
     }
   }, [carsData]);
