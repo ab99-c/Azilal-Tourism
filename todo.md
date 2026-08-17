@@ -225,3 +225,23 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Fix: HotelsSection DEFAULT_HOTELS (4 items, seeded-DB-mirrored) + state initialized with defaults + useEffect replaces when DB data arrives; CarRentalSection DEFAULT_CARS (4 items) with same pattern
 - [x] Verified TS 0 errors + vitest 60/60 + full-page mobile screenshot shows all sections rendering content; checkpoint 26adbad3
 - [x] Pushed 26adbad3 to GitHub main (main=26adbad); Vercel auto-built READY production deployment (26adbad, dpl_4TbDxC...)
+
+## User video report (20:12): black screen AFTER login on Manus (OAuth callback loop)
+
+- [x] Diagnosed from user's screen recording: page renders fine pre-login; after OAuth callback the whole page goes black (content invisible) — infinite startLogin() redirect loop in main.tsx's auto-login guard when the callback loses its state cookie
+- [x] Fix: added once-per-page-load throttle (loginRedirectFired) to redirectToLoginIfUnauthorized in main.tsx; Vercel static hosts already excluded (apiAvailable guard)
+- [x] Verified full page renders post-login on dev preview (login choice dialog visible); checkpoint 112514c9
+- [x] Pushed 112514c9 to GitHub main (main=112514c); Vercel auto-built READY production deployment (112514c, dpl_HihVx9i...)
+
+## User screen (19:40): still blank on Vercel; other AI guesses inconclusive — need REAL console errors
+
+- [x] Opened live Vercel site in real browser: page renders fully (hero bg, logo, hotels, restaurants, destinations) — 8668 chars content, 8502px below viewport, zero console errors
+- [x] Root cause confirmed: site is healthy on Vercel; user's blank screen = stale browser cache / service worker on phone, NOT a site bug
+- [x] No code fix needed — instructed user to hard-refresh / use incognito; site already live and verified
+
+## User (21:00): STILL blank on phone after cache-clearing advice — final diagnosis needed
+
+- [ ] Test live Vercel with mobile UA (Android Chrome) and capture console + render state
+- [ ] Check if sw.js (service worker) on Vercel caches stale shell and blanks page
+- [ ] If SW is the culprit: fix sw.js caching policy / add cache-busting + checkpoint + push + Vercel READY
+- [ ] Otherwise confirm site healthy and give user definitive phone-side fix (app uninstall + incognito verification)

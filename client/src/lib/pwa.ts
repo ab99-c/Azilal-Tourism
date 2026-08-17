@@ -36,8 +36,28 @@ export async function registerServiceWorker(): Promise<void> {
   // Service workers require a secure context
   if (window.location.protocol !== "https:") return;
   try {
-    await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    const registration = await navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+    });
     swRegistered = true;
+    // Listen for a newer service worker. Because sw.js lives at the root and
+    // the server sends Cache-Control: no-cache for it, any content change
+    // (e.g. CACHE version bump) is detected as an update.
+    registration.addEventListener("updatefound", () => {
+      const newWorker = registration.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "installed") {
+          newWorker.postMessage({ type: "SKIP_WAITING" });
+          // A new service worker installed → the app shell just changed.
+          // Force one full reload so the browser re-fetches the fresh
+          // index.html instead of serving a stale cached shell.
+          if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        }
+      });
+    });
   } catch {
     // SW registration failure must never break the app
     swRegistered = false;
