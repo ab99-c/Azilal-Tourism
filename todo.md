@@ -164,3 +164,10 @@
 - [x] Generate branded PWA app icons (ADRAR logo, Amazigh/Atlas aesthetic) — emerald green with golden Atlas peaks + Amazigh yennayer sun, flattened opaque squares at 512/192/180px
 - [x] Manifest updated (maskable icon, emerald background, portrait) + iOS PWA meta tags (apple-mobile-web-app-capable, status-bar-style, app title); manifest and icons verified served correctly
 - [x] Verify on mobile viewport (375x812): site renders fully, manifest served with branded icons, install prompt available natively on mobile browsers; checkpoint + push to GitHub
+
+## User report: missing hero bg + broken navbar logo on Vercel (mobile screenshot)
+
+- [ ] Diagnose and fix missing hero background on Vercel (likely /manus-storage proxy not served on static Vercel build)
+- [ ] Diagnose and fix broken navbar logo image on Vercel (alt "Logo" shown)
+- [ ] Audit all image URLs in code: replace /manus-storage paths with permanent absolute URLs for Vercel compatibility
+- [ ] Verify on Vercel live site, checkpoint + push to GitHub, report to user

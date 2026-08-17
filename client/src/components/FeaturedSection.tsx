@@ -4,19 +4,19 @@ import { ArrowRight, Star } from 'lucide-react';
 
 const features = [
   {
-    img: '/manus-storage/destination-binzaid_3d5b2664.jpg',
+    img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/NToyBNlacJDpjOIV.jpg',
     badge: 'featured.1.badge',
     title: 'featured.1.title',
     desc: 'featured.1.desc',
   },
   {
-    img: '/manus-storage/destination-tisnirt_033ee4ae.jpg',
+    img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/YYvpyYbTLJRQRuNJ.jpg',
     badge: 'featured.2.badge',
     title: 'featured.2.title',
     desc: 'featured.2.desc',
   },
   {
-    img: '/manus-storage/destination-berber_165bf569.jpg',
+    img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/KGpeWLOJRkcROyxb.jpg',
     badge: 'featured.3.badge',
     title: 'featured.3.title',
     desc: 'featured.3.desc',

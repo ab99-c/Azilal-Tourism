@@ -4,7 +4,7 @@ import { MapPin, ArrowUpRight } from 'lucide-react';
 
 const destinations = [
   {
-    img: '/manus-storage/destination-binzaid_3d5b2664.jpg',
+    img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/NToyBNlacJDpjOIV.jpg',
     location: 'أزيلال - الأطلس الكبير',
     title_ar: 'بحيرة بين الويدان',
     title_en: 'Bin el Ouidane Lake',
@@ -16,7 +16,7 @@ const destinations = [
     desc_ber: 'ⴰⵖⵏⵛⴰⵡ ⵉⵜⵜⵔⵣⵢⵏ ⵉⵜⵜⴰⵡⵢⵏ ⵙ ⵉⵡⴷⵉⵡⵏ ⵏ ⴰⵟⵍⴰⵙ',
   },
   {
-    img: '/manus-storage/destination-tisnirt_033ee4ae.jpg',
+    img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/YYvpyYbTLJRQRuNJ.jpg',
     location: 'أزيلال - وادي أزيلال',
     title_ar: 'شلالات تيسنيرت',
     title_en: 'Tisnirt Waterfalls',
@@ -28,7 +28,7 @@ const destinations = [
     desc_ber: 'ⵉⵔⵣⵣⵉⵜⵏ ⵉⵜⵜⵔⵣⵢⵏ ⵙⴳ ⵉⵣⴳⴰⵏ ⵉⵖⴱⵉⴱⵏ',
   },
   {
-    img: '/manus-storage/destination-berber_165bf569.jpg',
+    img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/KGpeWLOJRkcROyxb.jpg',
     location: 'أزيلال - الجبل',
     title_ar: 'قرى أيت بومهدى',
     title_en: 'Ait Bouhaddou Villages',

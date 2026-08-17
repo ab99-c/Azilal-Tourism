@@ -55,7 +55,7 @@ export default function LoginChoiceDialog({ open, onClose }: { open: boolean; on
             </button>
 
             <img
-              src="/manus-storage/logo-yaz_23b00a4a.png"
+              src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/xbbDARckWbPXkreO.png"
               alt="ADRAR"
               className="w-14 h-14 object-contain mx-auto mb-4"
             />

@@ -14,7 +14,7 @@ export default function HeroSection() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
-          src="/manus-storage/hero-azilal_c8d161f3.jpg"
+          src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/JbWhaFzOFzgfRJac.jpg"
           alt="ADRAR Atlas Mountains"
           className="w-full h-full object-cover"
         />

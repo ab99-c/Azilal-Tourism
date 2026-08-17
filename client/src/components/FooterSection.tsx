@@ -22,7 +22,7 @@ export default function FooterSection() {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <img
-                src="/manus-storage/logo-yaz_23b00a4a.png"
+                src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/xbbDARckWbPXkreO.png"
                 alt="Logo"
                 className="w-10 h-10 object-contain"
               />
