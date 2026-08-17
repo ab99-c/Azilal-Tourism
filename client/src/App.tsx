@@ -17,11 +17,13 @@ import ChatWidget from './components/ChatWidget';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorBoundary, { CrashFallback } from "./components/ErrorBoundary";
 
 function App() {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary
+      fallbackRender={({ error }) => <CrashFallback message={error?.message} />}
+    >
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />

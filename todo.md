@@ -195,8 +195,15 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User report (18:04 GlobalBrowser): page renders black/empty — CDN hero bg image blocked, navbar fine now
 
-- [ ] Investigate current HeroSection implementation (CSS background-image from CDN URL)
-- [ ] Create compressed WebP/PNG fallback of hero image and destination images (small size, ~100-150KB)
-- [ ] Implement fallback: try CDN first, swap to embedded data-URI / local asset on load failure (onError for img; for bg use two-layer div with local bg as base)
+- [x] Investigate current HeroSection implementation (CSS background-image from CDN URL)
+- [x] Create compressed WebP/PNG fallback of hero image and destination images (small size, ~100-150KB)
+- [x] Implement fallback: try CDN first, swap to embedded data-URI / local asset on load failure (onError for img; for bg use two-layer div with local bg as base)
 - [ ] Apply to HeroSection, destination cards, restaurants/cafes/hotels/car images
 - [ ] Verify on 360x800 mobile, checkpoint + push to GitHub, confirm Vercel READY, report to user
+
+## User report: page renders blank/white on Vercel (navbar visible, content empty)
+
+- [x] Diagnose blank page on live Vercel build: bundle OK; root cause = /api/trpc on Vercel static returns HTML → tRPC JSON parse crash → root ErrorBoundary rendered blank fallback
+- [ ] Fix the root cause in code (static build: server calls / tRPC usage in client that fails on Vercel static)
+- [ ] Verify page renders fully (hero + sections) on desktop + mobile viewports
+- [ ] Checkpoint + push GitHub + confirm Vercel READY
