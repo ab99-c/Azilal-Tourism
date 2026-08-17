@@ -14,9 +14,21 @@ interface BookingModalProps {
   price: string;
   image?: string;
 }
+const MAIN_SITE_URL = "https://azilaltour-j2sx2a5n.manus.space";
+
 export default function BookingModal({ isOpen, onClose, type, itemId, itemName, price, image }: BookingModalProps) {
   const { lang, t } = useLanguage();
   const utils = trpc.useUtils();
+
+  // Static-host guard (Vercel has no backend): bookings cannot be saved there,
+  // so redirect the user to the full-featured main site instead of silently
+  // swallowing the submit.
+  const isStaticHost = () =>
+    typeof location !== "undefined" &&
+    !/manus\.space|manus\.computer|manusvm\.com|localhost/.test(location.host);
+  const redirectToMainSite = () => {
+    window.location.href = MAIN_SITE_URL;
+  };
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -43,6 +55,66 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isRTL = lang === 'ar';
+
+  // Static-host guard (Vercel has no backend): bookings cannot be saved there,
+  // so show a redirect to the full-featured main site instead of silently
+  // swallowing the submit.
+  if (isOpen && isStaticHost() && step < 4) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4"
+            onClick={onClose}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className={`w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl ${isRTL ? "rtl" : "ltr"}`}
+              onClick={e => e.stopPropagation()}
+            >
+              <AlertCircle className="mx-auto mb-3 h-10 w-10 text-amber-600" />
+              <h3 className="mb-2 text-lg font-bold text-slate-900">
+                {lang === "ar"
+                  ? "الحجوزات متاحة على الموقع الرئيسي"
+                  : lang === "fr"
+                    ? "Les réservations sont disponibles sur le site principal"
+                    : lang === "ber"
+                      ? "Tilist n tzemremt llant deg usmel amenzu"
+                      : "Bookings are available on the main site"}
+              </h3>
+              <p className="mb-4 text-sm text-slate-600">
+                {lang === "ar"
+                  ? "هاد النسخة ديال العرض ماكيداش الحجوزات (ماكاينش سيرڤير). سير للموقع الرئيسي باش تسالي حجزك دابا."
+                  : lang === "fr"
+                    ? "Cette version d'aperçu ne peut pas enregistrer les réservations. Rendez-vous sur le site principal pour finaliser."
+                    : lang === "ber"
+                      ? "Aseqqam-a ur izmir ara ad yeqqen tilist. Rḥut ɣer usmel amenzu."
+                      : "This preview copy cannot save bookings. Please use the main site to complete yours."}
+              </p>
+              <button
+                onClick={redirectToMainSite}
+                className="w-full rounded-xl bg-emerald-700 px-4 py-3 font-semibold text-white transition-transform active:scale-[0.97] hover:bg-emerald-800"
+              >
+                {lang === "ar"
+                  ? "سيري للموقع الرئيسي — حجز دابا"
+                  : lang === "fr"
+                    ? "Aller au site principal — Réserver"
+                    : lang === "ber"
+                      ? "Rḥu ɣer usmel amenzu — Qen tura"
+                      : "Go to main site — Book now"}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
 
   const t_book = (key: string) => {
     const translations: Record<Lang, Record<string, string>> = {
