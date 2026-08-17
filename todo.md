@@ -241,7 +241,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User (21:00): STILL blank on phone after cache-clearing advice — final diagnosis needed
 
-- [ ] Test live Vercel with mobile UA (Android Chrome) and capture console + render state
-- [ ] Check if sw.js (service worker) on Vercel caches stale shell and blanks page
-- [ ] If SW is the culprit: fix sw.js caching policy / add cache-busting + checkpoint + push + Vercel READY
-- [ ] Otherwise confirm site healthy and give user definitive phone-side fix (app uninstall + incognito verification)
+- [x] Test live Vercel with mobile UA (Android Chrome) and capture console + render state
+- [x] Check if sw.js (service worker) on Vercel caches stale shell and blanks page — confirmed: adrar-shell-v1 caches `/`; stale shell + deleted hashed bundle = blank page
+- [x] Fix: sw.js bumped to adrar-shell-v2 with SKIP_WAITING listener; pwa.ts detects SW updates and forces a full reload to re-fetch fresh index.html
+- [x] Checkpoint 1d13a0c6 (auto-published) — push to GitHub pending to update Vercel, then instruct user to open incognito once
