@@ -25,6 +25,14 @@ export default function Navbar() {
   const [installReady, setInstallReady] = useState(!!getDeferredPrompt());
   const [installed, setInstalled] = useState(false);
 
+  // Lock body scroll when the mobile menu is open (prevents overflow/shift)
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   // Listen for the native install prompt becoming available (Chrome/Android)
   useEffect(() => {
     const onReady = () => setInstallReady(true);
@@ -222,12 +230,14 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 overflow-hidden"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="lg:hidden bg-white/98 backdrop-blur-xl border-t border-gray-100 shadow-2xl overflow-y-auto overscroll-contain"
+            style={{ maxHeight: 'calc(100dvh - 100%)' }}
           >
-            <div className="container py-4 flex flex-col gap-3">
+            <div className="container max-w-full py-4 flex flex-col gap-3">
               {navLinks.map((link) => (
                 <a
                   key={link.key}
@@ -237,13 +247,13 @@ export default function Navbar() {
                     scrollToSection(link.href);
                     setMobileOpen(false);
                   }}
-                  className="text-gray-700 hover:text-[#1b5e3f] font-medium py-2 transition-colors"
+                  className="text-gray-700 hover:text-[#1b5e3f] font-medium py-2 transition-colors whitespace-nowrap"
                 >
                   {t(link.key)}
                 </a>
               ))}
               {/* Guest / auth actions on mobile */}
-              <div className="flex gap-2 pt-3 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
                 {isAuthenticated ? (
                   <button
                     onClick={() => {

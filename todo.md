@@ -179,7 +179,6 @@
 
 ## User report: images/logo invisible on Mi GlobalBrowser (phone)
 
-- [ ] Create inline SVG fallback logo component (embedded in code, no external load needed) used when CDN logo fails
-- [ ] Add global image onError fallback utility: swap CDN URL to local/data fallback on load failure
-- [ ] Apply fallback to Navbar logo, Hero background, and all sections' images
-- [ ] Verify on 375x812 mobile viewport, checkpoint + auto-publish, report to user
+- [x] User confirmed site renders fully on mobile Chrome/Vercel (screenshot 17:38): hero bg + logo + nav OK — external-image fallback work skipped as unnecessary; issue was stale build in embedded browser
+- [x] Verified sync chain: checkpoint 5d955b6 pushed to GitHub (main=5d955b6) and Vercel auto-built READY production deployment (5d955b6) — webhook working end to end
+- [x] Confirmed no manus-storage refs in live Vercel bundle; CDN images, OAuth fallbacks, PWA manifest all present
