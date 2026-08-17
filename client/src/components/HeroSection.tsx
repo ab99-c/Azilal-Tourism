@@ -1,18 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronDown, MapPin } from 'lucide-react';
 import { scrollToSection } from '@/lib/scroll';
-import { HERO_BG_FALLBACK } from '@/lib/heroFallback';
 
 /** CDN hero background — fails over to an embedded data-URI when blocked. */
 const CDN_BG = 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/JbWhaFzOFzgfRJac.jpg';
 
+/**
+ * Embedded fallback image, code-split into its own chunk so the hero's
+ * ~370KB data-URI never inflates the initial JavaScript bundle. Phones with
+ * slow/limited connections still get instant page paint; the fallback chunk
+ * loads in parallel and activates only if the CDN image fails.
+ */
 export default function HeroSection() {
   const { t } = useLanguage();
 
   // Start with CDN; swap to embedded fallback on load failure (browsers that block external images)
   const [bgUrl, setBgUrl] = useState(CDN_BG);
+  const [fallbackSrc, setFallbackSrc] = useState<string | null>(null);
+
+  // Load the embedded fallback chunk eagerly (it's needed within seconds of
+  // paint on devices that block external images), but keep it out of the
+  // critical initial bundle.
+  useEffect(() => {
+    let cancelled = false;
+    import('@/lib/heroFallback').then(m => {
+      if (!cancelled) setFallbackSrc(m.HERO_BG_FALLBACK);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleImageError = () => {
+    if (fallbackSrc) {
+      setBgUrl(fallbackSrc);
+    } else {
+      // Fallback chunk not yet available — wait for it then switch
+      import('@/lib/heroFallback').then(m => setBgUrl(m.HERO_BG_FALLBACK));
+    }
+  };
 
   return (
     <section
@@ -24,7 +52,6 @@ export default function HeroSection() {
         key={bgUrl}
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url("${bgUrl}")` }}
-        onLoad={() => {}}
       >
         {/* Hidden <img> that detects CDN failure and triggers the embedded fallback */}
         <img
@@ -32,7 +59,7 @@ export default function HeroSection() {
           alt=""
           className="hidden"
           loading="eager"
-          onError={() => setBgUrl(HERO_BG_FALLBACK)}
+          onError={handleImageError}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#0f3d28]/85 via-[#1b5e3f]/70 to-[#0f3d28]/90" />
         {/* Berber Pattern Overlay */}
