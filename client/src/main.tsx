@@ -39,12 +39,20 @@ export const isStaticHost = () =>
 const apiAvailable = () =>
   typeof document !== "undefined" && import.meta.env.VITE_APP_ID !== "";
 
+// Throttle guard: on Manus hosts, UNAUTHORIZED API errors used to trigger
+// startLogin() on every failing query. If the OAuth session cookie did not
+// stick (e.g. the callback lost its state cookie), that produced an infinite
+// login-redirect loop that killed the page (blank/black screen after login).
+// Now the redirect fires at most once per page load.
+let loginRedirectFired = false;
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
   if (!apiAvailable()) return;
+  if (loginRedirectFired) return;
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
   if (!isUnauthorized) return;
+  loginRedirectFired = true;
   startLogin();
 };
 

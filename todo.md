@@ -221,7 +221,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Fix applied (code-split fallback) + dev preview verified (390x844, hero bg visible) + checkpoint 9522f083 + push to GitHub pending
 
 ## User report: homepage hero OK but other sections (hotels, restaurants, cafes, cars) render EMPTY on live site
-- [ ] Reproduce on live Vercel URL: check whether sections show static fallback data or empty grid
-- [ ] Identify which sections crash/skip when data undefined (hotels, cars likely)
-- [ ] Fix: sections must render their static fallback arrays on Vercel (no backend)
-- [ ] Verify all sections render content on live Vercel; checkpoint + push + confirm Vercel READY
+- [x] Reproduced: HotelsSection/Cars init [] + only setHotels/setCars when DB data arrives → empty on Vercel (no backend)
+- [x] Fix: HotelsSection DEFAULT_HOTELS (4 items, seeded-DB-mirrored) + state initialized with defaults + useEffect replaces when DB data arrives; CarRentalSection DEFAULT_CARS (4 items) with same pattern
+- [x] Verified TS 0 errors + vitest 60/60 + full-page mobile screenshot shows all sections rendering content; checkpoint 26adbad3
+- [x] Pushed 26adbad3 to GitHub main (main=26adbad); Vercel auto-built READY production deployment (26adbad, dpl_4TbDxC...)
