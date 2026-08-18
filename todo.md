@@ -276,8 +276,23 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User request: SEO Maroc — hicham.webbuzz reference (backlinks/PageRank); improve ADRAR site SEO
 
-- [ ] Review hicham.webbuzz content and audit current SEO of the ADRAR site (index.html head, sitemap, robots, schema)
-- [ ] Implement on-page SEO: full meta (AR/FR/EN/BER), Open Graph/Twitter cards, canonical, hreflang, sitemap.xml, robots.txt
-- [ ] Add structured data (JSON-LD): LocalBusiness/TourismDestination, hotels, restaurants, car rentals, FAQ
-- [ ] Multilingual SEO: lang attributes, dir=rtl for AR/BER, per-language meta
-- [ ] Checkpoint + push GitHub + verify on live + deliver SEO report + backlink strategy (Moroccan sources)
+- [x] Review hicham.webbuzz content and audit current SEO of the ADRAR site (index.html head, sitemap, robots, schema)
+- [x] Implement on-page SEO: full meta (AR/FR/EN/BER), Open Graph/Twitter cards, canonical, hreflang, sitemap.xml, robots.txt (Verified: index.html head section complete)
+- [x] Add structured data (JSON-LD): created client/src/lib/seoSchema.ts (16 entities: Hotels, Restaurants, Cafes, Cars) + Breadcrumbs/Organization/WebSite; injected dynamically in main.tsx
+- [x] Multilingual SEO: dynamically set lang/dir in LanguageContext; hreflang alternates in index.html; sitemap.xml with x-default
+- [x] Checkpoint b86bf3b3 (auto-published)
+- [x] Push b86bf3b3 to GitHub main (ab99-c/Azilal-Tourism) so Vercel gets the SEO updates; Vercel deployment is READY. (Note: Vercel public URL propagation may take a few more minutes, but the Manus instance is already live with the update).
+- [x] Deliver final SEO report + Moroccan backlink strategy (Moroccan tourism forums, directories, social media sources) to user
+
+## User request: verify latest edits (b86bf3b SEO) are on GitHub AND Vercel live
+
+- [x] Confirm GitHub main = b86bf3b (latest SEO checkpoint)
+- [x] Confirm Vercel production deployment from b86bf3b is READY (dpl_88EueGJmZKnY5DBAbPYV4tSAMA3F); alias azilal-tourism.vercel.app IS assigned to it — CDN edge cache may take a few minutes to update
+- [x] Report final state to user
+
+## User screenshot (16:18): LoginChoiceDialog on Vercel — site shows nothing behind it / dead-end
+
+- [x] Reproduce: dialog backdrop bg-black/60 + blur made site behind look hidden on Vercel
+- [x] Root cause: dialog appears after login (cookie persists), heavy backdrop obscures content, and on Vercel the dialog is a dead-end (no backend for bookings)
+- [x] Fix: (1) reduced backdrop to bg-black/25/35, no blur; (2) made X button more prominent (bg-gray-100, p-2); (3) skip button styled as visible pill button; (4) dialog auto-dismisses on static hosts (Vercel) via isStaticHost() check — moved to utils.ts to avoid circular import; (5) tsc 0 errors, vitest 60/60
+- [ ] Checkpoint + push GitHub + verify Vercel READY + report

@@ -2,6 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarCheck, LayoutDashboard, X } from 'lucide-react';
 import { scrollToSection } from '@/lib/scroll';
+import { isStaticHost } from '@/lib/utils';
 
 /**
  * Post-login choice dialog: appears after a user authenticates so they can
@@ -11,6 +12,14 @@ import { scrollToSection } from '@/lib/scroll';
  */
 export default function LoginChoiceDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lang, t } = useLanguage();
+
+  // On static hosts (e.g. Vercel), there's no backend for bookings/dashboards,
+  // so the dialog is a dead-end. Auto-dismiss immediately.
+  if (open && isStaticHost()) {
+    // Use a microtask to close without triggering re-render loops
+    queueMicrotask(onClose);
+    return null;
+  }
 
   const choose = (kind: 'guest' | 'owner') => {
     onClose();
@@ -32,7 +41,7 @@ export default function LoginChoiceDialog({ open, onClose }: { open: boolean; on
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/25 sm:bg-black/35"
             onClick={onClose}
           />
           {/* Dialog */}
@@ -49,7 +58,7 @@ export default function LoginChoiceDialog({ open, onClose }: { open: boolean; on
             <button
               onClick={onClose}
               aria-label={t('choice.skip')}
-              className="absolute top-4 right-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -91,7 +100,7 @@ export default function LoginChoiceDialog({ open, onClose }: { open: boolean; on
 
             <button
               onClick={onClose}
-              className="mt-6 text-sm text-gray-400 hover:text-gray-600 underline underline-offset-4 transition-colors"
+              className="mt-6 px-6 py-2.5 rounded-full border border-gray-300 text-gray-600 hover:text-gray-800 hover:border-gray-400 hover:bg-gray-50 font-medium transition-colors"
             >
               {t('choice.skip')}
             </button>

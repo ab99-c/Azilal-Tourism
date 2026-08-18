@@ -10,6 +10,7 @@ import { startLogin } from "./const";
 import "./index.css";
 // PWA install support: service worker + native install prompt
 import { registerServiceWorker } from "./lib/pwa";
+import { isStaticHost } from "@/lib/utils";
 registerServiceWorker();
 
 // SEO — inject rich structured data (JSON-LD) for crawlers.
@@ -51,15 +52,8 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-/**
- * Is the current host a static mirror without the Manus backend (e.g. Vercel)?
- * The API endpoints live only on Manus hosts, so anything else is treated as
- * static — queries there must render fallback content instead of crashing.
- */
-export const isStaticHost = () =>
-  typeof location !== "undefined" &&
-  !/manus\.space|manus\.computer|manusvm\.com|localhost/.test(location.host);
+// isStaticHost is defined in client/src/lib/utils.ts to avoid circular imports
+export { isStaticHost } from "@/lib/utils";
 
 
 // The API endpoint may be absent on static external hosts (e.g. Vercel builds
