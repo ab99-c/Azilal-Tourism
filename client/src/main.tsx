@@ -12,6 +12,35 @@ import "./index.css";
 import { registerServiceWorker } from "./lib/pwa";
 registerServiceWorker();
 
+// SEO — inject rich structured data (JSON-LD) for crawlers.
+// Static meta tags live in index.html; these blocks are added at runtime so
+// they always reflect the current dataset, and each render dedupes by id.
+import {
+  SEO_ENTITIES,
+  buildBreadcrumbJsonLd,
+  buildLocalBusinessesJsonLd,
+  buildOrganizationJsonLd,
+  buildWebSiteJsonLd,
+} from "./lib/seoSchema";
+
+const injectJsonLd = (id: string, payload: object) => {
+  if (typeof document === "undefined") return;
+  if (document.getElementById(id)) return;
+  const script = document.createElement("script");
+  script.type = "application/ld+json";
+  script.id = id;
+  script.textContent = JSON.stringify(payload);
+  document.head.appendChild(script);
+};
+
+injectJsonLd("adrar-jsonld-website", buildWebSiteJsonLd());
+injectJsonLd("adrar-jsonld-organization", buildOrganizationJsonLd());
+injectJsonLd("adrar-jsonld-breadcrumb", buildBreadcrumbJsonLd());
+injectJsonLd(
+  "adrar-jsonld-businesses",
+  buildLocalBusinessesJsonLd(SEO_ENTITIES)
+);
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

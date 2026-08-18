@@ -259,4 +259,25 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Reproduce from video: hero CTA "ابدأ رحلتك" triggers scroll → scrolled=true → Navbar was `fixed inset-0 ... bg-white/95`, a FULL-SCREEN white overlay that washed out the whole page (only nav controls visible) — exactly the video symptom
 - [x] Root cause: Navbar.tsx `inset-0` made the nav a full-viewport overlay instead of a top bar
 - [x] Fix: Navbar is now `fixed top-0 left-0 right-0 w-full z-50` — top bar only; tsc 0 errors, vitest 60/60, mobile screenshots verified
-- [ ] Checkpoint + push GitHub + verify Vercel READY + report to user
+- [x] Checkpoint 0b373bdb + pushed to GitHub; Vercel deployment dpl_9cpaNgJDfkWLRfDyBRqKHwu3jECF built successfully ("Deployment completed" 20:19:41) and the new bundle is live: azilal-tourism.vercel.app serves index-DN5x72P-.js and sw.js v2; Manus main site also updated (auto-publish)
+
+## User request: turn the Vercel static-host diagnosis/fix workflow into a reusable skill (/skill-creator)
+
+- [x] Initialize skill dir with init_skill.py
+- [x] Write scripts (check_vercel_deploy.py parser, extract_video_frames.py) + references (diagnosis_playbook.md, static_host_patterns.md)
+- [x] Write SKILL.md (blank-page diagnosis on Vercel/static hosts: SW cache busting, full-screen overlay CSS bugs, static-host-aware tRPC)
+- [x] Validate with quick_validate.py (passed) and deliver SKILL.md to user
+
+## User video WhatsAppVideo2026-08-18at03.12.32.mp4: "KI IMKIN ASIFD MNHADA F MO9I3" (Can I send from here on the site?)
+
+- [ ] Extract frames + contact sheet from the new video, identify the symptom
+- [ ] Reproduce in dev preview / live Vercel and find root cause
+- [ ] Fix, checkpoint, push GitHub, verify Vercel live, report to user
+
+## User request: SEO Maroc — hicham.webbuzz reference (backlinks/PageRank); improve ADRAR site SEO
+
+- [ ] Review hicham.webbuzz content and audit current SEO of the ADRAR site (index.html head, sitemap, robots, schema)
+- [ ] Implement on-page SEO: full meta (AR/FR/EN/BER), Open Graph/Twitter cards, canonical, hreflang, sitemap.xml, robots.txt
+- [ ] Add structured data (JSON-LD): LocalBusiness/TourismDestination, hotels, restaurants, car rentals, FAQ
+- [ ] Multilingual SEO: lang attributes, dir=rtl for AR/BER, per-language meta
+- [ ] Checkpoint + push GitHub + verify on live + deliver SEO report + backlink strategy (Moroccan sources)
