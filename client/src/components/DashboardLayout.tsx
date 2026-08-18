@@ -21,6 +21,11 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
+import { isStaticHost } from "@/lib/utils";
+
+// The full-featured Manus-hosted site (backend + OAuth). On static mirrors
+// (e.g. Vercel) login cannot complete locally — redirect users to the main site.
+const MAIN_SITE_URL = "https://azilaltour-j2sx2a5n.manus.space";
 import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -65,15 +70,23 @@ export default function DashboardLayout({
               Sign in to continue
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+              {isStaticHost()
+                ? "This preview copy has no login system. Continue on the main site where the full dashboard is available."
+                : "Access to this dashboard requires authentication. Continue to launch the login flow."}
             </p>
           </div>
           <Button
-            onClick={() => startLogin()}
+            onClick={() => {
+              if (isStaticHost()) {
+                window.open(MAIN_SITE_URL, "_blank", "noopener");
+              } else {
+                startLogin();
+              }
+            }}
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            {isStaticHost() ? "Open main site" : "Sign in"}
           </Button>
         </div>
       </div>
