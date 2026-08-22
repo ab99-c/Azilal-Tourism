@@ -312,3 +312,17 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add click-to-chat buttons with prefilled booking/contact messages across listing cards
 - [x] Run database migration, Vitest (65/65), TypeScript/build checks, and desktop/mobile verification
 - [x] Save checkpoint and report live usage instructions
+
+## User request: reusable skill for multilingual tourism WhatsApp integration
+
+- [x] Define the reusable WhatsApp integration workflow and guardrails
+- [x] Initialize and author the reusable skill package with SKILL.md and only necessary references
+- [x] Validate the skill package and fix any validation issues (official validator passed after installing PyYAML)
+- [x] Deliver the validated SKILL.md/package to the user
+
+## User request: push latest ADRAR changes to GitHub and Vercel
+
+- [ ] Inspect repository status, branch, remote, and latest checkpoint
+- [ ] Commit and push latest project changes to GitHub safely
+- [ ] Verify Vercel rebuilds and serves the updated bundle
+- [ ] Report GitHub and Vercel publication status with direct links
