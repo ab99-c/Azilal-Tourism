@@ -322,7 +322,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User request: push latest ADRAR changes to GitHub and Vercel
 
-- [ ] Inspect repository status, branch, remote, and latest checkpoint
-- [ ] Commit and push latest project changes to GitHub safely
-- [ ] Verify Vercel rebuilds and serves the updated bundle
-- [ ] Report GitHub and Vercel publication status with direct links
+- [x] Inspect repository status, branch, remote, and latest checkpoint
+- [x] Commit and push latest project changes to GitHub safely (GitHub main now includes commit 6c60655)
+- [x] Verify Vercel rebuilds and serves the updated bundle (live bundle includes https://wa.me)
+- [x] Report GitHub and Vercel publication status with direct links
