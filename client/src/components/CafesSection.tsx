@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Star, MapPin, Clock, Wifi, Coffee } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import WhatsAppButton from './WhatsAppButton';
+import { getWhatsAppMessage } from '@/lib/whatsapp';
 
 const fallbackCafes = [
   {
@@ -236,6 +238,12 @@ export default function CafesSection() {
                     {cafe.hours}
                   </span>
                 </div>
+                <WhatsAppButton
+                  phone={fromDb ? (cafe.whatsapp || cafe.phone) : cafe.whatsapp}
+                  message={getWhatsAppMessage(lang, getName(cafe), 'cafe')}
+                  label={lang === 'ar' ? 'تواصل عبر واتساب' : lang === 'fr' ? 'Contacter sur WhatsApp' : lang === 'ber' ? 'ⵙⵉⵡⵍ ⵙ ⵡⴰⵜⵙⴰⴱ' : 'Chat on WhatsApp'}
+                  className="w-full py-2.5 mt-3 bg-[#25D366] text-white rounded-xl font-bold text-xs hover:bg-[#1ebe5b]"
+                />
               </div>
             </motion.div>
           ))}

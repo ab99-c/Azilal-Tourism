@@ -92,6 +92,11 @@ const hotelsListCache = cached<any[]>("hotels:list");
 const MAX_NAME = 255;
 const MAX_TEXT = 5000;
 const MAX_SHORT = 200;
+const whatsappInput = z.string().trim().max(50).refine((value) => {
+  if (!value) return true;
+  const digits = value.replace(/\D/g, '');
+  return digits.length >= 8 && digits.length <= 15;
+}, { message: 'Enter a valid WhatsApp number' }).optional();
 
 export const appRouter = router({
   system: systemRouter,
@@ -139,6 +144,7 @@ export const appRouter = router({
         fuel: car.fuel,
         price: car.price,
         phone: car.phone,
+        whatsapp: car.whatsapp,
         image: car.image,
       }));
       carsListCache.set(mapped);
@@ -154,6 +160,7 @@ export const appRouter = router({
         descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
         seats: z.string().max(MAX_SHORT).default('5 مقاعد'), fuel: z.string().max(MAX_SHORT).default('ديزل'),
         price: z.string().max(MAX_SHORT), phone: z.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
         image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -172,6 +179,7 @@ export const appRouter = router({
         descriptionFr: z.string().max(MAX_TEXT).optional(), descriptionBer: z.string().max(MAX_TEXT).optional(),
         seats: z.string().max(MAX_SHORT), fuel: z.string().max(MAX_SHORT),
         price: z.string().max(MAX_SHORT), phone: z.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
         image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -208,6 +216,7 @@ export const appRouter = router({
         rating: hotel.rating,
         priceAr: hotel.priceAr, priceEn: hotel.priceEn, priceFr: hotel.priceFr, priceBer: hotel.priceBer,
         amenities: hotel.amenities,
+        whatsapp: hotel.whatsapp,
         image: hotel.image,
       }));
       hotelsListCache.set(mapped);
@@ -224,6 +233,7 @@ export const appRouter = router({
         rating: z.string().max(10).default('4.5'),
         priceAr: z.string().max(MAX_SHORT), priceEn: z.string().max(MAX_SHORT),
         priceFr: z.string().max(MAX_SHORT), priceBer: z.string().max(MAX_SHORT),
+        whatsapp: whatsappInput,
         amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -243,6 +253,7 @@ export const appRouter = router({
         rating: z.string().max(10),
         priceAr: z.string().max(MAX_SHORT), priceEn: z.string().max(MAX_SHORT),
         priceFr: z.string().max(MAX_SHORT), priceBer: z.string().max(MAX_SHORT),
+        whatsapp: whatsappInput,
         amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -250,6 +261,15 @@ export const appRouter = router({
         const hotel = await getHotelById(id);
         await requireOwnership({ user: ctx.user } as any, hotel as any, "hotel");
         await updateHotel(id, data);
+        invalidateCache("hotels");
+        return { success: true } as const;
+      }),
+    updateContact: ownerProcedure
+      .input(z.object({ id: z.number().int().positive(), whatsapp: whatsappInput }))
+      .mutation(async ({ input, ctx }) => {
+        const hotel = await getHotelById(input.id);
+        await requireOwnership({ user: ctx.user } as any, hotel as any, "hotel");
+        await updateHotel(input.id, { whatsapp: input.whatsapp || null } as any);
         invalidateCache("hotels");
         return { success: true } as const;
       }),
@@ -280,7 +300,7 @@ export const appRouter = router({
         cuisineFr: z.string().max(MAX_SHORT).optional(), cuisineBer: z.string().max(MAX_SHORT).optional(),
         rating: z.string().max(10).default('4.5'),
         hours: z.string().max(MAX_SHORT).default('9:00 - 23:00'),
-        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+        phone: z.string().max(MAX_SHORT).optional(), whatsapp: whatsappInput, image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id } as any);
@@ -299,7 +319,7 @@ export const appRouter = router({
         cuisineFr: z.string().max(MAX_SHORT).optional(), cuisineBer: z.string().max(MAX_SHORT).optional(),
         rating: z.string().max(10),
         hours: z.string().max(MAX_SHORT),
-        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+        phone: z.string().max(MAX_SHORT).optional(), whatsapp: whatsappInput, image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;
@@ -367,7 +387,7 @@ export const appRouter = router({
         locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
         rating: z.string().max(10).default('4.5'),
         hours: z.string().max(MAX_SHORT).default('8:00 - 24:00'),
-        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+        phone: z.string().max(MAX_SHORT).optional(), whatsapp: whatsappInput, image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { id } = await createCafe({ ...input, ownerId: ctx.user.id } as any);
@@ -384,7 +404,7 @@ export const appRouter = router({
         locationFr: z.string().max(MAX_NAME).optional(), locationBer: z.string().max(MAX_NAME).optional(),
         rating: z.string().max(10),
         hours: z.string().max(MAX_SHORT),
-        phone: z.string().max(MAX_SHORT).optional(), image: z.string().max(2000).optional(),
+        phone: z.string().max(MAX_SHORT).optional(), whatsapp: whatsappInput, image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;

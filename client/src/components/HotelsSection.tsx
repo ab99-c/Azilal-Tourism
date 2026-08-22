@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Star, MapPin, Wifi, Car, Coffee, Shield, Calendar, Building2 } from 'lucide-react';
 import BookingModal from './BookingModal';
+import WhatsAppButton from './WhatsAppButton';
+import { getWhatsAppMessage } from '@/lib/whatsapp';
 import { trpc } from '@/lib/trpc';
 
 interface NormalizedHotel {
@@ -14,6 +16,7 @@ interface NormalizedHotel {
   rating: number;
   price: { ar: string; en: string; fr: string; ber: string };
   amenities: string[];
+  whatsapp: string;
 }
 
 function normalizeHotel(hotel: any): NormalizedHotel {
@@ -30,6 +33,7 @@ function normalizeHotel(hotel: any): NormalizedHotel {
     rating: parseFloat(hotel.rating || '4.5'),
     price: { ar: hotel.priceAr, en: hotel.priceEn, fr: hotel.priceFr, ber: hotel.priceBer },
     amenities,
+    whatsapp: hotel.whatsapp || '',
   };
 }
 
@@ -144,10 +148,18 @@ export default function HotelsSection() {
                     );
                   })}
                 </div>
-                <button onClick={() => setSelectedHotel(hotel)} className="w-full py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-xs hover:bg-[#0f3d28] transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {lang === 'ar' ? 'احجز الآن' : lang === 'fr' ? 'Réserver' : lang === 'ber' ? 'ⵙⵜⵉⵏ' : 'Book Now'}
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => setSelectedHotel(hotel)} className="flex-1 py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-xs hover:bg-[#0f3d28] transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {lang === 'ar' ? 'احجز الآن' : lang === 'fr' ? 'Réserver' : lang === 'ber' ? 'ⵙⵜⵉⵏ' : 'Book Now'}
+                  </button>
+                  <WhatsAppButton
+                    phone={hotel.whatsapp}
+                    message={getWhatsAppMessage(lang, getName(hotel), 'hotel')}
+                    label={lang === 'ar' ? 'واتساب' : lang === 'fr' ? 'WhatsApp' : lang === 'ber' ? 'ⵡⴰⵜⵙⴰⴱ' : 'WhatsApp'}
+                    className="px-3 py-2.5 bg-[#25D366] text-white rounded-xl font-bold text-xs hover:bg-[#1ebe5b]"
+                  />
+                </div>
               </div>
             </motion.div>
           ))}

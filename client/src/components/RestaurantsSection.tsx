@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Star, MapPin, Clock, Phone } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import WhatsAppButton from './WhatsAppButton';
+import { getWhatsAppMessage } from '@/lib/whatsapp';
 
 const fallbackRestaurants = [
   {
@@ -238,8 +240,14 @@ export default function RestaurantsSection() {
                   </div>
                   <div className="flex items-center gap-2 text-gray-400 text-xs">
                     <Phone className="w-3.5 h-3.5 shrink-0" />
-                    {restaurant.phone}
+                    {restaurant.phone || '-'}
                   </div>
+                  <WhatsAppButton
+                    phone={fromDb ? (restaurant.whatsapp || restaurant.phone) : restaurant.whatsapp}
+                    message={getWhatsAppMessage(lang, getName(restaurant), 'restaurant')}
+                    label={lang === 'ar' ? 'تواصل عبر واتساب' : lang === 'fr' ? 'Contacter sur WhatsApp' : lang === 'ber' ? 'ⵙⵉⵡⵍ ⵙ ⵡⴰⵜⵙⴰⴱ' : 'Chat on WhatsApp'}
+                    className="w-full py-2.5 mt-3 bg-[#25D366] text-white rounded-xl font-bold text-xs hover:bg-[#1ebe5b]"
+                  />
                 </div>
               </div>
             </motion.div>

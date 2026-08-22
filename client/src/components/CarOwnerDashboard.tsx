@@ -13,10 +13,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Plus, Pencil, Trash2, X, Car, ChevronDown,
   Save, RotateCcw, Image, ClipboardList, CheckCircle2,
-  CreditCard, Clock, Utensils, Coffee, Upload
+  CreditCard, Clock, Utensils, Coffee, Upload, MessageCircle, Building2
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import WhatsAppButton from './WhatsAppButton';
+import { getCustomerWhatsAppMessage } from '@/lib/whatsapp';
 
 type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
@@ -25,7 +27,7 @@ export default function CarOwnerDashboard() {
   const { data: dashboardData, refetch } = trpc.dashboard.myCars.useQuery(undefined, {
     retry: false,
   });
-  const { data: myHotels } = trpc.dashboard.myHotels.useQuery(undefined, { retry: false });
+  const { data: myHotels, refetch: refetchHotels } = trpc.dashboard.myHotels.useQuery(undefined, { retry: false });
   const { data: myRestaurants, refetch: refetchRestaurants } = trpc.dashboard.myRestaurants.useQuery(undefined, { retry: false });
   const { data: myCafes, refetch: refetchCafes } = trpc.dashboard.myCafes.useQuery(undefined, { retry: false });
   const { data: bookingsData } = trpc.dashboard.myBookings.useQuery(undefined, {
@@ -38,8 +40,9 @@ export default function CarOwnerDashboard() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cars' | 'restaurants' | 'cafes' | 'bookings'>('cars');
+  const [activeTab, setActiveTab] = useState<'cars' | 'hotels' | 'restaurants' | 'cafes' | 'bookings'>('cars');
   const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'hotel' | 'car' | 'restaurant' | 'cafe'>('all');
+  const [hotelWhatsAppDrafts, setHotelWhatsAppDrafts] = useState<Record<number, string>>({});
 
   // Form state
   const [formData, setFormData] = useState({
@@ -55,6 +58,7 @@ export default function CarOwnerDashboard() {
     rating: '4.5',
     hours: '',
     phone: '',
+    whatsapp: '',
   });
 
   // Load cars from database
@@ -91,6 +95,11 @@ export default function CarOwnerDashboard() {
     onError: (err) => {
       toast.error(lang === 'ar' ? 'خطأ في تحديث السيارة' : 'Error updating car', { description: err.message });
     },
+  });
+
+  const updateHotelContactMutation = trpc.hotels.updateContact.useMutation({
+    onSuccess: () => { refetchHotels(); toast.success(lang === 'ar' ? 'تم تحديث واتساب الفندق' : 'Hotel WhatsApp updated'); },
+    onError: (err) => toast.error(lang === 'ar' ? 'فشل تحديث واتساب الفندق' : 'Failed to update hotel WhatsApp', { description: err.message }),
   });
 
   const deleteCarMutation = trpc.cars.delete.useMutation({
@@ -202,6 +211,7 @@ export default function CarOwnerDashboard() {
       rating: '4.5',
       hours: '',
       phone: '',
+      whatsapp: '',
     });
     setPendingImage(null);
     setEditingId(null);
@@ -236,6 +246,7 @@ export default function CarOwnerDashboard() {
       rating: item.rating ?? '4.5',
       hours: item.hours ?? '',
       phone: item.phone || '',
+      whatsapp: item.whatsapp || '',
     });
     setEditingId(item.id);
     setShowForm(true);
@@ -296,6 +307,7 @@ export default function CarOwnerDashboard() {
       rating: formData.rating,
       hours: formData.hours,
       phone: formData.phone,
+      whatsapp: formData.whatsapp,
     };
     if (formKind === 'restaurant') {
       const payload = { ...base, cuisineAr: formData.cuisine.ar, cuisineEn: formData.cuisine.en, cuisineFr: formData.cuisine.fr, cuisineBer: formData.cuisine.ber };
@@ -342,6 +354,7 @@ export default function CarOwnerDashboard() {
         fuel: formData.fuel.ar,
         price: formData.price.ar,
         phone: formData.phone,
+        whatsapp: formData.whatsapp,
       });
     } else {
       createCarMutation.mutate({
@@ -353,6 +366,7 @@ export default function CarOwnerDashboard() {
         fuel: formData.fuel.ar,
         price: formData.price.ar,
         phone: formData.phone,
+        whatsapp: formData.whatsapp,
       });
     }
   };
@@ -413,6 +427,8 @@ export default function CarOwnerDashboard() {
     img: { ar: 'رابط الصورة', en: 'Image URL', fr: 'URL Image', ber: 'ⴰⵏⵙⴰ ⵏ ⵜⵡⵍⴰⴼⵜ' },
     type: { ar: 'النوع', en: 'Type', fr: 'Type', ber: 'ⴰⵏⴰⵡ' },
     phone: { ar: 'الهاتف', en: 'Phone', fr: 'Téléphone', ber: 'ⵜⴰⵍⵖⴰ' },
+    whatsapp: { ar: 'واتساب', en: 'WhatsApp', fr: 'WhatsApp', ber: 'ⵡⴰⵜⵙⴰⴱ' },
+    whatsappHint: { ar: 'مثال: 0612345678 أو +212612345678', en: 'e.g. 0612345678 or +212612345678', fr: 'ex. 0612345678 ou +212612345678', ber: 'ⴰⵎⴷⵢⴰ: 0612345678' },
     seats: { ar: 'المقاعد', en: 'Seats', fr: 'Places', ber: 'ⵉⵖⵔⵎⴰⵏ' },
     fuel: { ar: 'الوقود', en: 'Fuel', fr: 'Carburant', ber: 'ⴰⵙⵏⴰⵍ' },
     name: { ar: 'الاسم', en: 'Name', fr: 'Nom', ber: 'ⵉⵙⵎ' },
@@ -453,6 +469,8 @@ export default function CarOwnerDashboard() {
     emptyBookings: { ar: 'لا توجد حجوزات حتى الآن', en: 'No bookings yet', fr: 'Aucune réservation', ber: 'ⵓⵍⵍⵉⵏ ⵉⵙⵏⴷⵇⵏ' },
     bookingsHint: { ar: 'الحجوزات الجديدة تظهر هنا — تحقق من الدفع عند وصول العميل وسجله', en: 'New bookings appear here — verify payment on arrival and record it', fr: 'Les nouvelles réservations apparaissent ici — vérifiez le paiement à l\'arrivée', ber: 'ⵉⵙⵏⴷⵇⵏ ⵉⵎⴰⵢⵏⵓⵜⵏ ⴷⴰ ⵉⵜⵜⴰⴼⴼⵏ' },
     needLogin: { ar: 'سجل الدخول لرؤية الحجوزات', en: 'Log in to view bookings', fr: 'Connectez-vous pour voir les réservations', ber: 'ⵙⵜⵉⵏ ⴰⵅⵛⵓⵎ' },
+    tabHotels: { ar: 'الفنادق', en: 'Hotels', fr: 'Hôtels', ber: 'ⵉⵙⵏⴷⵇⵏ' },
+    emptyHotel: { ar: 'لا توجد فنادق بعد', en: 'No hotels yet', fr: 'Aucun hôtel', ber: 'ⵓⵍⵍⵉⵏ ⵉⵙⵏⴷⵇⵏ' },
     tabRestaurants: { ar: 'المطاعم', en: 'Restaurants', fr: 'Restaurants', ber: 'ⵉⵎⵙⵙⴽⵜⵏ' },
     tabCafes: { ar: 'المقاهي', en: 'Cafés', fr: 'Cafés', ber: 'ⵉⵇⵀⵡⴰⵢⵏ' },
     addRestaurant: { ar: 'إضافة مطعم', en: 'Add Restaurant', fr: 'Ajouter Restaurant', ber: 'ⵔⵏⵓ ⵉⵎⵙⵙⴽ' },
@@ -492,6 +510,12 @@ export default function CarOwnerDashboard() {
     if (lang === 'fr') return car.descriptionFr;
     if (lang === 'ber') return car.descriptionBer;
     return car.descriptionEn;
+  };
+
+  const getHotelWhatsAppDraft = (hotel: any) => hotelWhatsAppDrafts[hotel.id] ?? hotel.whatsapp ?? '';
+
+  const setHotelWhatsAppDraft = (id: number, value: string) => {
+    setHotelWhatsAppDrafts((current) => ({ ...current, [id]: value }));
   };
 
   return (
@@ -534,6 +558,14 @@ export default function CarOwnerDashboard() {
               }`}
             >
               <Car className="w-4 h-4 inline me-1.5" />{l('tabCars')}
+            </button>
+            <button
+              onClick={() => setActiveTab('hotels')}
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'hotels' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Building2 className="w-4 h-4 inline me-1.5" />{l('tabHotels')}
             </button>
             <button
               onClick={() => setActiveTab('restaurants')}
@@ -672,6 +704,12 @@ export default function CarOwnerDashboard() {
                               <CheckCircle2 className="w-3.5 h-3.5" />{lang === 'ar' ? 'مؤكد' : lang === 'fr' ? 'Confirmé' : 'Confirmed'}
                             </span>
                           )}
+                          <WhatsAppButton
+                            phone={b.guestPhone}
+                            message={getCustomerWhatsAppMessage(lang, b.itemName)}
+                            label={lang === 'ar' ? 'مراسلة الزبون' : lang === 'fr' ? 'Écrire au client' : lang === 'ber' ? 'ⵙⵉⵡⵍ ⵉ ⵓⵎⵙⵙⵉⵡⴹ' : 'Message customer'}
+                            className="px-3 py-1.5 bg-[#25D366] text-white rounded-lg text-xs font-bold hover:bg-[#1ebe5b]"
+                          />
                         </div>
                       </div>
                     </div>
@@ -756,6 +794,59 @@ export default function CarOwnerDashboard() {
             ))}
           </AnimatePresence>
         </div>
+        )}
+
+        {/* Hotels WhatsApp List */}
+        {activeTab === 'hotels' && (
+          <div className="max-w-3xl mx-auto space-y-3">
+            {!myHotels ? (
+              <div className="text-center py-12 text-white/60 bg-white/10 rounded-2xl border border-white/10">
+                <Building2 className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{l('needLogin')}</p>
+              </div>
+            ) : myHotels.length === 0 ? (
+              <div className="text-center py-12 text-white/60 bg-white/10 rounded-2xl border border-white/10">
+                <Building2 className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>{l('emptyHotel')}</p>
+              </div>
+            ) : (
+              <AnimatePresence>
+                {myHotels.map((hotel: any, i: number) => (
+                  <motion.div key={hotel.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-4">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
+                        {hotel.image ? <img src={hotel.image} alt="" className="w-full h-full object-cover" /> : <Building2 className="w-full h-full p-3 text-white/30" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-semibold text-sm truncate">{lang === 'ar' ? hotel.nameAr : lang === 'fr' ? hotel.nameFr : lang === 'ber' ? hotel.nameBer : hotel.nameEn}</p>
+                        <p className="text-white/50 text-xs truncate">{lang === 'ar' ? hotel.locationAr : lang === 'fr' ? hotel.locationFr : lang === 'ber' ? hotel.locationBer : hotel.locationEn}</p>
+                      </div>
+                    </div>
+                    <label className="block text-white/80 text-xs font-semibold mb-1.5 flex items-center gap-1.5">
+                      <MessageCircle className="w-4 h-4 text-[#25D366]" />{l('whatsapp')}
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel"
+                        value={getHotelWhatsAppDraft(hotel)}
+                        onChange={(e) => setHotelWhatsAppDraft(hotel.id, e.target.value)}
+                        placeholder={l('whatsappHint')}
+                        className="min-w-0 flex-1 px-4 py-2.5 rounded-xl bg-white text-gray-800 border border-white/20 focus:ring-2 focus:ring-[#25D366]/40 outline-none text-sm"
+                      />
+                      <button
+                        onClick={() => updateHotelContactMutation.mutate({ id: hotel.id, whatsapp: getHotelWhatsAppDraft(hotel) })}
+                        disabled={updateHotelContactMutation.isPending}
+                        className="px-4 py-2.5 bg-[#25D366] text-white rounded-xl font-bold text-sm hover:bg-[#1ebe5b] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        <Save className="w-4 h-4" />{l('save')}
+                      </button>
+                    </div>
+                    <p className="text-white/40 text-[11px] mt-2">{l('whatsappHint')}</p>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
         )}
 
         {/* Restaurants List */}
@@ -1040,6 +1131,15 @@ export default function CarOwnerDashboard() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">{l('phone')}</label>
                     <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+212 5XX XXX XXX" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#1b5e3f]/20 focus:border-[#1b5e3f] outline-none text-sm" />
+                  </div>
+                  {/* WhatsApp */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                      <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                      {l('whatsapp')}
+                    </label>
+                    <input type="tel" value={formData.whatsapp} onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })} placeholder={l('whatsappHint')} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#25D366]/30 focus:border-[#25D366] outline-none text-sm" />
+                    <p className="mt-1 text-[11px] text-gray-400">{l('whatsappHint')}</p>
                   </div>
                 </div>
 

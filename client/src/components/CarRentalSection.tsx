@@ -4,6 +4,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, Fuel, Phone, Calendar, Filter, Search, SlidersHorizontal, ChevronDown, RotateCcw, Car as CarIcon } from 'lucide-react';
 import BookingModal from './BookingModal';
 import { trpc } from '@/lib/trpc';
+import WhatsAppButton from './WhatsAppButton';
+import { getWhatsAppMessage } from '@/lib/whatsapp';
 import type { Car } from '../../../drizzle/schema';
 
 // Normalize car from DB shape to component shape
@@ -17,6 +19,7 @@ interface NormalizedCar {
   type: string;
   price: { ar: string; en: string; fr: string; ber: string };
   phone: string;
+  whatsapp: string;
 }
 
 function normalizeCar(car: any): NormalizedCar {
@@ -30,6 +33,7 @@ function normalizeCar(car: any): NormalizedCar {
     type: car.typeAr,
     price: { ar: car.price, en: car.price, fr: car.price, ber: car.price },
     phone: car.phone || '',
+    whatsapp: car.whatsapp || '',
   };
 }
 
@@ -296,14 +300,20 @@ export default function CarRentalSection() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Phone className="w-4 h-4" />
-                      <span>{car.phone}</span>
+                      <span>{car.phone || '-'}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-lg font-extrabold text-[#1b5e3f]">{getPrice(car)}</span>
-                    <button className="px-4 py-2 bg-[#1b5e3f] text-white text-sm rounded-xl hover:bg-[#14522f] transition-colors">
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                    <button className="flex-1 px-3 py-2 bg-[#1b5e3f] text-white text-sm rounded-xl hover:bg-[#14522f] transition-colors">
                       {lang === 'ar' ? 'احجز الآن' : lang === 'fr' ? 'Réserver' : lang === 'ber' ? 'ⵔⵣⵓ' : 'Book Now'}
                     </button>
+                    <WhatsAppButton
+                      phone={car.whatsapp || car.phone}
+                      message={getWhatsAppMessage(lang, getName(car), 'car')}
+                      label={lang === 'ar' ? 'واتساب' : lang === 'fr' ? 'WhatsApp' : lang === 'ber' ? 'ⵡⴰⵜⵙⴰⴱ' : 'WhatsApp'}
+                      className="px-3 py-2 bg-[#25D366] text-white rounded-xl text-xs font-bold hover:bg-[#1ebe5b]"
+                      onClick={(event) => event.stopPropagation()}
+                    />
                   </div>
                 </div>
               </motion.div>

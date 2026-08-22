@@ -304,3 +304,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Estimate resale value at each phase using build value, traction, and recurring-revenue scenarios; clearly label assumptions
 - [x] Deliver the comparison, roadmap, pricing scenarios, and buyer recommendations in Darija/Arabic
 - [x] Mark analysis deliverables complete after final review
+
+## User request: direct WhatsApp contact for owners and customers
+
+- [x] Audit listing contact fields and owner dashboard forms for hotel, restaurant, cafe, and car records
+- [x] Add validated WhatsApp contact data with owner-only management and localized UI labels
+- [x] Add click-to-chat buttons with prefilled booking/contact messages across listing cards
+- [x] Run database migration, Vitest (65/65), TypeScript/build checks, and desktop/mobile verification
+- [x] Save checkpoint and report live usage instructions
