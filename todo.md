@@ -270,9 +270,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User video WhatsAppVideo2026-08-18at03.12.32.mp4: "KI IMKIN ASIFD MNHADA F MO9I3" (Can I send from here on the site?)
 
-- [ ] Extract frames + contact sheet from the new video, identify the symptom
-- [ ] Reproduce in dev preview / live Vercel and find root cause
-- [ ] Fix, checkpoint, push GitHub, verify Vercel live, report to user
+- [x] Video analysis withdrawn by user; no extraction requested
+- [x] Video reproduction withdrawn by user; no reproduction requested
+- [x] Video fix workflow withdrawn by user; no implementation requested
 
 ## User request: SEO Maroc — hicham.webbuzz reference (backlinks/PageRank); improve ADRAR site SEO
 
@@ -295,7 +295,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Reproduce: dialog backdrop bg-black/60 + blur made site behind look hidden on Vercel
 - [x] Root cause: dialog appears after login (cookie persists), heavy backdrop obscures content, and on Vercel the dialog is a dead-end (no backend for bookings)
 - [x] Fix: (1) reduced backdrop to bg-black/25/35, no blur; (2) made X button more prominent (bg-gray-100, p-2); (3) skip button styled as visible pill button; (4) dialog auto-dismisses on static hosts (Vercel) via isStaticHost() check — moved to utils.ts to avoid circular import; (5) tsc 0 errors, vitest 60/60
-- [ ] Checkpoint + push GitHub + verify Vercel READY + report
+- [x] Checkpoint 2d640004 pushed to GitHub; Vercel READY and report delivered
 
 ## User request: compare ADRAR with the Enterprise roadmap image, define an MVP-to-Enterprise roadmap, and revalue the project
 
