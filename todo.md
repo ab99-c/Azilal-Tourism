@@ -296,3 +296,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Root cause: dialog appears after login (cookie persists), heavy backdrop obscures content, and on Vercel the dialog is a dead-end (no backend for bookings)
 - [x] Fix: (1) reduced backdrop to bg-black/25/35, no blur; (2) made X button more prominent (bg-gray-100, p-2); (3) skip button styled as visible pill button; (4) dialog auto-dismisses on static hosts (Vercel) via isStaticHost() check — moved to utils.ts to avoid circular import; (5) tsc 0 errors, vitest 60/60
 - [ ] Checkpoint + push GitHub + verify Vercel READY + report
+
+## User request: compare ADRAR with the Enterprise roadmap image, define an MVP-to-Enterprise roadmap, and revalue the project
+
+- [x] Compare the image's ten technical pillars with ADRAR's current features, architecture, and production gaps
+- [x] Define a phased ADRAR roadmap from current MVP through multi-tenant Enterprise platform
+- [x] Estimate resale value at each phase using build value, traction, and recurring-revenue scenarios; clearly label assumptions
+- [x] Deliver the comparison, roadmap, pricing scenarios, and buyer recommendations in Darija/Arabic
+- [x] Mark analysis deliverables complete after final review
