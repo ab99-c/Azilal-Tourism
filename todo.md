@@ -347,5 +347,5 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 - [x] Verify the deployed scheduled callback and current checkpoint (callback returned expected 403 without cron auth)
 - [x] Create the project-level hourly safety escalation schedule
-- [ ] Run the callback once and inspect logs/idempotence
+- [ ] Run the callback once and inspect logs/idempotence (job created; waiting for first scheduled run)
 - [ ] Mark the safety workflow complete and report live behavior

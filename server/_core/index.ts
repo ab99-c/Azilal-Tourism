@@ -40,13 +40,14 @@ function securityHeaders(req: express.Request, res: express.Response, next: expr
     "https://azilal-tourism.vercel.app",
     "https://azilaltour-j2sx2a5n.manus.space",
   ]);
-  if (origin && allowedOrigins.has(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Vary", "Origin");
-  }
+  const corsOrigin = origin && allowedOrigins.has(origin)
+    ? origin
+    : "https://azilal-tourism.vercel.app";
+  res.setHeader("Access-Control-Allow-Origin", corsOrigin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Vary", "Origin");
   if (req.method === "OPTIONS") {
     res.status(204).end();
     return;
