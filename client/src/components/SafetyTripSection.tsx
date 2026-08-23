@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { CheckCircle2, Clock3, MapPin, ShieldCheck, Siren } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { trpc } from '@/lib/trpc';
-import { isStaticHost } from '@/lib/utils';
 
 type TripRecord = {
   publicToken: string;
@@ -49,7 +48,6 @@ const copy = {
     active: 'الرحلة نشيطة',
     safeStatus: 'تم تأكيد الوصول',
     overdue: 'خاص تأكيد عاجل',
-    static: 'نسخة Vercel مربوطة بالـ Backend باش التسجيل والتنبيهات يخدمو بشكل دائم.',
     safety: 'تنبيه: بعض المسارات الجبلية ما فيهاش تغطية. خبر شخصاً بوجهتك، وما تعرّضش حياتك للخطر.',
     tracking: 'إلى سجلتي الرحلة ووافقتي، ADRAR كتحتافظ بالمسار ووقت الوصول وكتحدّث غير آخر موقع كتشاركو أنت. ماشي تتبع مباشر وما كنعوضوش خدمات الإنقاذ.',
     saved: 'تم تسجيل الرحلة. احتافظ بالرابط أو رجع لها من نفس الجهاز.',
@@ -77,7 +75,6 @@ const copy = {
     active: 'Trip active',
     safeStatus: 'Arrival confirmed',
     overdue: 'Urgent check-in needed',
-    static: 'The Vercel version is connected to the backend for durable registration and alerts.',
     safety: 'Safety notice: some mountain routes have no coverage. Tell someone your destination and do not risk your life.',
     tracking: 'With your consent, ADRAR stores the route and arrival time and updates only the last location you explicitly share. This is not live tracking and does not replace rescue services.',
     saved: 'Trip registered. Keep the link or return from this device.',
@@ -105,7 +102,6 @@ const copy = {
     active: 'Trajet actif',
     safeStatus: 'Arrivée confirmée',
     overdue: 'Confirmation urgente nécessaire',
-    static: 'La version Vercel est connectée au backend pour les alertes persistantes.',
     safety: 'Sécurité : certaines routes de montagne sont sans réseau. Prévenez un proche et ne prenez aucun risque.',
     tracking: 'Avec votre consentement, ADRAR conserve l’itinéraire et l’heure d’arrivée et actualise uniquement le dernier emplacement que vous partagez. Ce n’est pas un suivi en direct et cela ne remplace pas les secours.',
     saved: 'Trajet enregistré. Conservez le lien ou revenez depuis cet appareil.',
@@ -133,7 +129,6 @@ const copy = {
     active: 'ⴰⵙⵏⵙⵓ ⵉⵙⵙⵏ',
     safeStatus: 'ⵙⵙⵏ ⵏ ⵜⵙⵙⴰⵡⴹⵜ',
     overdue: 'ⵉⵙⵙⵏ ⵓⵔⵎⵉⵙ',
-    static: 'ⵉⵙⵔⴰ Vercel ⵉⵙⵙⵏ ⵙ Backend ⵉ ⵜⵏⵎⵍⴰ.',
     safety: 'ⵜⵏⴼⵍⵜ: ⵉⵙⵏⵉⵔⴰⵏ ⵓⵔ ⵙⵙⵏⵏ ⵔⵔⴰⴷ. ⵙⵙⵏ ⵉⵎⴷⵓⴽⴽⴰⵍ ⵎⴰⵏⵉ ⵜⵔⵉⴷ.',
     tracking: 'ⵙ ⵓⵙⵙⵏⵣⵉ ⵏⵏⴽ، ADRAR ⵜⵃⴼⴹ ⴰⵙⵏⵙⵓ ⵓ ⵓⵙⵙⴰⵔ ⵏ ⵜⵙⵙⴰⵡⴹⵜ، ⵜⵙⵙⵏ ⴽⴰ ⴰⵎⵏⵣⵓ ⵏ ⵓⵙⵏⵙⵓ ⵉ ⵜⵙⵙⵉⵡⵍⴷ. ⵓⵔ ⵉⵍⵉ ⵓⵙⵙⵏⵣⵉ ⵙ ⵓⵎⵏⵣⵓ.',
     saved: 'ⵙⵏⵎⵍ ⵓⵙⵏⵙⵓ. ⵃⴼⴹ ⴰⵙⵏⵙⵓ.',
@@ -226,7 +221,6 @@ export default function SafetyTripSection() {
           <p className="mx-auto mt-3 max-w-2xl text-[#5b6c63]">{c.subtitle}</p>
         </div>
 
-        {isStaticHost() && <div className="mb-6 rounded-xl border border-[#ead39f] bg-[#fff5df] px-4 py-3 text-sm text-[#7a5d1d]">{c.static}</div>}
 
         {!trip && !showTripForm && (
           <div className="rounded-2xl border border-[#ead39f] bg-[#fff8e8] p-5 shadow-sm">

@@ -403,3 +403,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Navigate to the dedicated page only from those three activity cards
 - [x] Add a clear return link to the homepage and preserve the safety form and emergency number
 - [x] Verify routes, mobile layout, and tests, then push GitHub and Vercel
+
+## User request: remove the Vercel warning box from the website
+
+- [x] Remove the yellow Vercel/Backend notice from SafetyTripSection
+- [x] Keep the main safety warning, acknowledgement button, route form, and emergency phone field
+- [x] Verify the live page, tests, build, GitHub, and Vercel after the UI change

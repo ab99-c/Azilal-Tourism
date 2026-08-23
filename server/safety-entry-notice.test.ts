@@ -43,4 +43,11 @@ describe("safety activities flow", () => {
     expect(safetySource).toContain("tracking: 'إلى سجلتي الرحلة ووافقتي");
     expect(safetySource).toContain("emergencyPhone: form.emergencyPhone");
   });
+
+  it("does not render the removed Vercel warning box", () => {
+    expect(safetySource).not.toContain("isStaticHost");
+    expect(safetySource).not.toContain("نسخة Vercel مربوطة");
+    expect(safetySource).not.toContain("Vercel version is connected");
+    expect(safetySource).not.toContain("La version Vercel est connectée");
+  });
 });
