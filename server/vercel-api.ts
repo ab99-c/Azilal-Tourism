@@ -1,11 +1,10 @@
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { registerOAuthRoutes } from "../server/_core/oauth";
-import { registerStorageProxy } from "../server/_core/storageProxy";
-import { createContext } from "../server/_core/context";
-import { appRouter } from "../server/routers";
-import { escalateInactiveSafetyTrips } from "../server/safetyTrips";
+import { registerOAuthRoutes } from "./_core/oauth";
+import { registerStorageProxy } from "./_core/storageProxy";
+import { createContext } from "./_core/context";
+import { appRouter } from "./routers";
+import { escalateInactiveSafetyTrips } from "./safetyTrips";
 
 const allowedOrigins = new Set([
   "https://azilal-tourism.vercel.app",
@@ -37,33 +36,20 @@ function securityHeaders(req: express.Request, res: express.Response, next: expr
   next();
 }
 
-function createApp() {
-  const app = express();
-  app.disable("x-powered-by");
-  app.use(securityHeaders);
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  registerStorageProxy(app);
-  registerOAuthRoutes(app);
-  app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
-  app.use(
-    "/api/trpc",
-    createExpressMiddleware({
-      router: appRouter,
-      createContext,
-    }),
-  );
-  return app;
-}
+const app = express();
+app.disable("x-powered-by");
+app.use(securityHeaders);
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+registerStorageProxy(app);
+registerOAuthRoutes(app);
+app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
+app.use(
+  "/api/trpc",
+  createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  }),
+);
 
-const app = createApp();
-
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  return app(req, res);
-}
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export default app;

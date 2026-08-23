@@ -1,11 +1,16 @@
 #!/bin/bash
-# Vercel build script - builds the client-side app
-# Uses --no-frozen-lockfile to avoid ERR_PNPM_LOCKFILE_CONFIG_MISMATCH
-# when Vercel's pnpm version differs from the one that generated the lockfile.
-echo "Installing dependencies..."
-pnpm install --no-frozen-lockfile
+set -euo pipefail
 
+# Vercel installs dependencies before running this script.
 echo "Building client with Vite..."
 npx vite build
 
-echo "Build complete. Output in dist/public/"
+echo "Bundling Vercel API handler..."
+npx esbuild server/vercel-api.ts \
+  --platform=node \
+  --packages=external \
+  --bundle \
+  --format=esm \
+  --outfile=api/index.mjs
+
+echo "Client and API build complete."

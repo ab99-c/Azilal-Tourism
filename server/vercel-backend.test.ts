@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 
 const vercelConfig = fs.readFileSync("vercel.json", "utf8");
-const apiHandler = fs.readFileSync("api/[...path].ts", "utf8");
+const apiHandler = fs.readFileSync("server/vercel-api.ts", "utf8");
 const clientMain = fs.readFileSync("client/src/main.tsx", "utf8");
 const staticUtils = fs.readFileSync("client/src/lib/utils.ts", "utf8");
 
@@ -12,7 +12,7 @@ describe("Vercel backend deployment", () => {
     expect(apiHandler).toContain("registerOAuthRoutes(app)");
     expect(apiHandler).toContain("registerStorageProxy(app)");
     expect(apiHandler).toContain("/api/scheduled/escalateSafetyTrips");
-    expect(vercelConfig).toContain('"api/[...path].ts"');
+    expect(vercelConfig).toContain('"api/index.mjs"');
     expect(vercelConfig).not.toContain('"source": "/api/trpc/:path*"');
     expect(vercelConfig).not.toContain('"source": "/api/oauth/:path*"');
   });
