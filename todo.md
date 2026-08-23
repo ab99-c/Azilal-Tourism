@@ -388,3 +388,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Push the latest ADRAR changes to GitHub main
 - [x] Verify Vercel receives and completes the deployment
 - [x] Check the published site and report both links
+
+## User request: open Safety Trip from selected mountain activity cards
+
+- [x] Show the safety flow only after clicking nature tourism, adventure, or mountain sports
+- [x] Keep the culture activity card free of the safety flow
+- [x] Preserve the inline warning, acknowledgement button, route form, and emergency number after selection
+- [x] Verify the interaction in all four languages and on mobile, then push GitHub and Vercel

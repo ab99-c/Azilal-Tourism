@@ -6,10 +6,17 @@ describe("safety activities flow", () => {
   const categoriesSource = fs.readFileSync("client/src/components/CategoriesSection.tsx", "utf8");
   const appSource = fs.readFileSync("client/src/App.tsx", "utf8");
 
-  it("renders Safety Trip inside the activities section", () => {
+  it("renders Safety Trip only after selecting a relevant activity", () => {
     expect(categoriesSource).toContain('id="activities"');
     expect(categoriesSource).toContain("import SafetyTripSection from './SafetyTripSection'");
-    expect(categoriesSource).toContain("<SafetyTripSection />");
+    expect(categoriesSource).toContain("{selectedActivity && <SafetyTripSection />}");
+    expect(categoriesSource).toContain("onClick={() => setSelectedActivity(cat.safety ? cat.title : null)}");
+    expect(categoriesSource).toContain("title: 'cat.nature'");
+    expect(categoriesSource).toContain("title: 'cat.adventure'");
+    expect(categoriesSource).toContain("title: 'cat.culture'");
+    expect(categoriesSource).toContain("title: 'cat.sports'");
+    expect(categoriesSource).toContain("safety: false");
+    expect(categoriesSource.match(/safety: true/g)?.length).toBe(3);
     expect(appSource).not.toContain("<SafetyTripSection />");
   });
 
