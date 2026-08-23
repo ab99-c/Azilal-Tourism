@@ -1,8 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { COOKIE_NAME, UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink, TRPCClientError, TRPCLink } from "@trpc/client";
-import { observable } from "@trpc/server/observable";
+import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
@@ -10,7 +9,6 @@ import { startLogin } from "./const";
 import "./index.css";
 // PWA install support: service worker + native install prompt
 import { registerServiceWorker } from "./lib/pwa";
-import { isStaticHost } from "@/lib/utils";
 registerServiceWorker();
 
 // SEO — inject rich structured data (JSON-LD) for crawlers.
@@ -52,10 +50,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-// isStaticHost is defined in client/src/lib/utils.ts to avoid circular imports
-export { isStaticHost } from "@/lib/utils";
-
-
 // The API endpoint may be absent on static external hosts (e.g. Vercel builds
 // without the Manus backend). In that case an "unauthorized" error is actually
 // just a missing endpoint (404) — never auto-redirect to login there.
@@ -95,45 +89,10 @@ queryClient.getMutationCache().subscribe(event => {
   }
 });
 
-/**
- * Transport-safety link for static hosts (e.g. Vercel builds without the
- * Manus backend): when /api/trpc returns HTML or the fetch fails, errors are
- * swallowed and every operation settles with an undefined result so sections
- * render their static fallback content instead of crashing the page.
- * On Manus hosts the link is a transparent passthrough (retry disabled so a
- * genuine API error never retries or aborts rendering).
- */
-const staticHostSafeLink: TRPCLink<any> = runtime => ({ op, next }) =>
-  observable(observer => {
-    const isSafetyTripOperation = typeof op.path === "string" && op.path.startsWith("safetyTrips.");
-    if (!isStaticHost() || isSafetyTripOperation) {
-      // Manus host: pass through untouched. Vercel safety-trip calls are routed
-      // to the explicitly allowed deployed backend by the link below.
-      return next(op).subscribe(observer);
-    }
-    return next(op).subscribe({
-      next(result) {
-        observer.next(result);
-      },
-      error() {
-        // Transport/parse failure — resolve as empty result (undefined data)
-        // so sections render their static fallback content instead of crashing.
-        observer.next({ result: { type: "data", data: undefined } });
-        observer.complete();
-      },
-      complete() {
-        observer.complete();
-      },
-    });
-  });
-
 const trpcClient = trpc.createClient({
   links: [
-    staticHostSafeLink,
     httpBatchLink({
-      url: isStaticHost()
-        ? "https://azilaltour-j2sx2a5n.manus.space/api/trpc"
-        : "/api/trpc",
+      url: "/api/trpc",
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies

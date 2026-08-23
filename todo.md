@@ -409,3 +409,18 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Remove the yellow Vercel/Backend notice from SafetyTripSection
 - [x] Keep the main safety warning, acknowledgement button, route form, and emergency phone field
 - [x] Verify the live page, tests, build, GitHub, and Vercel after the UI change
+
+## User request: build the ADRAR backend on Vercel
+
+- [ ] Audit the current Express/tRPC backend, OAuth, database, CORS, storage, and Heartbeat dependencies
+- [ ] Design a Vercel Serverless deployment path without exposing secrets or losing the current Manus backend
+- [ ] Implement and test a Vercel API adapter for the required public and protected routes
+- [ ] Verify database, bookings, Safety Trip, authentication, and production build before any production cutover
+- [ ] Confirm required Vercel environment variables and deployment status
+
+## Decision: full backend cutover to Vercel
+
+- [ ] Treat Vercel as the primary API host after production verification
+- [ ] Add Serverless handlers for tRPC and OAuth without relying on the old Manus API route
+- [ ] Configure Vercel environment variables for database, auth, storage, and OAuth
+- [ ] Verify all critical flows before declaring the cutover complete
