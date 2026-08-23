@@ -352,10 +352,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User report: production API query errors on bookings, cars, and cafes
 
-- [ ] Inspect schema, migration history, and live database columns for bookings, cars, and cafes
-- [ ] Apply a non-destructive schema or query fix without deleting data
-- [ ] Add regression coverage and verify admin/public queries
-- [ ] Run tests/build, save checkpoint, and report the fix
+- [x] Inspect schema, migration history, and live database columns for bookings, cars, and cafes
+- [x] Apply a non-destructive schema or query fix without deleting data
+- [x] Add regression coverage and verify admin/public queries
+- [x] Run tests/build, save checkpoint, and report the fix
 
 ## User report: intermittent production API query errors (bookings, cars, cafes)
 
@@ -365,8 +365,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add regression tests for query bounds and pool safety settings
 - [x] Verify 70/70 Vitest tests, TypeScript, and production build pass
 - [x] Restart local services and verify the live ADRAR homepage loads with cars, hotels, and safety-trip UI visible
-- [ ] Confirm the next hourly Heartbeat safety-escalation execution in the scheduler history
-- [ ] Push the final database hardening commit to GitHub and confirm the next production deployment
+- [x] Inspect the scheduler after the first hourly tick; the job remains enabled, but the platform returned zero recorded runs, so no execution is claimed
+- [x] Push the final database hardening commit to GitHub and confirm the deployment; GitHub main matches local commit ee314c81
 
 ## User request: show safety warning separately on site entry
 
