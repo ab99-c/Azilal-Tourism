@@ -1,6 +1,6 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, type Car, type Hotel, type Restaurant, type Cafe, type Booking } from "../drizzle/schema";
+import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -329,4 +329,49 @@ export async function removeFavorite(userId: number, itemType: 'car' | 'hotel', 
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.delete(favorites).where(and(eq(favorites.userId, userId), eq(favorites.itemType, itemType), eq(favorites.itemId, itemId)));
+}
+
+
+// ===== SAFETY TRIPS =====
+export async function createSafetyTrip(data: InsertSafetyTrip) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(safetyTrips).values(data);
+  const created = await db.select().from(safetyTrips).where(eq(safetyTrips.publicToken, data.publicToken)).limit(1);
+  return created[0];
+}
+
+export async function getSafetyTripByToken(publicToken: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(safetyTrips).where(eq(safetyTrips.publicToken, publicToken)).limit(1);
+  return rows[0];
+}
+
+export async function updateSafetyTrip(publicToken: string, data: Partial<SafetyTrip>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(safetyTrips).set(data as any).where(eq(safetyTrips.publicToken, publicToken));
+  return getSafetyTripByToken(publicToken);
+}
+
+export async function listSafetyTrips() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(safetyTrips).orderBy(desc(safetyTrips.createdAt));
+}
+
+export async function findSafetyTripsForEscalation() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(safetyTrips).where(and(eq(safetyTrips.status, "active"), isNull(safetyTrips.overdueNotifiedAt))).orderBy(desc(safetyTrips.expectedArrivalAt));
+}
+
+export async function markSafetyTripOverdue(publicToken: string, notifiedAt: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const result = await db.update(safetyTrips)
+    .set({ status: "overdue", overdueNotifiedAt: notifiedAt })
+    .where(and(eq(safetyTrips.publicToken, publicToken), eq(safetyTrips.status, "active"), isNull(safetyTrips.overdueNotifiedAt)));
+  return result;
 }

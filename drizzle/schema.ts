@@ -213,3 +213,36 @@ export const cafes = mysqlTable("cafes", {
 
 export type Cafe = typeof cafes.$inferSelect;
 export type InsertCafe = typeof cafes.$inferInsert;
+
+/**
+ * Safety trips: consent-based journey check-ins for mountain routes.
+ * This stores only the last location explicitly shared by the traveler.
+ */
+export const safetyTrips = mysqlTable("safety_trips", {
+  id: int("id").autoincrement().primaryKey(),
+  publicToken: varchar("publicToken", { length: 96 }).notNull(),
+  travelerName: varchar("travelerName", { length: 255 }).notNull(),
+  travelerEmail: varchar("travelerEmail", { length: 320 }).notNull(),
+  emergencyName: varchar("emergencyName", { length: 255 }),
+  emergencyPhone: varchar("emergencyPhone", { length: 50 }),
+  route: varchar("route", { length: 500 }).notNull(),
+  departureAt: timestamp("departureAt").notNull(),
+  expectedArrivalAt: timestamp("expectedArrivalAt").notNull(),
+  consentAt: timestamp("consentAt").notNull(),
+  locationConsent: boolean("locationConsent").default(false).notNull(),
+  lastCheckInAt: timestamp("lastCheckInAt"),
+  lastLocationLat: varchar("lastLocationLat", { length: 32 }),
+  lastLocationLng: varchar("lastLocationLng", { length: 32 }),
+  lastLocationSharedAt: timestamp("lastLocationSharedAt"),
+  status: mysqlEnum("status", ["active", "safe", "overdue", "closed"]).default("active").notNull(),
+  overdueNotifiedAt: timestamp("overdueNotifiedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  tokenIdx: uniqueIndex("idx_safety_trips_public_token").on(t.publicToken),
+  statusIdx: index("idx_safety_trips_status").on(t.status),
+  expectedArrivalIdx: index("idx_safety_trips_expected_arrival").on(t.expectedArrivalAt),
+}));
+
+export type SafetyTrip = typeof safetyTrips.$inferSelect;
+export type InsertSafetyTrip = typeof safetyTrips.$inferInsert;

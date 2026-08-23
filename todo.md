@@ -326,3 +326,13 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Commit and push latest project changes to GitHub safely (GitHub main now includes commit 6c60655)
 - [x] Verify Vercel rebuilds and serves the updated bundle (live bundle includes https://wa.me)
 - [x] Report GitHub and Vercel publication status with direct links
+
+## User request: first safety-trip version for Vercel
+
+- [x] Read scheduling, automation, and privacy guidance; audit current auth/database architecture
+- [x] Design consent-based trip model, statuses, and 24-hour escalation boundaries
+- [x] Implement trip registration, route/duration details, optional location, check-ins, and safe-arrival confirmation
+- [x] Implement owner/admin visibility endpoint and localized AR/EN/FR/BER UI
+- [ ] Activate 24-hour escalation Heartbeat after deployed callback verification; handler is implemented without automatic police claims
+- [x] Run migration, tests (67/67), TypeScript/build, security-header review, and desktop/mobile verification
+- [ ] Save checkpoint, activate scheduled check, and report usage and limitations

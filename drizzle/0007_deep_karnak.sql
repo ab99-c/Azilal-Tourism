@@ -1,0 +1,1 @@
+ALTER TABLE `safety_trips` DROP INDEX `safety_trips_publicToken_unique`;

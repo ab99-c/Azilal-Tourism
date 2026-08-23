@@ -5,6 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { protectedProcedure } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 import {
   getAllCars, getCarById, createCar, updateCar, deleteCar,
   getAllHotels, getHotelById, createHotel, updateHotel, deleteHotel,
@@ -16,6 +17,7 @@ import {
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
+  createSafetyTrip, getSafetyTripByToken, updateSafetyTrip, listSafetyTrips,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
 import { storagePut } from "./storage";
@@ -119,6 +121,78 @@ export const appRouter = router({
       }
       return { success: true } as const;
     }),
+  }),
+
+  safetyTrips: router({
+    create: publicProcedure.input(z.object({
+      travelerName: z.string().trim().min(2).max(MAX_NAME),
+      travelerEmail: z.string().trim().email().max(320),
+      emergencyName: z.string().trim().max(MAX_NAME).optional(),
+      emergencyPhone: z.string().trim().max(50).optional(),
+      route: z.string().trim().min(2).max(500),
+      departureAt: z.coerce.date(),
+      expectedArrivalAt: z.coerce.date(),
+      locationConsent: z.boolean().default(false),
+      consentAccepted: z.literal(true),
+    }).refine((input) => input.expectedArrivalAt > input.departureAt, {
+      message: "Expected arrival must be after departure",
+      path: ["expectedArrivalAt"],
+    })).mutation(async ({ input }) => {
+      const now = new Date();
+      if (input.expectedArrivalAt.getTime() - now.getTime() > 7 * 24 * 60 * 60 * 1000) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Trip duration cannot exceed 7 days" });
+      }
+      const publicToken = randomBytes(36).toString("base64url");
+      const trip = await createSafetyTrip({
+        publicToken,
+        travelerName: input.travelerName,
+        travelerEmail: input.travelerEmail,
+        emergencyName: input.emergencyName || null,
+        emergencyPhone: input.emergencyPhone || null,
+        route: input.route,
+        departureAt: input.departureAt,
+        expectedArrivalAt: input.expectedArrivalAt,
+        consentAt: now,
+        locationConsent: input.locationConsent,
+        lastCheckInAt: now,
+        status: "active",
+      });
+      return { trip };
+    }),
+
+    get: publicProcedure.input(z.object({ token: z.string().min(32).max(96) })).query(async ({ input }) => {
+      const trip = await getSafetyTripByToken(input.token);
+      if (!trip) throw new TRPCError({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      return trip;
+    }),
+
+    checkIn: publicProcedure.input(z.object({
+      token: z.string().min(32).max(96),
+      latitude: z.number().min(-90).max(90).optional(),
+      longitude: z.number().min(-180).max(180).optional(),
+    })).mutation(async ({ input }) => {
+      const trip = await getSafetyTripByToken(input.token);
+      if (!trip) throw new TRPCError({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      if (trip.status === "safe" || trip.status === "closed") return trip;
+      const now = new Date();
+      return updateSafetyTrip(input.token, {
+        lastCheckInAt: now,
+        ...(trip.locationConsent && input.latitude !== undefined && input.longitude !== undefined ? {
+          lastLocationLat: String(input.latitude),
+          lastLocationLng: String(input.longitude),
+          lastLocationSharedAt: now,
+        } : {}),
+        status: "active",
+      });
+    }),
+
+    markSafe: publicProcedure.input(z.object({ token: z.string().min(32).max(96) })).mutation(async ({ input }) => {
+      const trip = await getSafetyTripByToken(input.token);
+      if (!trip) throw new TRPCError({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      return updateSafetyTrip(input.token, { status: "safe", lastCheckInAt: new Date() });
+    }),
+
+    adminList: adminProcedure.query(async () => listSafetyTrips()),
   }),
 
   cars: router({
