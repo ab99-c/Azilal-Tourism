@@ -381,3 +381,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Keep the entry notice limited to one clear acknowledgement button
 - [x] Add an emergency contact number/action and explain consent-based route monitoring accurately
 - [x] Verify the activities flow and mobile layout, then save and publish the checkpoint
+
+## User request: push latest ADRAR changes to GitHub and Vercel
+
+- [ ] Confirm the latest checkpoint and local repository state
+- [ ] Push the latest ADRAR changes to GitHub main
+- [ ] Verify Vercel receives and completes the deployment
+- [ ] Check the published site and report both links
