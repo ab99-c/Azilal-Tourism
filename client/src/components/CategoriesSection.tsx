@@ -1,12 +1,9 @@
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mountain, Compass, Landmark, Bike } from 'lucide-react';
-import SafetyTripSection from './SafetyTripSection';
 
 export default function CategoriesSection() {
   const { t } = useLanguage();
-  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
 
   const categories = [
     {
@@ -39,10 +36,11 @@ export default function CategoriesSection() {
     },
   ];
 
-  useEffect(() => {
-    if (!selectedActivity) return;
-    document.getElementById('safety-trip')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [selectedActivity]);
+  const openActivity = (title: string, safety: boolean) => {
+    if (!safety) return;
+    const activity = title.replace('cat.', '');
+    window.location.assign(`/safety-trip?activity=${encodeURIComponent(activity)}`);
+  };
 
   return (
     <section id="activities" className="w-full overflow-hidden bg-white py-20">
@@ -60,38 +58,33 @@ export default function CategoriesSection() {
         </motion.div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((cat, i) => {
-            const isSelected = selectedActivity === cat.title;
-            return (
-              <motion.button
-                key={cat.title}
-                type="button"
-                onClick={() => setSelectedActivity(cat.safety ? cat.title : null)}
-                aria-pressed={isSelected}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className={`group relative h-72 cursor-pointer overflow-hidden rounded-2xl text-start shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#2c8b62]/40 ${isSelected ? 'ring-4 ring-[#c39143] ring-offset-2' : ''}`}
-              >
-                <img
-                  src={cat.img}
-                  alt={t(cat.title)}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f3d28]/90 via-transparent to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                  <cat.icon className="mb-3 h-8 w-8 opacity-80" />
-                  <h3 className="text-lg font-bold">{t(cat.title)}</h3>
-                  <p className="mt-1 text-sm opacity-75">{t(cat.count)}</p>
-                  {cat.safety && <span className="mt-3 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-sm">Safety Trip</span>}
-                </div>
-              </motion.button>
-            );
-          })}
+          {categories.map((cat, i) => (
+            <motion.button
+              key={cat.title}
+              type="button"
+              onClick={() => openActivity(cat.title, cat.safety)}
+              aria-label={t(cat.title)}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="group relative h-72 cursor-pointer overflow-hidden rounded-2xl text-start shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#2c8b62]/40"
+            >
+              <img
+                src={cat.img}
+                alt={t(cat.title)}
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f3d28]/90 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                <cat.icon className="mb-3 h-8 w-8 opacity-80" />
+                <h3 className="text-lg font-bold">{t(cat.title)}</h3>
+                <p className="mt-1 text-sm opacity-75">{t(cat.count)}</p>
+                {cat.safety && <span className="mt-3 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-sm">Safety Trip</span>}
+              </div>
+            </motion.button>
+          ))}
         </div>
-
-        {selectedActivity && <SafetyTripSection />}
       </div>
     </section>
   );

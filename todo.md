@@ -395,3 +395,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Keep the culture activity card free of the safety flow
 - [x] Preserve the inline warning, acknowledgement button, route form, and emergency number after selection
 - [x] Verify the interaction in all four languages and on mobile, then push GitHub and Vercel
+
+## User request: separate Safety Trip page
+
+- [x] Remove Safety Trip completely from the homepage markup
+- [x] Create a dedicated Safety Trip page for nature, adventure, and mountain sports selections
+- [x] Navigate to the dedicated page only from those three activity cards
+- [x] Add a clear return link to the homepage and preserve the safety form and emergency number
+- [x] Verify routes, mobile layout, and tests, then push GitHub and Vercel

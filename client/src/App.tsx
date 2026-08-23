@@ -18,8 +18,24 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import ErrorBoundary, { CrashFallback } from "./components/ErrorBoundary";
+import SafetyTripPage from './pages/SafetyTripPage';
 
 function App() {
+  const isSafetyTripPage = window.location.pathname === '/safety-trip';
+
+  if (isSafetyTripPage) {
+    return (
+      <ErrorBoundary fallbackRender={({ error }) => <CrashFallback message={error?.message} />}>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <SafetyTripPage />
+          </TooltipProvider>
+        </LanguageProvider>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary
       fallbackRender={({ error }) => <CrashFallback message={error?.message} />}
