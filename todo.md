@@ -367,3 +367,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Restart local services and verify the live ADRAR homepage loads with cars, hotels, and safety-trip UI visible
 - [ ] Confirm the next hourly Heartbeat safety-escalation execution in the scheduler history
 - [ ] Push the final database hardening commit to GitHub and confirm the next production deployment
+
+## User request: show safety warning separately on site entry
+
+- [x] Show the ADRAR safety warning as a standalone entry notice before the regular homepage content
+- [x] Keep the safety-trip registration form available after the notice is closed
+- [x] Verify the entry notice in Arabic, English, French, and Amazigh on desktop and mobile
