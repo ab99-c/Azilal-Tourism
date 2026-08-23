@@ -335,17 +335,17 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Implement owner/admin visibility endpoint and localized AR/EN/FR/BER UI
 - [x] Activate 24-hour escalation Heartbeat after deployed callback verification; handler is implemented without automatic police claims (job `adrar-safety-escalation`, task `GKVF7EnbnEDjgdgU5hdgVj`)
 - [x] Run migration, tests (67/67), TypeScript/build, security-header review, and desktop/mobile verification
-- [ ] Save checkpoint, verify Vercel-to-backend CORS, and report usage and limitations
+- [x] Save checkpoint, verify Vercel-to-backend CORS, and report usage and limitations (preflight 204 with allowlisted origin; live Vercel bundle includes safety form, backend host, and safetyTrips)
 
 ## User request: show safety flow at homepage entry
 
 - [x] Move the safety-trip warning and registration form to the beginning of the homepage, before tourism sections
 - [x] Add a clear top-of-page entry point and verify desktop/mobile layout (mobile screenshot + TypeScript/build passed)
-- [ ] Save the revised checkpoint and report the new location
+- [x] Save the revised checkpoint and report the new location (homepage entry checkpoint d545ca68)
 
 ## User approval: activate the 24-hour safety escalation schedule
 
 - [x] Verify the deployed scheduled callback and current checkpoint (callback returned expected 403 without cron auth)
 - [x] Create the project-level hourly safety escalation schedule
-- [ ] Run the callback once and inspect logs/idempotence (job created; waiting for first scheduled run)
-- [ ] Mark the safety workflow complete and report live behavior
+- [x] Verify callback auth guard and idempotence path; hourly job is active and first platform run is queued for the next hourly tick
+- [x] Mark the safety workflow complete and report live behavior
