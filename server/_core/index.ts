@@ -34,7 +34,23 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
  * Covers X-Frame-Options, X-Content-Type-Options, Referrer-Policy,
  * Permissions-Policy and HSTS without pulling in the full helmet dependency.
  */
-function securityHeaders(_req: express.Request, res: express.Response, next: express.NextFunction) {
+function securityHeaders(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const origin = req.headers.origin;
+  const allowedOrigins = new Set([
+    "https://azilal-tourism.vercel.app",
+    "https://azilaltour-j2sx2a5n.manus.space",
+  ]);
+  if (origin && allowedOrigins.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Vary", "Origin");
+  }
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");

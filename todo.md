@@ -333,12 +333,19 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Design consent-based trip model, statuses, and 24-hour escalation boundaries
 - [x] Implement trip registration, route/duration details, optional location, check-ins, and safe-arrival confirmation
 - [x] Implement owner/admin visibility endpoint and localized AR/EN/FR/BER UI
-- [ ] Activate 24-hour escalation Heartbeat after deployed callback verification; handler is implemented without automatic police claims
+- [x] Activate 24-hour escalation Heartbeat after deployed callback verification; handler is implemented without automatic police claims (job `adrar-safety-escalation`, task `GKVF7EnbnEDjgdgU5hdgVj`)
 - [x] Run migration, tests (67/67), TypeScript/build, security-header review, and desktop/mobile verification
-- [ ] Save checkpoint, activate scheduled check, and report usage and limitations
+- [ ] Save checkpoint, verify Vercel-to-backend CORS, and report usage and limitations
 
 ## User request: show safety flow at homepage entry
 
 - [x] Move the safety-trip warning and registration form to the beginning of the homepage, before tourism sections
 - [x] Add a clear top-of-page entry point and verify desktop/mobile layout (mobile screenshot + TypeScript/build passed)
 - [ ] Save the revised checkpoint and report the new location
+
+## User approval: activate the 24-hour safety escalation schedule
+
+- [x] Verify the deployed scheduled callback and current checkpoint (callback returned expected 403 without cron auth)
+- [x] Create the project-level hourly safety escalation schedule
+- [ ] Run the callback once and inspect logs/idempotence
+- [ ] Mark the safety workflow complete and report live behavior

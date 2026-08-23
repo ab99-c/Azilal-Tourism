@@ -105,8 +105,10 @@ queryClient.getMutationCache().subscribe(event => {
  */
 const staticHostSafeLink: TRPCLink<any> = runtime => ({ op, next }) =>
   observable(observer => {
-    if (!isStaticHost()) {
-      // Manus host: pass through untouched.
+    const isSafetyTripOperation = typeof op.path === "string" && op.path.startsWith("safetyTrips.");
+    if (!isStaticHost() || isSafetyTripOperation) {
+      // Manus host: pass through untouched. Vercel safety-trip calls are routed
+      // to the explicitly allowed deployed backend by the link below.
       return next(op).subscribe(observer);
     }
     return next(op).subscribe({
@@ -129,7 +131,9 @@ const trpcClient = trpc.createClient({
   links: [
     staticHostSafeLink,
     httpBatchLink({
-      url: "/api/trpc",
+      url: isStaticHost()
+        ? "https://azilaltour-j2sx2a5n.manus.space/api/trpc"
+        : "/api/trpc",
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies
