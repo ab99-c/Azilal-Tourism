@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mountain, Compass, Landmark, Bike } from 'lucide-react';
+import SafetyTripSection from './SafetyTripSection';
 
 export default function CategoriesSection() {
   const { t } = useLanguage();
@@ -71,6 +72,7 @@ export default function CategoriesSection() {
             </motion.div>
           ))}
         </div>
+        <SafetyTripSection />
       </div>
     </section>
   );

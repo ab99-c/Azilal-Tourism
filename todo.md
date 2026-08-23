@@ -373,3 +373,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Show the ADRAR safety warning as a standalone entry notice before the regular homepage content
 - [x] Keep the safety-trip registration form available after the notice is closed
 - [x] Verify the entry notice in Arabic, English, French, and Amazigh on desktop and mobile
+
+## User request: move Safety Trip into activities and simplify safety notice
+
+- [x] Remove Safety Trip warning and registration form from the homepage entry flow
+- [x] Render Safety Trip inside the activities section only
+- [x] Keep the entry notice limited to one clear acknowledgement button
+- [x] Add an emergency contact number/action and explain consent-based route monitoring accurately
+- [x] Verify the activities flow and mobile layout, then save and publish the checkpoint

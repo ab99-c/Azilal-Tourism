@@ -14,7 +14,6 @@ import CarOwnerDashboard from './components/CarOwnerDashboard';
 import GuestDashboard from './components/GuestDashboard';
 import FooterSection from './components/FooterSection';
 import ChatWidget from './components/ChatWidget';
-import SafetyTripSection from './components/SafetyTripSection';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -31,7 +30,6 @@ function App() {
           <div className="min-h-screen bg-[#f5f5f0]">
             <Navbar />
             <main>
-              <SafetyTripSection />
               <HeroSection />
               <FeaturedSection />
               <StatsSection />

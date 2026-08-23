@@ -1,25 +1,30 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 
-describe("safety entry notice", () => {
-  const source = fs.readFileSync("client/src/components/SafetyTripSection.tsx", "utf8");
+describe("safety activities flow", () => {
+  const safetySource = fs.readFileSync("client/src/components/SafetyTripSection.tsx", "utf8");
+  const categoriesSource = fs.readFileSync("client/src/components/CategoriesSection.tsx", "utf8");
+  const appSource = fs.readFileSync("client/src/App.tsx", "utf8");
 
-  it("opens automatically as a standalone modal", () => {
-    expect(source).toContain("const [showEntryNotice, setShowEntryNotice] = useState(true)");
-    expect(source).toContain('role="dialog" aria-modal="true"');
-    expect(source).toContain("fixed inset-0 z-[100]");
+  it("renders Safety Trip inside the activities section", () => {
+    expect(categoriesSource).toContain('id="activities"');
+    expect(categoriesSource).toContain("import SafetyTripSection from './SafetyTripSection'");
+    expect(categoriesSource).toContain("<SafetyTripSection />");
+    expect(appSource).not.toContain("<SafetyTripSection />");
   });
 
-  it("provides localized title and continue copy", () => {
-    expect(source).toContain("noticeTitle: 'قبل ما تدخل للمسارات الجبلية'");
-    expect(source).toContain("noticeTitle: 'Before entering mountain routes'");
-    expect(source).toContain("noticeTitle: 'Avant d’entrer sur les routes de montagne'");
-    expect(source).toContain("noticeTitle: 'ⵣⵔⵉ ⵙ ⵓⵎⵏⵣⵓ ⵏ ⵉⵙⵏⵉⵔⴰⵏ'");
-    expect(source).toContain("onClick={() => setShowEntryNotice(false)}");
+  it("keeps the safety card inline with one acknowledgement button", () => {
+    expect(safetySource).toContain("const [showTripForm, setShowTripForm] = useState(false)");
+    expect(safetySource).toContain("onClick={() => setShowTripForm(true)}");
+    expect(safetySource).toContain("noticeContinue: 'فهمت، نكمل التسجيل'");
+    expect(safetySource).not.toContain('role="dialog" aria-modal="true"');
+    expect(safetySource).not.toContain("fixed inset-0 z-[100]");
   });
 
-  it("keeps the safety-trip form below the notice", () => {
-    expect(source).toContain('<section id="safety-trip"');
-    expect(source).toContain("{!trip ? <form");
+  it("requires an emergency phone and explains consent-based monitoring", () => {
+    expect(safetySource).toContain("emergencyPhone: 'رقم شخص للطوارئ'");
+    expect(safetySource).toContain("!form.emergencyPhone");
+    expect(safetySource).toContain("tracking: 'إلى سجلتي الرحلة ووافقتي");
+    expect(safetySource).toContain("emergencyPhone: form.emergencyPhone");
   });
 });
