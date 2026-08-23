@@ -1,1 +1,1 @@
-export { default, config } from "./[...path]";
+export { default, config } from "./[...path].js";
