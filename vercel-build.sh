@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Vercel installs dependencies before running this script.
 echo "Building client with Vite..."
 npx vite build
 
@@ -11,6 +10,6 @@ npx esbuild server/vercel-api.ts \
   --packages=external \
   --bundle \
   --format=esm \
-  --outfile=api/index.mjs
+  --outfile=api/index.js
 
 echo "Client and API build complete."

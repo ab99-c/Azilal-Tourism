@@ -4,7 +4,7 @@
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "functions": {
-    "api/index.mjs": {
+    "api/index.js": {
       "maxDuration": 60
     }
   },
