@@ -384,7 +384,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User request: push latest ADRAR changes to GitHub and Vercel
 
-- [ ] Confirm the latest checkpoint and local repository state
-- [ ] Push the latest ADRAR changes to GitHub main
-- [ ] Verify Vercel receives and completes the deployment
-- [ ] Check the published site and report both links
+- [x] Confirm the latest checkpoint and local repository state
+- [x] Push the latest ADRAR changes to GitHub main
+- [x] Verify Vercel receives and completes the deployment
+- [x] Check the published site and report both links
