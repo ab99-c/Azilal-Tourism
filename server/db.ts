@@ -1,17 +1,38 @@
 import { eq, desc, and, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { createPool, type Pool } from "mysql2";
 import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: Pool | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Lazily create a bounded pool so transient TiDB/MySQL slowness returns a
+// useful error instead of leaving tRPC requests hanging indefinitely.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const connectionUrl = new URL(process.env.DATABASE_URL);
+      _pool = createPool({
+        host: connectionUrl.hostname,
+        port: connectionUrl.port ? Number(connectionUrl.port) : 3306,
+        user: decodeURIComponent(connectionUrl.username),
+        password: decodeURIComponent(connectionUrl.password),
+        database: decodeURIComponent(connectionUrl.pathname.replace(/^\//, "")),
+        waitForConnections: true,
+        connectionLimit: 8,
+        maxIdle: 8,
+        idleTimeout: 60000,
+        queueLimit: 16,
+        connectTimeout: 10000,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 0,
+        ...(connectionUrl.searchParams.has("ssl") ? { ssl: { rejectUnauthorized: false } } : {}),
+      });
+      _db = drizzle(_pool);
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.warn("[Database] Failed to initialize pool:", error);
+      _pool = null;
       _db = null;
     }
   }
@@ -93,7 +114,7 @@ export async function getUserByOpenId(openId: string) {
 export async function getMyCars(ownerId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cars).where(eq(cars.ownerId, ownerId)).orderBy(desc(cars.createdAt));
+  return db.select().from(cars).where(eq(cars.ownerId, ownerId)).orderBy(desc(cars.createdAt)).limit(100);
 }
 
 export async function getMyHotels(ownerId: number) {
@@ -105,7 +126,7 @@ export async function getMyHotels(ownerId: number) {
 export async function getMyBookings(ownerId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(bookings).where(eq(bookings.ownerId, ownerId)).orderBy(desc(bookings.createdAt));
+  return db.select().from(bookings).where(eq(bookings.ownerId, ownerId)).orderBy(desc(bookings.createdAt)).limit(200);
 }
 
 export async function getBookingById(id: number) {
@@ -119,7 +140,7 @@ export async function getBookingById(id: number) {
 export async function getAllCars() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cars).where(eq(cars.isActive, true)).orderBy(desc(cars.createdAt));
+  return db.select().from(cars).where(eq(cars.isActive, true)).orderBy(desc(cars.createdAt)).limit(100);
 }
 
 export async function getCarById(id: number) {
@@ -225,7 +246,7 @@ export async function deleteRestaurant(id: number) {
 export async function getAllCafes() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt));
+  return db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100);
 }
 
 export async function getCafeById(id: number) {
@@ -238,7 +259,7 @@ export async function getCafeById(id: number) {
 export async function getMyCafes(ownerId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cafes).where(eq(cafes.ownerId, ownerId)).orderBy(desc(cafes.createdAt));
+  return db.select().from(cafes).where(eq(cafes.ownerId, ownerId)).orderBy(desc(cafes.createdAt)).limit(100);
 }
 
 export async function createCafe(data: Partial<Cafe>) {
@@ -273,7 +294,7 @@ export async function createBooking(data: Partial<Booking>) {
 export async function getAllBookings() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(bookings).orderBy(desc(bookings.createdAt));
+  return db.select().from(bookings).orderBy(desc(bookings.createdAt)).limit(200);
 }
 
 export async function updateBooking(id: number, data: Partial<Booking>) {
@@ -298,7 +319,7 @@ export async function confirmBooking(id: number) {
 export async function getGuestBookings(guestUserId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(bookings).where(eq(bookings.guestUserId, guestUserId)).orderBy(desc(bookings.createdAt));
+  return db.select().from(bookings).where(eq(bookings.guestUserId, guestUserId)).orderBy(desc(bookings.createdAt)).limit(100);
 }
 
 export async function cancelBooking(id: number) {

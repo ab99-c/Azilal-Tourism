@@ -349,3 +349,21 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Create the project-level hourly safety escalation schedule
 - [x] Verify callback auth guard and idempotence path; hourly job is active and first platform run is queued for the next hourly tick
 - [x] Mark the safety workflow complete and report live behavior
+
+## User report: production API query errors on bookings, cars, and cafes
+
+- [ ] Inspect schema, migration history, and live database columns for bookings, cars, and cafes
+- [ ] Apply a non-destructive schema or query fix without deleting data
+- [ ] Add regression coverage and verify admin/public queries
+- [ ] Run tests/build, save checkpoint, and report the fix
+
+## User report: intermittent production API query errors (bookings, cars, cafes)
+
+- [x] Fix the `server/db.ts` connection-pool initialization syntax error and confirm TypeScript compilation is clean
+- [x] Use a bounded MySQL/TiDB pool with connection, queue, idle, and acquire timeouts
+- [x] Bound affected cars, cafes, owner-dashboard, guest-booking, and admin-booking reads with safe result limits
+- [x] Add regression tests for query bounds and pool safety settings
+- [x] Verify 70/70 Vitest tests, TypeScript, and production build pass
+- [x] Restart local services and verify the live ADRAR homepage loads with cars, hotels, and safety-trip UI visible
+- [ ] Confirm the next hourly Heartbeat safety-escalation execution in the scheduler history
+- [ ] Push the final database hardening commit to GitHub and confirm the next production deployment
