@@ -336,3 +336,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [ ] Activate 24-hour escalation Heartbeat after deployed callback verification; handler is implemented without automatic police claims
 - [x] Run migration, tests (67/67), TypeScript/build, security-header review, and desktop/mobile verification
 - [ ] Save checkpoint, activate scheduled check, and report usage and limitations
+
+## User request: show safety flow at homepage entry
+
+- [x] Move the safety-trip warning and registration form to the beginning of the homepage, before tourism sections
+- [x] Add a clear top-of-page entry point and verify desktop/mobile layout (mobile screenshot + TypeScript/build passed)
+- [ ] Save the revised checkpoint and report the new location

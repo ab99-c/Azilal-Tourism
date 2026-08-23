@@ -31,6 +31,7 @@ function App() {
           <div className="min-h-screen bg-[#f5f5f0]">
             <Navbar />
             <main>
+              <SafetyTripSection />
               <HeroSection />
               <FeaturedSection />
               <StatsSection />
@@ -40,7 +41,6 @@ function App() {
               <RestaurantsSection />
               <CafesSection />
               <CarRentalSection />
-              <SafetyTripSection />
               <CarOwnerDashboard />
               <GuestDashboard />
               <MapSection />
