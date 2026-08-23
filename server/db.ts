@@ -7,6 +7,24 @@ import { ENV } from './_core/env';
 let _db: ReturnType<typeof drizzle> | null = null;
 let _pool: Pool | null = null;
 
+function isTransientDatabaseError(error: unknown) {
+  const candidate = error as { code?: string; message?: string };
+  const code = candidate?.code ?? "";
+  const message = candidate?.message ?? "";
+  return ["ETIMEDOUT", "ECONNRESET", "EPIPE", "PROTOCOL_CONNECTION_LOST", "ER_CON_COUNT_ERROR"].includes(code)
+    || /timeout|timed out|connection lost|connection reset/i.test(message);
+}
+
+async function withTransientDatabaseRetry<T>(operation: () => Promise<T>) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!isTransientDatabaseError(error)) throw error;
+    await new Promise(resolve => setTimeout(resolve, 150));
+    return operation();
+  }
+}
+
 // Lazily create a bounded pool so transient TiDB/MySQL slowness returns a
 // useful error instead of leaving tRPC requests hanging indefinitely.
 export async function getDb() {
@@ -246,7 +264,9 @@ export async function deleteRestaurant(id: number) {
 export async function getAllCafes() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100);
+  return withTransientDatabaseRetry(() =>
+    db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100),
+  );
 }
 
 export async function getCafeById(id: number) {

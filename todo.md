@@ -424,3 +424,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add Serverless handlers for tRPC and OAuth without relying on the old Manus API route
 - [x] Verify Vercel runtime variables through live API, public database queries, and unauthenticated auth checks; real OAuth browser login remains a follow-up check
 - [x] Verify Vercel API, cars, cafes, hotels, protected bookings, auth.me, TypeScript, regression tests, and production build; real OAuth login and file upload remain follow-up checks
+
+## User report: cafes query fails in production
+
+- [x] Inspect the cafes schema, query helper, indexes, and recent runtime logs
+- [x] Verify the cafes table and columns with a non-destructive database check
+- [x] Fix the root cause without deleting or reseeding data
+- [x] Add a regression test for `cafes.list` with `isActive=true` and limit 100
+- [x] Verify cafes locally with live rows, plus TypeScript, regression test, and production build; production deployment verification follows checkpoint

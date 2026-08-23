@@ -6,7 +6,8 @@ describe("database query safety", () => {
 
   it("bounds public cars and cafes reads", () => {
     expect(dbSource).toContain("cars.isActive, true)).orderBy(desc(cars.createdAt)).limit(100)");
-    expect(dbSource).toContain("cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100)");
+    expect(dbSource).toContain("db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100)");
+    expect(dbSource).toContain("withTransientDatabaseRetry");
   });
 
   it("bounds admin and guest booking reads", () => {
