@@ -6,7 +6,8 @@ import BookingModal from './BookingModal';
 import WhatsAppButton from './WhatsAppButton';
 import { getWhatsAppMessage } from '@/lib/whatsapp';
 import { trpc } from '@/lib/trpc';
-import { ServerError, ServerLoading } from './ServerStateNotice';
+import { ServerError } from './ServerStateNotice';
+import TourismLoadingSkeleton from './TourismLoadingSkeleton';
 
 interface NormalizedHotel {
   id: number;
@@ -107,7 +108,7 @@ export default function HotelsSection() {
           </p>
         </motion.div>
 
-        {isLoading && <ServerLoading lang={lang as 'ar' | 'en' | 'fr' | 'ber'} />}
+        {isLoading && <TourismLoadingSkeleton kind="hotels" lang={lang as 'ar' | 'en' | 'fr' | 'ber'} count={4} />}
         {isError && <ServerError lang={lang as 'ar' | 'en' | 'fr' | 'ber'} onRetry={() => void refetch()} />}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

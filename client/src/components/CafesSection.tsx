@@ -4,7 +4,8 @@ import { Star, MapPin, Clock, Wifi, Coffee } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import WhatsAppButton from './WhatsAppButton';
 import { getWhatsAppMessage } from '@/lib/whatsapp';
-import { ServerError, ServerLoading } from './ServerStateNotice';
+import { ServerError } from './ServerStateNotice';
+import TourismLoadingSkeleton from './TourismLoadingSkeleton';
 
 const fallbackCafes = [
   {
@@ -189,7 +190,7 @@ export default function CafesSection() {
           </p>
         </motion.div>
 
-        {isLoading && <ServerLoading lang={lang as 'ar' | 'en' | 'fr' | 'ber'} />}
+        {isLoading && <TourismLoadingSkeleton kind="cafes" lang={lang as 'ar' | 'en' | 'fr' | 'ber'} count={4} />}
         {isError && <ServerError lang={lang as 'ar' | 'en' | 'fr' | 'ber'} onRetry={() => void refetch()} />}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {!isLoading && !isError && list.length === 0 ? null : !isLoading && !isError && list.map((cafe: any, i: number) => (

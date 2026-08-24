@@ -441,3 +441,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add clear retry/error messages without exposing database credentials or SQL internals
 - [x] Add regression tests, run TypeScript and production build, and verify the live UI
 - [x] Save checkpoint 98f7e10c, deploy, and activate the hourly Heartbeat job `adrar-db-health` (task UID XYHJdemsrdV2fJzWRh92Em); no runs recorded yet before the first tick
+
+## User request: tourism-themed loading animations
+
+- [x] Create a coffee-themed loading skeleton for the cafes section
+- [x] Create a mountain/hospitality-themed loading skeleton for the hotels section
+- [x] Respect reduced-motion preferences and keep animations lightweight on mobile
+- [x] Verify TypeScript, tests, build, and responsive rendering, then save a checkpoint
