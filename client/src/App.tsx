@@ -19,6 +19,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import ErrorBoundary, { CrashFallback } from "./components/ErrorBoundary";
 import SafetyTripPage from './pages/SafetyTripPage';
+import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 
 function App() {
   const isSafetyTripPage = window.location.pathname === '/safety-trip';
@@ -29,6 +30,7 @@ function App() {
         <LanguageProvider>
           <TooltipProvider>
             <Toaster />
+            <ConnectionStatusIndicator />
             <SafetyTripPage />
           </TooltipProvider>
         </LanguageProvider>
@@ -45,6 +47,7 @@ function App() {
           <Toaster />
           <div className="min-h-screen bg-[#f5f5f0]">
             <Navbar />
+            <ConnectionStatusIndicator />
             <main>
               <HeroSection />
               <FeaturedSection />

@@ -448,3 +448,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Create a mountain/hospitality-themed loading skeleton for the hotels section
 - [x] Respect reduced-motion preferences and keep animations lightweight on mobile
 - [x] Verify TypeScript, tests, build, and responsive rendering, then save a checkpoint
+
+## User request: visible internet connection status
+
+- [x] Add a multilingual online/weak/offline connection indicator
+- [x] Show a clear non-blocking warning when the browser loses connectivity
+- [x] Make the indicator responsive, accessible, and lightweight on mobile
+- [x] Add regression coverage, run TypeScript/build, verify the UI, and save a checkpoint
