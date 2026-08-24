@@ -440,4 +440,4 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add visible loading indicators for cafes, hotels, cars, restaurants, and bookings data views
 - [x] Add clear retry/error messages without exposing database credentials or SQL internals
 - [x] Add regression tests, run TypeScript and production build, and verify the live UI
-- [ ] Save checkpoint, deploy, then activate or verify the periodic Heartbeat job
+- [x] Save checkpoint 98f7e10c, deploy, and activate the hourly Heartbeat job `adrar-db-health` (task UID XYHJdemsrdV2fJzWRh92Em); no runs recorded yet before the first tick
