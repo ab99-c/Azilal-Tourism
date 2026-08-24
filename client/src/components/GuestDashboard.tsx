@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { ServerError } from './ServerStateNotice';
 import { startLogin } from '@/const';
 import { isStaticHost } from '@/lib/utils';
 
@@ -68,9 +69,9 @@ export default function GuestDashboard() {
   const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
-  const { data: bookings, isLoading } = trpc.bookings.myBookings.useQuery(undefined, {
+  const { data: bookings, isLoading, isError, refetch } = trpc.bookings.myBookings.useQuery(undefined, {
     enabled: isAuthenticated,
-    retry: false,
+    retry: 1,
   });
 
   const cancelMutation = trpc.bookings.cancel.useMutation({
@@ -140,12 +141,14 @@ export default function GuestDashboard() {
             </button>
           </div>
         ) : isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <div className="flex flex-col items-center justify-center py-16 gap-4" role="status" aria-live="polite">
             <Loader2 className="w-8 h-8 animate-spin text-[#1b5e3f]" />
             <p className="text-gray-500 text-sm">
               {lang === 'ar' || lang === 'ber' ? 'كتحمل حجزاتك...' : 'Loading your bookings...'}
             </p>
           </div>
+        ) : isError ? (
+          <ServerError lang={lang as 'ar' | 'en' | 'fr' | 'ber'} onRetry={() => void refetch()} />
         ) : !bookings || bookings.length === 0 ? (
           <div className="max-w-md mx-auto text-center py-10">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">

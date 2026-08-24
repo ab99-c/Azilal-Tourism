@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/_core/hooks/useAuth';
 import {
   Plus, Pencil, Trash2, X, Car, ChevronDown,
   Save, RotateCcw, Image, ClipboardList, CheckCircle2,
@@ -24,6 +25,12 @@ type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
 export default function CarOwnerDashboard() {
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
+  const dbHealthQuery = trpc.system.dbHealth.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+    retry: false,
+    refetchInterval: 60_000,
+  });
   const { data: dashboardData, refetch } = trpc.dashboard.myCars.useQuery(undefined, {
     retry: false,
   });
@@ -531,7 +538,13 @@ export default function CarOwnerDashboard() {
             <p className="text-white/70 text-lg">{l('subtitle')}</p>
           </motion.div>
 
-          {/* Stats Bar */}
+          {user?.role === 'admin' && (
+          <div role="status" className={`mx-auto mt-5 max-w-md rounded-xl border px-4 py-3 text-center text-sm ${dbHealthQuery.isLoading ? 'border-white/20 bg-white/10 text-white/70' : dbHealthQuery.data?.ok ? 'border-emerald-300/30 bg-emerald-500/10 text-emerald-100' : 'border-amber-300/40 bg-amber-500/15 text-amber-100'}`}>
+            {dbHealthQuery.isLoading ? 'كنفحصو الاتصال بقاعدة البيانات...' : dbHealthQuery.data?.ok ? `قاعدة البيانات خدامة · ${dbHealthQuery.data.latencyMs}ms` : 'تنبيه: تعذر الاتصال بقاعدة البيانات'}
+          </div>
+        )}
+
+        {/* Stats Bar */}
           <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 flex items-center gap-3 border border-white/10">
               <Car className="w-5 h-5 text-[#c8a951]" />

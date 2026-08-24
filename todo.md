@@ -432,3 +432,12 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Fix the root cause without deleting or reseeding data
 - [x] Add a regression test for `cafes.list` with `isActive=true` and limit 100
 - [x] Verify cafes locally with live rows, plus TypeScript, regression test, and production build; production deployment verification follows checkpoint
+
+## User request: periodic database health check and clearer server states
+
+- [x] Add a protected database health-check procedure and `/api/scheduled/db-health` callback
+- [x] Notify the project owner only when a health check detects a database failure, with safe error details
+- [x] Add visible loading indicators for cafes, hotels, cars, restaurants, and bookings data views
+- [x] Add clear retry/error messages without exposing database credentials or SQL internals
+- [x] Add regression tests, run TypeScript and production build, and verify the live UI
+- [ ] Save checkpoint, deploy, then activate or verify the periodic Heartbeat job

@@ -5,6 +5,7 @@ import { registerStorageProxy } from "./_core/storageProxy";
 import { createContext } from "./_core/context";
 import { appRouter } from "./routers";
 import { escalateInactiveSafetyTrips } from "./safetyTrips";
+import { databaseHealthHandler } from "./databaseHealth";
 
 const allowedOrigins = new Set([
   "https://azilal-tourism.vercel.app",
@@ -44,6 +45,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 registerStorageProxy(app);
 registerOAuthRoutes(app);
 app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
+app.post("/api/scheduled/db-health", databaseHealthHandler);
 app.use(
   "/api/trpc",
   createExpressMiddleware({

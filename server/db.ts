@@ -1,4 +1,4 @@
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc, and, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool, type Pool } from "mysql2";
 import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip } from "../drizzle/schema";
@@ -22,6 +22,19 @@ async function withTransientDatabaseRetry<T>(operation: () => Promise<T>) {
     if (!isTransientDatabaseError(error)) throw error;
     await new Promise(resolve => setTimeout(resolve, 150));
     return operation();
+  }
+}
+
+export async function checkDatabaseHealth() {
+  const startedAt = Date.now();
+  const db = await getDb();
+  if (!db) return { ok: false, latencyMs: Date.now() - startedAt, reason: "database_unavailable" as const };
+
+  try {
+    await withTransientDatabaseRetry(() => db.execute(sql`SELECT 1`));
+    return { ok: true, latencyMs: Date.now() - startedAt };
+  } catch {
+    return { ok: false, latencyMs: Date.now() - startedAt, reason: "database_query_failed" as const };
   }
 }
 

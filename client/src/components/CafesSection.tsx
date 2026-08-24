@@ -4,6 +4,7 @@ import { Star, MapPin, Clock, Wifi, Coffee } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import WhatsAppButton from './WhatsAppButton';
 import { getWhatsAppMessage } from '@/lib/whatsapp';
+import { ServerError, ServerLoading } from './ServerStateNotice';
 
 const fallbackCafes = [
   {
@@ -110,7 +111,7 @@ const fallbackCafes = [
 
 export default function CafesSection() {
   const { t, lang } = useLanguage();
-  const { data: dbCafes, isLoading } = trpc.cafes.list.useQuery();
+  const { data: dbCafes, isLoading, isError, refetch } = trpc.cafes.list.useQuery(undefined, { retry: 1 });
 
   // Merge DB rows with the legacy static data as a fallback so nothing disappears.
   const list = dbCafes && dbCafes.length > 0 ? dbCafes : fallbackCafes;
@@ -188,12 +189,10 @@ export default function CafesSection() {
           </p>
         </motion.div>
 
+        {isLoading && <ServerLoading lang={lang as 'ar' | 'en' | 'fr' | 'ber'} />}
+        {isError && <ServerError lang={lang as 'ar' | 'en' | 'fr' | 'ber'} onRetry={() => void refetch()} />}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-[#f5f5f0] rounded-2xl overflow-hidden shadow-lg h-60 animate-pulse" />
-            ))
-          ) : list.length === 0 ? null : list.map((cafe: any, i: number) => (
+          {!isLoading && !isError && list.length === 0 ? null : !isLoading && !isError && list.map((cafe: any, i: number) => (
             <motion.div
               key={cafe.id ?? i}
               initial={{ opacity: 0, y: 30 }}

@@ -6,6 +6,7 @@ import BookingModal from './BookingModal';
 import { trpc } from '@/lib/trpc';
 import WhatsAppButton from './WhatsAppButton';
 import { getWhatsAppMessage } from '@/lib/whatsapp';
+import { ServerError, ServerLoading } from './ServerStateNotice';
 import type { Car } from '../../../drizzle/schema';
 
 // Normalize car from DB shape to component shape
@@ -60,7 +61,7 @@ function extractSeatCount(seats: string): number {
 
 export default function CarRentalSection() {
   const { t, lang } = useLanguage();
-  const { data: carsData, isLoading } = trpc.cars.list.useQuery();
+  const { data: carsData, isLoading, isError, refetch } = trpc.cars.list.useQuery(undefined, { retry: 1 });
   const [cars, setCars] = useState<NormalizedCar[]>(() => DEFAULT_CARS.map(normalizeCar));
   const [selectedCar, setSelectedCar] = useState<NormalizedCar | null>(null);
 
@@ -181,11 +182,8 @@ export default function CarRentalSection() {
           </p>
         </motion.div>
 
-        {isLoading && (
-          <div className="text-center py-10">
-            <p className="text-gray-500">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
-          </div>
-        )}
+        {isLoading && <ServerLoading lang={lang as 'ar' | 'en' | 'fr' | 'ber'} />}
+        {isError && <ServerError lang={lang as 'ar' | 'en' | 'fr' | 'ber'} onRetry={() => void refetch()} />}
 
         {/* Search Bar */}
         <div className="max-w-xl mx-auto mb-6">

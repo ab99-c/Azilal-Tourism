@@ -6,6 +6,7 @@ import BookingModal from './BookingModal';
 import WhatsAppButton from './WhatsAppButton';
 import { getWhatsAppMessage } from '@/lib/whatsapp';
 import { trpc } from '@/lib/trpc';
+import { ServerError, ServerLoading } from './ServerStateNotice';
 
 interface NormalizedHotel {
   id: number;
@@ -58,7 +59,7 @@ const amenityIcons: Record<string, { icon: typeof Wifi; color: string }> = {
 
 export default function HotelsSection() {
   const { t, lang } = useLanguage();
-  const { data: hotelsData, isLoading } = trpc.hotels.list.useQuery();
+  const { data: hotelsData, isLoading, isError, refetch } = trpc.hotels.list.useQuery(undefined, { retry: 1 });
   const [hotels, setHotels] = useState<NormalizedHotel[]>(() => DEFAULT_HOTELS.map(normalizeHotel));
   const [selectedHotel, setSelectedHotel] = useState<NormalizedHotel | null>(null);
 
@@ -106,11 +107,8 @@ export default function HotelsSection() {
           </p>
         </motion.div>
 
-        {isLoading && (
-          <div className="text-center py-10">
-            <p className="text-gray-500">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
-          </div>
-        )}
+        {isLoading && <ServerLoading lang={lang as 'ar' | 'en' | 'fr' | 'ber'} />}
+        {isError && <ServerError lang={lang as 'ar' | 'en' | 'fr' | 'ber'} onRetry={() => void refetch()} />}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {hotels.map((hotel, i) => (
