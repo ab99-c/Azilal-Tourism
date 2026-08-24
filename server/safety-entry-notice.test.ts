@@ -30,7 +30,7 @@ describe("safety activities flow", () => {
   });
 
   it("keeps the safety card inline with one acknowledgement button", () => {
-    expect(safetySource).toContain("const [showTripForm, setShowTripForm] = useState(false)");
+    expect(safetySource).toContain("const [showTripForm, setShowTripForm] = useState(Boolean(initialEmergency))");
     expect(safetySource).toContain("onClick={() => setShowTripForm(true)}");
     expect(safetySource).toContain("noticeContinue: 'فهمت، نكمل التسجيل'");
     expect(safetySource).not.toContain('role="dialog" aria-modal="true"');

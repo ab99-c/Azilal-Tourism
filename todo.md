@@ -455,3 +455,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Show a clear non-blocking warning when the browser loses connectivity
 - [x] Make the indicator responsive, accessible, and lightweight on mobile
 - [x] Add regression coverage, run TypeScript/build, verify the UI, and save a checkpoint
+
+## User request: offline Safety Trip emergency data
+
+- [x] Cache the current Safety Trip emergency details locally only after clear consent
+- [x] Restore the local safety record and allow the user to remove it from the same device
+- [x] Show a clear offline notice explaining that local storage does not replace server registration or rescue services
+- [x] Add regression coverage, verify offline behaviour, run TypeScript/build, and save a checkpoint
