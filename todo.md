@@ -541,5 +541,5 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 - [x] Remove VisitorPlanningSection from the homepage while preserving the content and multilingual support
 - [x] Add a dedicated visitor-planning page with a clear return path and an accessible entry link
-- [ ] Verify homepage, dedicated page, mobile layout, tests, build, and live deployment
+- [x] Verify homepage, dedicated page, mobile layout, tests, build, and live deployment
 
