@@ -565,3 +565,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Keep the destination section multilingual and avoid invented listings or contact details
 - [x] Verify the new entry point on mobile and desktop, then publish the visibility fix
 
+
+## User request: show products with tourism types
+
+- [x] Add natural products and local associations as a visible fifth tourism-type card
+- [x] Keep the card multilingual and link it directly to the verified section without fabricated listings
+- [ ] Test the card on mobile and desktop, run the build, and publish the layout change
+

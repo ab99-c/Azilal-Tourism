@@ -8,6 +8,8 @@ const categoriesSource = readFileSync(fileURLToPath(new URL('../client/src/compo
 describe('local products and associations activity section', () => {
   it('is mounted inside the activities section with all language variants', () => {
     expect(categoriesSource).toContain('<LocalProductsSection />');
+    expect(categoriesSource).toContain("title: 'cat.localProducts'");
+    expect(categoriesSource).toContain("anchor: 'local-products'");
     expect(categoriesSource).toContain('categories.localProductsCta');
     expect(source).toContain('id="local-products"');
     const navbarSource = readFileSync(fileURLToPath(new URL('../client/src/components/Navbar.tsx', import.meta.url)), 'utf8');
