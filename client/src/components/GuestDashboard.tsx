@@ -3,9 +3,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import { ServerError } from './ServerStateNotice';
-import { startLogin } from '@/const';
-import { isStaticHost } from '@/lib/utils';
-
 import {
   CalendarCheck,
   CalendarX,
@@ -20,9 +17,7 @@ import {
   Banknote,
 } from 'lucide-react';
 
-// The full-featured Manus-hosted site (backend + OAuth). On static mirrors
-// (e.g. Vercel) login cannot complete locally — redirect users to the main site.
-const MAIN_SITE_URL = 'https://azilaltour-j2sx2a5n.manus.space';
+import { openLocalAuth } from '@/components/LocalAuthDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -128,16 +123,10 @@ export default function GuestDashboard() {
                 : 'Sign in to view and manage your bookings here'}
             </p>
             <button
-              onClick={() => {
-                if (isStaticHost()) {
-                  window.open(MAIN_SITE_URL, '_blank', 'noopener');
-                } else {
-                  startLogin();
-                }
-              }}
+              onClick={openLocalAuth}
               className="bg-white text-[#1b5e3f] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-all active:scale-[0.97] hover:shadow-lg"
             >
-              {isStaticHost() ? t('nav.loginOnMainSite') : t('nav.login')}
+              {t('nav.login')}
             </button>
           </div>
         ) : isLoading ? (

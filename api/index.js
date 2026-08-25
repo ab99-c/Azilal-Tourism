@@ -2,13 +2,65 @@
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 
+// server/_core/env.ts
+var ENV = {
+  appId: process.env.VITE_APP_ID ?? "",
+  cookieSecret: process.env.JWT_SECRET ?? "",
+  databaseUrl: process.env.DATABASE_URL ?? "",
+  oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
+  ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
+  isProduction: process.env.NODE_ENV === "production",
+  forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
+  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? ""
+};
+
+// server/_core/storageProxy.ts
+function registerStorageProxy(app2) {
+  app2.get("/manus-storage/*", async (req, res) => {
+    const key = req.params[0];
+    if (!key) {
+      res.status(400).send("Missing storage key");
+      return;
+    }
+    if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
+      res.status(500).send("Storage proxy not configured");
+      return;
+    }
+    try {
+      const forgeUrl = new URL(
+        "v1/storage/presign/get",
+        ENV.forgeApiUrl.replace(/\/+$/, "") + "/"
+      );
+      forgeUrl.searchParams.set("path", key);
+      const forgeResp = await fetch(forgeUrl, {
+        headers: { Authorization: `Bearer ${ENV.forgeApiKey}` }
+      });
+      if (!forgeResp.ok) {
+        const body = await forgeResp.text().catch(() => "");
+        console.error(`[StorageProxy] forge error: ${forgeResp.status} ${body}`);
+        res.status(502).send("Storage backend error");
+        return;
+      }
+      const { url } = await forgeResp.json();
+      if (!url) {
+        res.status(502).send("Empty signed URL from backend");
+        return;
+      }
+      res.set("Cache-Control", "no-store");
+      res.redirect(307, url);
+    } catch (err) {
+      console.error("[StorageProxy] failed:", err);
+      res.status(502).send("Storage proxy error");
+    }
+  });
+}
+
 // shared/const.ts
 var COOKIE_NAME = "app_session_id";
 var ONE_YEAR_MS = 1e3 * 60 * 60 * 24 * 365;
 var AXIOS_TIMEOUT_MS = 3e4;
 var UNAUTHED_ERR_MSG = "Please login (10001)";
 var NOT_ADMIN_ERR_MSG = "You do not have required permission (10002)";
-var OAUTH_STATE_COOKIE = "__Host-oauth_state";
 var decodeOAuthState = (state) => {
   let decoded;
   try {
@@ -24,11 +76,23 @@ var decodeOAuthState = (state) => {
   return { redirectUri: decoded };
 };
 
-// server/_core/oauth.ts
-import { parse as parseCookieHeader2 } from "cookie";
+// shared/_core/errors.ts
+var HttpError = class extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+    this.name = "HttpError";
+  }
+};
+var ForbiddenError = (msg) => new HttpError(403, msg);
+
+// server/_core/sdk.ts
+import axios from "axios";
+import { parse as parseCookieHeader } from "cookie";
+import { SignJWT, jwtVerify } from "jose";
 
 // server/db.ts
-import { eq, desc, and, isNull } from "drizzle-orm";
+import { eq, desc, and, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool } from "mysql2";
 
@@ -38,8 +102,9 @@ var users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
-  email: varchar("email", { length: 320 }),
+  email: varchar("email", { length: 320 }).unique(),
   loginMethod: varchar("loginMethod", { length: 64 }),
+  passwordHash: varchar("passwordHash", { length: 255 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -223,21 +288,35 @@ var safetyTrips = mysqlTable("safety_trips", {
   expectedArrivalIdx: index("idx_safety_trips_expected_arrival").on(t2.expectedArrivalAt)
 }));
 
-// server/_core/env.ts
-var ENV = {
-  appId: process.env.VITE_APP_ID ?? "",
-  cookieSecret: process.env.JWT_SECRET ?? "",
-  databaseUrl: process.env.DATABASE_URL ?? "",
-  oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
-  ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
-  isProduction: process.env.NODE_ENV === "production",
-  forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
-  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? ""
-};
-
 // server/db.ts
 var _db = null;
 var _pool = null;
+function isTransientDatabaseError(error) {
+  const candidate = error;
+  const code = candidate?.code ?? "";
+  const message = candidate?.message ?? "";
+  return ["ETIMEDOUT", "ECONNRESET", "EPIPE", "PROTOCOL_CONNECTION_LOST", "ER_CON_COUNT_ERROR"].includes(code) || /timeout|timed out|connection lost|connection reset/i.test(message);
+}
+async function withTransientDatabaseRetry(operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!isTransientDatabaseError(error)) throw error;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return operation();
+  }
+}
+async function checkDatabaseHealth() {
+  const startedAt = Date.now();
+  const db = await getDb();
+  if (!db) return { ok: false, latencyMs: Date.now() - startedAt, reason: "database_unavailable" };
+  try {
+    await withTransientDatabaseRetry(() => db.execute(sql`SELECT 1`));
+    return { ok: true, latencyMs: Date.now() - startedAt };
+  } catch {
+    return { ok: false, latencyMs: Date.now() - startedAt, reason: "database_query_failed" };
+  }
+}
 async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -323,6 +402,35 @@ async function getUserByOpenId(openId) {
   }
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
   return result.length > 0 ? result[0] : void 0;
+}
+async function getUserByEmail(email) {
+  const db = await getDb();
+  if (!db) return void 0;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0];
+}
+async function createLocalUser(input) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(users).values({
+    openId: input.openId,
+    name: input.name,
+    email: input.email,
+    passwordHash: input.passwordHash,
+    loginMethod: "email_password",
+    role: "user",
+    lastSignedIn: /* @__PURE__ */ new Date()
+  });
+  return getUserByEmail(input.email);
+}
+async function setLocalPassword(userId, passwordHash) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(users).set({
+    passwordHash,
+    loginMethod: "email_password",
+    lastSignedIn: /* @__PURE__ */ new Date()
+  }).where(eq(users.id, userId));
 }
 async function getMyCars(ownerId) {
   const db = await getDb();
@@ -435,7 +543,9 @@ async function deleteRestaurant(id) {
 async function getAllCafes() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100);
+  return withTransientDatabaseRetry(
+    () => db.select().from(cafes).where(eq(cafes.isActive, true)).orderBy(desc(cafes.createdAt)).limit(100)
+  );
 }
 async function getCafeById(id) {
   const db = await getDb();
@@ -533,37 +643,7 @@ async function markSafetyTripOverdue(publicToken, notifiedAt) {
   return result;
 }
 
-// server/_core/cookies.ts
-function isSecureRequest(req) {
-  if (req.protocol === "https") return true;
-  const forwardedProto = req.headers["x-forwarded-proto"];
-  if (!forwardedProto) return false;
-  const protoList = Array.isArray(forwardedProto) ? forwardedProto : forwardedProto.split(",");
-  return protoList.some((proto) => proto.trim().toLowerCase() === "https");
-}
-function getSessionCookieOptions(req) {
-  return {
-    httpOnly: true,
-    path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req)
-  };
-}
-
-// shared/_core/errors.ts
-var HttpError = class extends Error {
-  constructor(statusCode, message) {
-    super(message);
-    this.statusCode = statusCode;
-    this.name = "HttpError";
-  }
-};
-var ForbiddenError = (msg) => new HttpError(403, msg);
-
 // server/_core/sdk.ts
-import axios from "axios";
-import { parse as parseCookieHeader } from "cookie";
-import { SignJWT, jwtVerify } from "jose";
 var isNonEmptyString = (value) => typeof value === "string" && value.length > 0;
 var EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
 var GET_USER_INFO_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfo`;
@@ -807,95 +887,6 @@ function buildCronUser(userInfo) {
 }
 var sdk = new SDKServer();
 
-// server/_core/oauth.ts
-function getQueryParam(req, key) {
-  const value = req.query[key];
-  return typeof value === "string" ? value : void 0;
-}
-function registerOAuthRoutes(app2) {
-  app2.get("/api/oauth/callback", async (req, res) => {
-    const code = getQueryParam(req, "code");
-    const state = getQueryParam(req, "state");
-    if (!code || !state) {
-      res.status(400).json({ error: "code and state are required" });
-      return;
-    }
-    const { nonce } = decodeOAuthState(state);
-    const expectedNonce = parseCookieHeader2(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
-    if (!nonce || nonce !== expectedNonce) {
-      res.status(403).json({ error: "invalid oauth state" });
-      return;
-    }
-    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
-    try {
-      const tokenResponse = await sdk.exchangeCodeForToken(code, state);
-      const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
-      if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
-        return;
-      }
-      await upsertUser({
-        openId: userInfo.openId,
-        name: userInfo.name || null,
-        email: userInfo.email ?? null,
-        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-        lastSignedIn: /* @__PURE__ */ new Date()
-      });
-      const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-        name: userInfo.name || "",
-        expiresInMs: ONE_YEAR_MS
-      });
-      const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-      res.redirect(302, "/");
-    } catch (error) {
-      console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
-    }
-  });
-}
-
-// server/_core/storageProxy.ts
-function registerStorageProxy(app2) {
-  app2.get("/manus-storage/*", async (req, res) => {
-    const key = req.params[0];
-    if (!key) {
-      res.status(400).send("Missing storage key");
-      return;
-    }
-    if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
-      res.status(500).send("Storage proxy not configured");
-      return;
-    }
-    try {
-      const forgeUrl = new URL(
-        "v1/storage/presign/get",
-        ENV.forgeApiUrl.replace(/\/+$/, "") + "/"
-      );
-      forgeUrl.searchParams.set("path", key);
-      const forgeResp = await fetch(forgeUrl, {
-        headers: { Authorization: `Bearer ${ENV.forgeApiKey}` }
-      });
-      if (!forgeResp.ok) {
-        const body = await forgeResp.text().catch(() => "");
-        console.error(`[StorageProxy] forge error: ${forgeResp.status} ${body}`);
-        res.status(502).send("Storage backend error");
-        return;
-      }
-      const { url } = await forgeResp.json();
-      if (!url) {
-        res.status(502).send("Empty signed URL from backend");
-        return;
-      }
-      res.set("Cache-Control", "no-store");
-      res.redirect(307, url);
-    } catch (err) {
-      console.error("[StorageProxy] failed:", err);
-      res.status(502).send("Storage proxy error");
-    }
-  });
-}
-
 // server/_core/context.ts
 async function createContext(opts) {
   let user = null;
@@ -908,6 +899,23 @@ async function createContext(opts) {
     req: opts.req,
     res: opts.res,
     user
+  };
+}
+
+// server/_core/cookies.ts
+function isSecureRequest(req) {
+  if (req.protocol === "https") return true;
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  if (!forwardedProto) return false;
+  const protoList = Array.isArray(forwardedProto) ? forwardedProto : forwardedProto.split(",");
+  return protoList.some((proto) => proto.trim().toLowerCase() === "https");
+}
+function getSessionCookieOptions(req) {
+  return {
+    httpOnly: true,
+    path: "/",
+    sameSite: "none",
+    secure: isSecureRequest(req)
   };
 }
 
@@ -996,6 +1004,31 @@ async function notifyOwner(payload) {
   }
 }
 
+// server/databaseHealth.ts
+async function databaseHealthHandler(req, res) {
+  try {
+    const user = await sdk.authenticateRequest(req);
+    if (!user.isCron || !user.taskUid) {
+      return res.status(403).json({ error: "cron-only" });
+    }
+    const health = await checkDatabaseHealth();
+    if (!health.ok) {
+      await notifyOwner({
+        title: "\u062A\u0646\u0628\u064A\u0647: \u0642\u0627\u0639\u062F\u0629 \u0628\u064A\u0627\u0646\u0627\u062A ADRAR \u063A\u064A\u0631 \u0645\u062A\u0627\u062D\u0629",
+        content: `\u0641\u0634\u0644 \u0641\u062D\u0635 \u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0628\u0642\u0627\u0639\u062F\u0629 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A. \u0627\u0644\u0633\u0628\u0628: ${health.reason}. \u0627\u0644\u0645\u062F\u0629: ${health.latencyMs}ms. \u0644\u0645 \u064A\u062A\u0645 \u062A\u0636\u0645\u064A\u0646 \u0623\u064A \u0623\u0633\u0631\u0627\u0631 \u0623\u0648 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u062A\u0635\u0627\u0644.`
+      });
+      return res.status(503).json({ ok: false, alerted: true, latencyMs: health.latencyMs });
+    }
+    return res.json({ ok: true, latencyMs: health.latencyMs });
+  } catch (error) {
+    console.error("[DatabaseHealth] check failed", error);
+    return res.status(500).json({ ok: false, error: "health_check_failed", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  }
+}
+async function databaseHealthStatus() {
+  return checkDatabaseHealth();
+}
+
 // server/_core/trpc.ts
 import { initTRPC, TRPCError as TRPCError2 } from "@trpc/server";
 import superjson from "superjson";
@@ -1041,6 +1074,7 @@ var systemRouter = router({
   ).query(() => ({
     ok: true
   })),
+  dbHealth: adminProcedure.query(async () => databaseHealthStatus()),
   notifyOwner: adminProcedure.input(
     z.object({
       title: z.string().min(1, "title is required"),
@@ -1057,7 +1091,7 @@ var systemRouter = router({
 // server/routers.ts
 import { TRPCError as TRPCError3 } from "@trpc/server";
 import { z as z2 } from "zod";
-import { randomBytes } from "node:crypto";
+import { randomBytes as randomBytes2 } from "node:crypto";
 
 // server/cache.ts
 var DEFAULT_TTL_MS = 6e4;
@@ -1130,6 +1164,36 @@ async function storagePut(relKey, data, contentType = "application/octet-stream"
   return { key, url: `/manus-storage/${key}` };
 }
 
+// server/localAuth.ts
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
+var scrypt = promisify(scryptCallback);
+var KEY_LENGTH = 64;
+async function hashPassword(password) {
+  const salt = randomBytes(16);
+  const derived = await scrypt(password, salt, KEY_LENGTH);
+  return `scrypt$${salt.toString("base64url")}$${derived.toString("base64url")}`;
+}
+async function verifyPassword(password, stored) {
+  if (!stored) return false;
+  const [algorithm, encodedSalt, encodedHash] = stored.split("$");
+  if (algorithm !== "scrypt" || !encodedSalt || !encodedHash) return false;
+  try {
+    const salt = Buffer.from(encodedSalt, "base64url");
+    const expected = Buffer.from(encodedHash, "base64url");
+    if (salt.length < 16 || expected.length !== KEY_LENGTH) return false;
+    const derived = await scrypt(password, salt, KEY_LENGTH);
+    return timingSafeEqual(expected, derived);
+  } catch {
+    return false;
+  }
+}
+function isValidBootstrapSecret(candidate) {
+  const expected = process.env.AUTH_BOOTSTRAP_SECRET?.trim();
+  if (!expected || expected.length < 12 || candidate.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(candidate), Buffer.from(expected));
+}
+
 // server/routers.ts
 var adminProcedure2 = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
@@ -1179,6 +1243,8 @@ var hotelsListCache = cached("hotels:list");
 var MAX_NAME = 255;
 var MAX_TEXT = 5e3;
 var MAX_SHORT = 200;
+var localEmail = z2.string().trim().email().max(320).transform((value) => value.toLowerCase());
+var localPassword = z2.string().min(10).max(200);
 var whatsappInput = z2.string().trim().max(50).refine((value) => {
   if (!value) return true;
   const digits = value.replace(/\D/g, "");
@@ -1204,6 +1270,51 @@ var appRouter = router({
         });
       }
       return { success: true };
+    }),
+    register: publicProcedure.input(z2.object({
+      name: z2.string().trim().min(2).max(120),
+      email: localEmail,
+      password: localPassword
+    })).mutation(async ({ input, ctx }) => {
+      const existing = await getUserByEmail(input.email);
+      if (existing) throw new TRPCError3({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
+      const user = await createLocalUser({
+        openId: `local_${randomBytes2(24).toString("base64url")}`,
+        name: input.name,
+        email: input.email,
+        passwordHash: await hashPassword(input.password)
+      });
+      if (!user) throw new TRPCError3({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      return { user };
+    }),
+    login: publicProcedure.input(z2.object({ email: localEmail, password: localPassword })).mutation(async ({ input, ctx }) => {
+      const user = await getUserByEmail(input.email);
+      if (!user || !await verifyPassword(input.password, user.passwordHash)) {
+        throw new TRPCError3({ code: "UNAUTHORIZED", message: "INVALID_CREDENTIALS" });
+      }
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      return { user };
+    }),
+    activateExistingAdmin: publicProcedure.input(z2.object({
+      email: localEmail,
+      password: localPassword,
+      bootstrapSecret: z2.string().min(12).max(200)
+    })).mutation(async ({ input, ctx }) => {
+      if (!isValidBootstrapSecret(input.bootstrapSecret)) {
+        throw new TRPCError3({ code: "FORBIDDEN", message: "INVALID_BOOTSTRAP_SECRET" });
+      }
+      const user = await getUserByEmail(input.email);
+      if (!user || user.role !== "admin") {
+        throw new TRPCError3({ code: "FORBIDDEN", message: "ADMIN_ACCOUNT_NOT_FOUND" });
+      }
+      if (user.passwordHash) throw new TRPCError3({ code: "CONFLICT", message: "ADMIN_ALREADY_ACTIVATED" });
+      await setLocalPassword(user.id, await hashPassword(input.password));
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      return { user: { ...user, passwordHash: null, loginMethod: "email_password" } };
     })
   }),
   safetyTrips: router({
@@ -1225,7 +1336,7 @@ var appRouter = router({
       if (input.expectedArrivalAt.getTime() - now.getTime() > 7 * 24 * 60 * 60 * 1e3) {
         throw new TRPCError3({ code: "BAD_REQUEST", message: "Trip duration cannot exceed 7 days" });
       }
-      const publicToken = randomBytes(36).toString("base64url");
+      const publicToken = randomBytes2(36).toString("base64url");
       const trip = await createSafetyTrip({
         publicToken,
         travelerName: input.travelerName,
@@ -1850,8 +1961,8 @@ app.use(securityHeaders);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 registerStorageProxy(app);
-registerOAuthRoutes(app);
 app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
+app.post("/api/scheduled/db-health", databaseHealthHandler);
 app.use(
   "/api/trpc",
   createExpressMiddleware({

@@ -9,7 +9,7 @@ const staticUtils = fs.readFileSync("client/src/lib/utils.ts", "utf8");
 describe("Vercel backend deployment", () => {
   it("routes the catch-all API to a serverless handler", () => {
     expect(apiHandler).toContain("createExpressMiddleware");
-    expect(apiHandler).toContain("registerOAuthRoutes(app)");
+    expect(apiHandler).not.toContain("registerOAuthRoutes");
     expect(apiHandler).toContain("registerStorageProxy(app)");
     expect(apiHandler).toContain("/api/scheduled/escalateSafetyTrips");
     expect(vercelConfig).toContain('"api/index.js"');

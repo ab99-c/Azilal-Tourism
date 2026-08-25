@@ -20,6 +20,7 @@ import NotFound from "@/pages/NotFound";
 import ErrorBoundary, { CrashFallback } from "./components/ErrorBoundary";
 import SafetyTripPage from './pages/SafetyTripPage';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
+import LocalAuthDialog from './components/LocalAuthDialog';
 
 function App() {
   const isSafetyTripPage = window.location.pathname === '/safety-trip';
@@ -31,6 +32,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <ConnectionStatusIndicator />
+            <LocalAuthDialog />
             <SafetyTripPage />
           </TooltipProvider>
         </LanguageProvider>
@@ -45,6 +47,7 @@ function App() {
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />
+          <LocalAuthDialog />
           <div className="min-h-screen bg-[#f5f5f0]">
             <Navbar />
             <ConnectionStatusIndicator />

@@ -141,6 +141,38 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0];
+}
+
+export async function createLocalUser(input: { openId: string; name: string; email: string; passwordHash: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(users).values({
+    openId: input.openId,
+    name: input.name,
+    email: input.email,
+    passwordHash: input.passwordHash,
+    loginMethod: "email_password",
+    role: "user",
+    lastSignedIn: new Date(),
+  });
+  return getUserByEmail(input.email);
+}
+
+export async function setLocalPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(users).set({
+    passwordHash,
+    loginMethod: "email_password",
+    lastSignedIn: new Date(),
+  }).where(eq(users.id, userId));
+}
+
 // ===== OWNERSHIP SCOPED QUERIES =====
 export async function getMyCars(ownerId: number) {
   const db = await getDb();

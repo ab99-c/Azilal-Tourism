@@ -1,4 +1,4 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -15,12 +15,14 @@ import {
   getGuestBookings, cancelBooking,
   getMyRestaurants, getMyCafes,
   getUserFavorites, addFavorite, removeFavorite,
-  getUserByOpenId, upsertUser,
+  getUserByOpenId, getUserByEmail, createLocalUser, setLocalPassword, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
   createSafetyTrip, getSafetyTripByToken, updateSafetyTrip, listSafetyTrips,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
 import { storagePut } from "./storage";
+import { sdk } from "./_core/sdk";
+import { hashPassword, isValidBootstrapSecret, verifyPassword } from "./localAuth";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -94,6 +96,8 @@ const hotelsListCache = cached<any[]>("hotels:list");
 const MAX_NAME = 255;
 const MAX_TEXT = 5000;
 const MAX_SHORT = 200;
+const localEmail = z.string().trim().email().max(320).transform(value => value.toLowerCase());
+const localPassword = z.string().min(10).max(200);
 const whatsappInput = z.string().trim().max(50).refine((value) => {
   if (!value) return true;
   const digits = value.replace(/\D/g, '');
@@ -120,6 +124,51 @@ export const appRouter = router({
         });
       }
       return { success: true } as const;
+    }),
+    register: publicProcedure.input(z.object({
+      name: z.string().trim().min(2).max(120),
+      email: localEmail,
+      password: localPassword,
+    })).mutation(async ({ input, ctx }) => {
+      const existing = await getUserByEmail(input.email);
+      if (existing) throw new TRPCError({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
+      const user = await createLocalUser({
+        openId: `local_${randomBytes(24).toString("base64url")}`,
+        name: input.name,
+        email: input.email,
+        passwordHash: await hashPassword(input.password),
+      });
+      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      return { user };
+    }),
+    login: publicProcedure.input(z.object({ email: localEmail, password: localPassword })).mutation(async ({ input, ctx }) => {
+      const user = await getUserByEmail(input.email);
+      if (!user || !await verifyPassword(input.password, user.passwordHash)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "INVALID_CREDENTIALS" });
+      }
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      return { user };
+    }),
+    activateExistingAdmin: publicProcedure.input(z.object({
+      email: localEmail,
+      password: localPassword,
+      bootstrapSecret: z.string().min(12).max(200),
+    })).mutation(async ({ input, ctx }) => {
+      if (!isValidBootstrapSecret(input.bootstrapSecret)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "INVALID_BOOTSTRAP_SECRET" });
+      }
+      const user = await getUserByEmail(input.email);
+      if (!user || user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_ACCOUNT_NOT_FOUND" });
+      }
+      if (user.passwordHash) throw new TRPCError({ code: "CONFLICT", message: "ADMIN_ALREADY_ACTIVATED" });
+      await setLocalPassword(user.id, await hashPassword(input.password));
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      return { user: { ...user, passwordHash: null, loginMethod: "email_password" } };
     }),
   }),
 

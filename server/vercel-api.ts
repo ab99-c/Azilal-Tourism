@@ -1,6 +1,5 @@
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./_core/oauth";
 import { registerStorageProxy } from "./_core/storageProxy";
 import { createContext } from "./_core/context";
 import { appRouter } from "./routers";
@@ -43,7 +42,6 @@ app.use(securityHeaders);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 registerStorageProxy(app);
-registerOAuthRoutes(app);
 app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
 app.post("/api/scheduled/db-health", databaseHealthHandler);
 app.use(

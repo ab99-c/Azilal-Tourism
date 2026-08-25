@@ -6,13 +6,8 @@ import { getDeferredPrompt, installApp } from '@/lib/pwa';
 import { scrollToSection } from '@/lib/scroll';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
-import { startLogin } from '@/const';
-import { isStaticHost } from '@/lib/utils';
 import LoginChoiceDialog from '@/components/LoginChoiceDialog';
-
-// The full-featured Manus-hosted site (backend + OAuth). On static mirrors
-// (e.g. Vercel) login cannot complete locally — redirect users to the main site.
-const MAIN_SITE_URL = 'https://azilaltour-j2sx2a5n.manus.space';
+import { openLocalAuth } from '@/components/LocalAuthDialog';
 
 const langNames: Record<Lang, string> = {
   ar: 'العربية',
@@ -177,16 +172,10 @@ export default function Navbar() {
             </button>
           ) : (
             <a
-              href={isStaticHost() ? MAIN_SITE_URL : '#login'}
+              href="#login"
               onClick={(e) => {
-                if (isStaticHost()) {
-                  // On Vercel OAuth cannot complete here — open the main site
-                  e.preventDefault();
-                  window.open(MAIN_SITE_URL, '_blank', 'noopener');
-                } else {
-                  e.preventDefault();
-                  startLogin();
-                }
+                e.preventDefault();
+                openLocalAuth();
               }}
               className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 scrolled
@@ -195,7 +184,7 @@ export default function Navbar() {
               }`}
             >
               <LogIn className="w-4 h-4" />
-              {isStaticHost() ? t('nav.loginOnMainSite') : t('nav.login')}
+              {t('nav.login')}
             </a>
           )}
 
@@ -284,16 +273,12 @@ export default function Navbar() {
                   <button
                     onClick={() => {
                       setMobileOpen(false);
-                      if (isStaticHost()) {
-                        window.open(MAIN_SITE_URL, '_blank', 'noopener');
-                      } else {
-                        startLogin();
-                      }
+                      openLocalAuth();
                     }}
                     className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-[#1b5e3f] text-white hover:bg-[#0f3d28] transition-colors"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    {isStaticHost() ? t('nav.loginOnMainSite') : t('nav.login')}
+                    {t('nav.login')}
                   </button>
                 )}
                 {installReady && !installed ? (

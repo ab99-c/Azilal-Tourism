@@ -462,3 +462,13 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Restore the local safety record and allow the user to remove it from the same device
 - [x] Show a clear offline notice explaining that local storage does not replace server registration or rescue services
 - [x] Add regression coverage, verify offline behaviour, run TypeScript/build, and save a checkpoint
+
+## User request: independent login for Vercel
+
+- [x] Use direct email/password login as confirmed by the user, with no Manus or Google redirect on Vercel
+- [x] Fix the Vercel TypeScript build errors affecting Express request/response types and serverless API handlers
+- [x] Audit Manus OAuth coupling, current users, roles, and protected procedures before migration
+- [x] Design a Vercel-compatible independent email/password authentication flow with secure sessions and account-recovery boundaries
+- [x] Implement independent registration, sign-in, sign-out, and owner-role migration without deleting existing data
+- [x] Remove Manus login entry points from the Vercel user experience and verify protected dashboards, bookings, and owner access
+- [x] Add regression tests, run TypeScript/build, verify on Vercel, and save a checkpoint
