@@ -534,5 +534,5 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Diagnose the latest site disruption using fresh local, browser, and production evidence
 - [x] Fix the root cause without changing existing booking, availability, or database records
 - [x] Re-run TypeScript, focused tests, production build, and responsive/live verification
-- [ ] Save and publish the verified repair, then document the affected addition and outcome
+- [x] Save and publish the verified repair, then document the affected addition and outcome
 
