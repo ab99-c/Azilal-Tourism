@@ -572,3 +572,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Keep the card multilingual and link it directly to the verified section without fabricated listings
 - [x] Test the card on mobile and desktop, run the build, and publish the layout change
 
+
+## User report: fifth tourism card missing on Vercel
+
+- [ ] Compare the live Vercel deployment with the verified local checkpoint and GitHub branch
+- [ ] Push or repair the deployment path so the fifth tourism card is included in production
+- [ ] Verify the live Vercel card and direct anchor on mobile and desktop
+
