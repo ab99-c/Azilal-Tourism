@@ -558,3 +558,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add clear empty-state and owner-submission guidance until real product or association records are available
 - [x] Add translation and responsive regression coverage, verify build, and publish the activities update
 
+
+## User report: local products section is hard to find
+
+- [x] Add a prominent activities callout or anchor for local products and associations
+- [x] Keep the destination section multilingual and avoid invented listings or contact details
+- [x] Verify the new entry point on mobile and desktop, then publish the visibility fix
+
