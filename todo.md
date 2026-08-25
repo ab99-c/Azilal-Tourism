@@ -472,3 +472,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Implement independent registration, sign-in, sign-out, and owner-role migration without deleting existing data
 - [x] Remove Manus login entry points from the Vercel user experience and verify protected dashboards, bookings, and owner access
 - [x] Add regression tests, run TypeScript/build, verify on Vercel, and save a checkpoint
+
+## User request: remove external-login wording
+
+- [x] Remove the Manus and Google wording from the independent-login dialog in all supported languages
+- [x] Verify the revised dialog on mobile and save the published update

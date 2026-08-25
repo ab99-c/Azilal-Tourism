@@ -25,6 +25,7 @@ describe("independent email/password authentication", () => {
     const navbar = fs.readFileSync("client/src/components/Navbar.tsx", "utf8");
     const bookingModal = fs.readFileSync("client/src/components/BookingModal.tsx", "utf8");
     const main = fs.readFileSync("client/src/main.tsx", "utf8");
+    const authDialog = fs.readFileSync("client/src/components/LocalAuthDialog.tsx", "utf8");
     expect(router).toContain("register: publicProcedure");
     expect(router).toContain("login: publicProcedure");
     expect(router).toContain("activateExistingAdmin");
@@ -32,6 +33,9 @@ describe("independent email/password authentication", () => {
     expect(navbar).not.toContain("MAIN_SITE_URL");
     expect(bookingModal).not.toContain("redirectToMainSite");
     expect(main).not.toContain("startLogin");
+    expect(authDialog).toContain("استعمل بريدك الإلكتروني وكلمة السر ديال ADRAR.");
+    expect(authDialog).not.toContain("No Manus or Google");
+    expect(authDialog).not.toContain("لا Manus لا Google");
     expect(fs.existsSync("api/trpc/[trpc].ts")).toBe(false);
     expect(fs.existsSync("api/server.ts")).toBe(false);
     expect(fs.readFileSync("server/vercel-api.ts", "utf8")).not.toContain("registerOAuthRoutes");
