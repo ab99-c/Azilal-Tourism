@@ -20,6 +20,7 @@ import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import WhatsAppButton from './WhatsAppButton';
 import { getCustomerWhatsAppMessage } from '@/lib/whatsapp';
+import AvailabilityManager from './AvailabilityManager';
 
 type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
@@ -47,7 +48,7 @@ export default function CarOwnerDashboard() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cars' | 'hotels' | 'restaurants' | 'cafes' | 'bookings'>('cars');
+  const [activeTab, setActiveTab] = useState<'cars' | 'hotels' | 'restaurants' | 'cafes' | 'bookings' | 'availability'>('cars');
   const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'hotel' | 'car' | 'restaurant' | 'cafe'>('all');
   const [hotelWhatsAppDrafts, setHotelWhatsAppDrafts] = useState<Record<number, string>>({});
 
@@ -408,6 +409,8 @@ export default function CarOwnerDashboard() {
     utils.dashboard.myBookings.invalidate();
     utils.dashboard.myCars.invalidate();
     utils.dashboard.myHotels.invalidate();
+    utils.availability.myBlocks.invalidate();
+    utils.availability.check.invalidate();
   };
 
   const isAdmin = (() => {
@@ -459,6 +462,7 @@ export default function CarOwnerDashboard() {
     removePhoto: { ar: 'حذف الصورة', en: 'Remove Photo', fr: 'Supprimer', ber: 'ⴽⴽⵙ ⵜⵡⵍⴰⴼⵜ' },
     tabCars: { ar: 'السيارات', en: 'Vehicles', fr: 'Véhicules', ber: 'ⵜⵙⵍⵍⴰⵙⵜ' },
     tabBookings: { ar: 'الحجوزات', en: 'Bookings', fr: 'Réservations', ber: 'ⵉⵙⵏⴷⵇⵏ' },
+    tabAvailability: { ar: 'التوفر', en: 'Availability', fr: 'Disponibilité', ber: 'ⵜⵉⵍⵉ' },
     bookingName: { ar: 'الاسم', en: 'Name', fr: 'Nom', ber: 'ⵉⵙⵎ' },
     bookingItem: { ar: 'الحجز', en: 'Item', fr: 'Article', ber: 'ⴰⵀⴰⵢⵢⴰ' },
     bookingDates: { ar: 'التواريخ', en: 'Dates', fr: 'Dates', ber: 'ⴰⵙⵙ' },
@@ -562,8 +566,8 @@ export default function CarOwnerDashboard() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/10">
+        <div className="mb-8 overflow-x-auto pb-1">
+          <div className="mx-auto flex w-max min-w-max bg-white/10 rounded-xl p-1 backdrop-blur-sm border border-white/10">
             <button
               onClick={() => setActiveTab('cars')}
               className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
@@ -603,6 +607,14 @@ export default function CarOwnerDashboard() {
               }`}
             >
               <ClipboardList className="w-4 h-4 inline me-1.5" />{l('tabBookings')}
+            </button>
+            <button
+              onClick={() => setActiveTab('availability')}
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'availability' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'
+              }`}
+            >
+              <Clock className="w-4 h-4 inline me-1.5" />{l('tabAvailability')}
             </button>
           </div>
         </div>
@@ -730,6 +742,12 @@ export default function CarOwnerDashboard() {
                 })}
               </div>
             )}
+          </motion.div>
+        )}
+
+        {activeTab === 'availability' && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+            <AvailabilityManager cars={cars} hotels={myHotels || []} bookings={bookingsData || []} />
           </motion.div>
         )}
 

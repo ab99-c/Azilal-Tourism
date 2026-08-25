@@ -32,6 +32,11 @@ vi.mock("./db", () => ({
   getHotelById: vi.fn(async () => ({ id: 3, ownerId: 1, isActive: true })),
   markBookingPaid: vi.fn(async (id: number) => ({ id, paymentStatus: "paid" })),
   confirmBooking: vi.fn(async (id: number) => ({ id, paymentStatus: "paid", status: "confirmed" })),
+  findBookingAvailabilityConflict: vi.fn(async () => null),
+  listAvailabilityBlocksForOwner: vi.fn(async () => []),
+  getAvailabilityBlockById: vi.fn(async () => undefined),
+  createAvailabilityBlock: vi.fn(async () => ({ success: true })),
+  deleteAvailabilityBlock: vi.fn(async () => ({ success: true })),
   getAllCars: vi.fn(async () => []),
   getUserFavorites: vi.fn(async () => []),
   addFavorite: vi.fn(async () => ({ success: true })),
@@ -111,6 +116,24 @@ describe("bookings.create payment fields", () => {
     const persisted = (db.createBooking as any).mock.calls[0][0];
     expect(persisted.guestPhone).toBeUndefined();
   });
+
+  it("rejects a booking when the chosen date range is unavailable", async () => {
+    (db.findBookingAvailabilityConflict as any).mockResolvedValueOnce({ kind: "owner_block" });
+    const { appRouter } = await import("./routers");
+    const caller = appRouter.createCaller(createCtx("user"));
+
+    await expect(caller.bookings.create({
+      type: "hotel",
+      itemId: 3,
+      itemName: "Hotel Test",
+      guestName: "Amina A.",
+      guestEmail: "amina@example.com",
+      checkIn: "2026-09-10T14:00:00.000Z",
+      checkOut: "2026-09-12T12:00:00.000Z",
+      guests: 1,
+    })).rejects.toThrow("BOOKING_DATES_UNAVAILABLE");
+    expect(db.createBooking).not.toHaveBeenCalled();
+  });
 });
 
 describe("bookings admin payment actions", () => {
@@ -130,6 +153,15 @@ describe("bookings admin payment actions", () => {
     const result = await caller.bookings.confirm({ id: 9 });
     expect(result.success).toBe(true);
     expect(db.confirmBooking).toHaveBeenCalledWith(9);
+  });
+
+  it("refuses confirmation when a conflict exists at confirmation time", async () => {
+    (db.findBookingAvailabilityConflict as any).mockResolvedValueOnce({ kind: "confirmed_booking" });
+    const { appRouter } = await import("./routers");
+    const caller = appRouter.createCaller(createCtx("admin"));
+
+    await expect(caller.bookings.confirm({ id: 9 })).rejects.toThrow("BOOKING_DATES_UNAVAILABLE");
+    expect(db.confirmBooking).not.toHaveBeenCalled();
   });
 
   it("regular user cannot list bookings", async () => {

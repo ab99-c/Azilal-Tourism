@@ -91,6 +91,28 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
 
 /**
+ * Owner-managed periods when one hotel or vehicle cannot accept a booking.
+ * Dates follow the same check-in / check-out convention as bookings: the end
+ * date is the first day that may become available again.
+ */
+export const availabilityBlocks = mysqlTable("availability_blocks", {
+  id: int("id").autoincrement().primaryKey(),
+  type: mysqlEnum("type", ["hotel", "car"]).notNull(),
+  itemId: int("itemId").notNull(),
+  ownerId: int("ownerId").notNull(),
+  startsAt: date("startsAt").notNull(),
+  endsAt: date("endsAt").notNull(),
+  reason: varchar("reason", { length: 240 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  itemRangeIdx: index("idx_availability_item_range").on(t.type, t.itemId, t.startsAt, t.endsAt),
+  ownerIdx: index("idx_availability_owner").on(t.ownerId),
+}));
+
+export type AvailabilityBlock = typeof availabilityBlocks.$inferSelect;
+export type InsertAvailabilityBlock = typeof availabilityBlocks.$inferInsert;
+
+/**
  * Favorites table - stores user's favorite items (cars, hotels)
  */
 export const favorites = mysqlTable("favorites", {

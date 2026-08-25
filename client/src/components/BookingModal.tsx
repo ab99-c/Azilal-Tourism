@@ -31,6 +31,18 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
     notes: '',
   });
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const hasValidDateRange = Boolean(
+    itemId && formData.startDate && formData.endDate && formData.endDate > formData.startDate,
+  );
+  const availabilityQuery = trpc.availability.check.useQuery({
+    type,
+    itemId: itemId ?? 0,
+    startsAt: formData.startDate,
+    endsAt: formData.endDate,
+  }, {
+    enabled: isOpen && hasValidDateRange,
+    retry: false,
+  });
 
   // Compute total price: hotels = nights * per-night rate; cars = days * per-day rate
   const computedTotal = (() => {
@@ -89,6 +101,11 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.days': 'يوم',
         'booking.pleaseLogin': 'يرجى تسجيل الدخول لإكمال الحجز',
         'booking.confirmPay': 'تأكيد الحجز — الدفع عند الوصول',
+        'booking.datesInvalid': 'يجب أن يكون تاريخ المغادرة أو الإرجاع بعد تاريخ الوصول أو الاستلام.',
+        'booking.checkingAvailability': 'نتحقق من توفر هذه التواريخ…',
+        'booking.datesAvailable': 'هذه التواريخ متاحة حالياً.',
+        'booking.datesUnavailable': 'هذه التواريخ غير متاحة. اختر فترة أخرى.',
+        'booking.availabilityError': 'تعذر فحص التوفر الآن. تحقق من اتصالك ثم أعد المحاولة.',
       },
       en: {
         'booking.title.hotel': 'Book Hotel',
@@ -130,6 +147,11 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.nights': 'night(s)',
         'booking.days': 'day(s)',
         'booking.confirmPay': 'Confirm Booking — Pay on Arrival',
+        'booking.datesInvalid': 'The end date must be after the start date.',
+        'booking.checkingAvailability': 'Checking availability for these dates…',
+        'booking.datesAvailable': 'These dates are currently available.',
+        'booking.datesUnavailable': 'These dates are unavailable. Please choose another period.',
+        'booking.availabilityError': 'Availability cannot be checked right now. Check your connection and try again.',
       },
       fr: {
         'booking.title.hotel': 'Réserver Hôtel',
@@ -171,6 +193,11 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.nights': 'nuit(s)',
         'booking.days': 'jour(s)',
         'booking.confirmPay': 'Confirmer — Paiement sur place',
+        'booking.datesInvalid': 'La date de fin doit être après la date de début.',
+        'booking.checkingAvailability': 'Vérification de la disponibilité…',
+        'booking.datesAvailable': 'Ces dates sont actuellement disponibles.',
+        'booking.datesUnavailable': 'Ces dates ne sont pas disponibles. Choisissez une autre période.',
+        'booking.availabilityError': 'La disponibilité ne peut pas être vérifiée maintenant. Réessayez après avoir vérifié votre connexion.',
       },
       ber: {
         'booking.title.hotel': 'ⵙⵏⴷⵇ',
@@ -212,6 +239,11 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.nights': 'ⵉⴷⴷⵉⵙⵏ',
         'booking.days': 'ⴰⵙⵙⵏ',
         'booking.confirmPay': 'ⵙⵜⵉⵏ — ⵃⵜⵜⴰ ⴷ ⴰⵔⵔⴰⵡ',
+        'booking.datesInvalid': 'ⵉⵍⴰ ⴰⴷ ⵉⵍⵉ ⵓⵙⵙ ⵏ ⵜⴳⵔⴰ ⴷⴼⴼⵉⵔ ⵏ ⵓⵙⵙ ⵏ ⵓⵏⵣⵡⴰⵔ.',
+        'booking.checkingAvailability': 'ⴰⵔ ⵏⵙⵙⵉⵡⵍ ⵅⴼ ⵜⵉⵍⵉ ⵏ ⵉⵙⵙⴰⵏ…',
+        'booking.datesAvailable': 'ⵉⵙⵙⴰⵏ ⴰⴷ ⵍⵍⴰⵏ ⴷⴰⵖ.',
+        'booking.datesUnavailable': 'ⵉⵙⵙⴰⵏ ⴰⴷ ⵓⵔ ⵍⵍⵉⵏ. ⵙⵜⵉ ⵜⴰⵍⴰⵎⵎⴰⵙⵜ ⵢⴰⴹⵏ.',
+        'booking.availabilityError': 'ⵓⵔ ⵏⵣⵎⵎⵔ ⴰⴷ ⵏⵙⵙⵉⵡⵍ ⵅⴼ ⵜⵉⵍⵉ ⵜⵜⵓⵔⵉⵎ. ⵙⵎⵢⴰⵙⴰ ⴰⵙⵎⵇⵇⵍ ⵏⵏⴽ ⵜⵓⵖⴰⵍ.',
       },
     };
     return translations[lang]?.[key] || key;
@@ -229,6 +261,8 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
     const newErrors: Record<string, boolean> = {};
     if (!formData.startDate) newErrors.startDate = true;
     if (!formData.endDate) newErrors.endDate = true;
+    if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate) newErrors.dateRange = true;
+    if (availabilityQuery.data && !availabilityQuery.data.available) newErrors.availability = true;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -243,7 +277,12 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
   };
 
   const handleNext = () => {
-    if (step === 1 && validateStep1()) {
+    if (step === 1) {
+      if (!validateStep1()) return;
+      if (availabilityQuery.isFetching) {
+        toast.info(t_book('booking.checkingAvailability'));
+        return;
+      }
       setStep(2);
     } else if (step === 2 && validateStep2()) {
       setStep(3);
@@ -275,7 +314,13 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
     },
     onError: (error) => {
       setIsSubmitting(false);
-      toast.error(t_book('booking.error'), {
+      if (error.message.includes('BOOKING_DATES_UNAVAILABLE')) {
+        setStep(1);
+        setErrors({ availability: true });
+        toast.error(t_book('booking.datesUnavailable'));
+        return;
+      }
+      toast.error(t_book('booking.availabilityError'), {
         description: error.message,
         duration: 4000,
       });
@@ -283,6 +328,12 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
   });
 
   const handleSubmit = () => {
+    if (!hasValidDateRange || availabilityQuery.isFetching || availabilityQuery.data?.available === false) {
+      setStep(1);
+      setErrors({ availability: true });
+      toast.error(availabilityQuery.data?.available === false ? t_book('booking.datesUnavailable') : t_book('booking.datesInvalid'));
+      return;
+    }
     setIsSubmitting(true);
     createBookingMutation.mutate({
       type: type,
@@ -387,7 +438,7 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
                         type="date"
                         value={formData.startDate}
                         min={today}
-                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        onChange={(e) => { setErrors({}); setFormData({ ...formData, startDate: e.target.value }); }}
                         className={`w-full px-4 py-3 rounded-xl border-2 ${
                           errors.startDate ? 'border-red-300 bg-red-50' : 'border-gray-200'
                         } focus:border-[#1b5e3f] focus:outline-none transition-colors text-sm`}
@@ -402,13 +453,25 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
                         type="date"
                         value={formData.endDate}
                         min={formData.startDate || today}
-                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        onChange={(e) => { setErrors({}); setFormData({ ...formData, endDate: e.target.value }); }}
                         className={`w-full px-4 py-3 rounded-xl border-2 ${
                           errors.endDate ? 'border-red-300 bg-red-50' : 'border-gray-200'
                         } focus:border-[#1b5e3f] focus:outline-none transition-colors text-sm`}
                       />
                     </div>
                   </div>
+
+                  {(errors.dateRange || errors.availability || availabilityQuery.isFetching || availabilityQuery.isError || (hasValidDateRange && availabilityQuery.data)) && (
+                    <div role="status" className={`rounded-xl border px-3 py-2.5 text-xs font-medium ${
+                      errors.dateRange || errors.availability || availabilityQuery.data?.available === false
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : availabilityQuery.isFetching
+                          ? 'border-amber-200 bg-amber-50 text-amber-800'
+                          : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    }`}>
+                      {errors.dateRange ? t_book('booking.datesInvalid') : errors.availability || availabilityQuery.data?.available === false ? t_book('booking.datesUnavailable') : availabilityQuery.isFetching ? t_book('booking.checkingAvailability') : availabilityQuery.isError ? t_book('booking.availabilityError') : t_book('booking.datesAvailable')}
+                    </div>
+                  )}
 
                   {type === 'hotel' ? (
                     <div>
@@ -653,7 +716,8 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
                       </div>
                       <button
                         onClick={handleSubmit}
-                        className="w-full py-3.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm hover:bg-[#0f3d28] transition-all hover:shadow-lg hover:shadow-[#1b5e3f]/30 active:scale-[0.98]"
+                        disabled={availabilityQuery.isFetching || availabilityQuery.data?.available === false}
+                        className="w-full py-3.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm hover:bg-[#0f3d28] transition-all hover:shadow-lg hover:shadow-[#1b5e3f]/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <CheckCircle className="w-4 h-4 inline me-2" />
                         {t_book('booking.confirmPay')}
@@ -675,7 +739,8 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm hover:bg-[#0f3d28] transition-all hover:shadow-lg hover:shadow-[#1b5e3f]/30 active:scale-[0.98]"
+                  disabled={step === 1 && (availabilityQuery.isFetching || (hasValidDateRange && availabilityQuery.data?.available === false))}
+                  className="px-6 py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-sm hover:bg-[#0f3d28] transition-all hover:shadow-lg hover:shadow-[#1b5e3f]/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t_book('booking.next')}
                 </button>

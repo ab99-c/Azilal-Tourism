@@ -165,6 +165,19 @@ var bookings = mysqlTable("bookings", {
   statusIdx: index("idx_bookings_status").on(t2.status),
   guestIdx: index("idx_bookings_guest_user").on(t2.guestUserId)
 }));
+var availabilityBlocks = mysqlTable("availability_blocks", {
+  id: int("id").autoincrement().primaryKey(),
+  type: mysqlEnum("type", ["hotel", "car"]).notNull(),
+  itemId: int("itemId").notNull(),
+  ownerId: int("ownerId").notNull(),
+  startsAt: date("startsAt").notNull(),
+  endsAt: date("endsAt").notNull(),
+  reason: varchar("reason", { length: 240 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull()
+}, (t2) => ({
+  itemRangeIdx: index("idx_availability_item_range").on(t2.type, t2.itemId, t2.startsAt, t2.endsAt),
+  ownerIdx: index("idx_availability_owner").on(t2.ownerId)
+}));
 var favorites = mysqlTable("favorites", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -452,6 +465,48 @@ async function getBookingById(id) {
   if (!db) return void 0;
   const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
   return result.length > 0 ? result[0] : void 0;
+}
+async function findBookingAvailabilityConflict(input) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const [ownerBlock] = await db.select().from(availabilityBlocks).where(and(
+    eq(availabilityBlocks.type, input.type),
+    eq(availabilityBlocks.itemId, input.itemId),
+    sql`${availabilityBlocks.startsAt} < ${input.endsAt}`,
+    sql`${availabilityBlocks.endsAt} > ${input.startsAt}`
+  )).limit(1);
+  if (ownerBlock) return { kind: "owner_block", block: ownerBlock };
+  const [confirmedBooking] = await db.select().from(bookings).where(and(
+    eq(bookings.type, input.type),
+    eq(bookings.itemId, input.itemId),
+    sql`${bookings.status} IN ('pending', 'confirmed')`,
+    sql`${bookings.checkIn} < ${input.endsAt}`,
+    sql`${bookings.checkOut} > ${input.startsAt}`,
+    input.excludeBookingId === void 0 ? sql`1 = 1` : sql`${bookings.id} <> ${input.excludeBookingId}`
+  )).limit(1);
+  if (confirmedBooking) return { kind: "active_booking", booking: confirmedBooking };
+  return null;
+}
+async function listAvailabilityBlocksForOwner(ownerId) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(availabilityBlocks).where(eq(availabilityBlocks.ownerId, ownerId)).orderBy(desc(availabilityBlocks.startsAt)).limit(200);
+}
+async function getAvailabilityBlockById(id) {
+  const db = await getDb();
+  if (!db) return void 0;
+  const result = await db.select().from(availabilityBlocks).where(eq(availabilityBlocks.id, id)).limit(1);
+  return result[0];
+}
+async function createAvailabilityBlock(input) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.insert(availabilityBlocks).values(input);
+}
+async function deleteAvailabilityBlock(id) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.delete(availabilityBlocks).where(eq(availabilityBlocks.id, id));
 }
 async function getAllCars() {
   const db = await getDb();
@@ -1284,6 +1339,16 @@ var MAX_SHORT = 200;
 var localEmail = z2.string().trim().email().max(320).transform((value) => value.toLowerCase());
 var localPassword = z2.string().min(10).max(200);
 var LOCAL_SESSION_MS = 30 * 24 * 60 * 60 * 1e3;
+var availabilityDateRange = z2.object({
+  type: z2.enum(["hotel", "car"]),
+  itemId: z2.number().int().positive(),
+  startsAt: z2.string(),
+  endsAt: z2.string()
+}).refine((input) => {
+  const start = new Date(input.startsAt);
+  const end = new Date(input.endsAt);
+  return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime();
+}, { message: "endsAt must be after startsAt" });
 var whatsappInput = z2.string().trim().max(50).refine((value) => {
   if (!value) return true;
   const digits = value.replace(/\D/g, "");
@@ -1834,16 +1899,23 @@ var appRouter = router({
       let itemId = 0;
       if (input.type === "car") {
         const car = await getCarById(input.itemId);
-        if (car) {
-          ownerId = car.ownerId;
-          itemId = car.id;
-        }
+        if (!car) throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+        ownerId = car.ownerId;
+        itemId = car.id;
       } else {
         const hotel = await getHotelById(input.itemId);
-        if (hotel) {
-          ownerId = hotel.ownerId;
-          itemId = hotel.id;
-        }
+        if (!hotel) throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+        ownerId = hotel.ownerId;
+        itemId = hotel.id;
+      }
+      const conflict = await findBookingAvailabilityConflict({
+        type: input.type,
+        itemId,
+        startsAt: new Date(input.checkIn),
+        endsAt: new Date(input.checkOut)
+      });
+      if (conflict) {
+        throw new TRPCError4({ code: "CONFLICT", message: "BOOKING_DATES_UNAVAILABLE" });
       }
       await createBooking({
         type: input.type,
@@ -1879,7 +1951,18 @@ var appRouter = router({
     }),
     // Confirm a booking and mark it paid: admin OR the listing's owner
     confirm: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
-      await requireBookingAccess({ user: ctx.user }, input.id);
+      const booking = await requireBookingAccess({ user: ctx.user }, input.id);
+      if (booking.status === "confirmed") return { success: true };
+      const conflict = await findBookingAvailabilityConflict({
+        type: booking.type,
+        itemId: booking.itemId,
+        startsAt: booking.checkIn,
+        endsAt: booking.checkOut,
+        excludeBookingId: booking.id
+      });
+      if (conflict) {
+        throw new TRPCError4({ code: "CONFLICT", message: "BOOKING_DATES_UNAVAILABLE" });
+      }
       await confirmBooking(input.id);
       return { success: true };
     }),
@@ -1895,6 +1978,47 @@ var appRouter = router({
         throw new TRPCError4({ code: "FORBIDDEN", message: "You can only cancel your own booking" });
       }
       await cancelBooking(input.id);
+      return { success: true };
+    })
+  }),
+  availability: router({
+    check: publicProcedure.input(availabilityDateRange).query(async ({ input }) => {
+      const listing = input.type === "car" ? await getCarById(input.itemId) : await getHotelById(input.itemId);
+      if (!listing || !listing.isActive) {
+        return { available: false, reason: "ITEM_UNAVAILABLE" };
+      }
+      const conflict = await findBookingAvailabilityConflict({
+        ...input,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt)
+      });
+      return conflict ? { available: false, reason: "BOOKING_DATES_UNAVAILABLE" } : { available: true, reason: null };
+    }),
+    myBlocks: ownerProcedure.query(async ({ ctx }) => {
+      return listAvailabilityBlocksForOwner(ctx.user.id);
+    }),
+    createBlock: ownerProcedure.input(availabilityDateRange.safeExtend({
+      reason: z2.string().trim().max(240).optional()
+    })).mutation(async ({ input, ctx }) => {
+      const listing = input.type === "car" ? await getCarById(input.itemId) : await getHotelById(input.itemId);
+      await requireOwnership({ user: ctx.user }, listing, input.type);
+      await createAvailabilityBlock({
+        type: input.type,
+        itemId: input.itemId,
+        ownerId: listing.ownerId,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt),
+        reason: input.reason || null
+      });
+      return { success: true };
+    }),
+    removeBlock: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
+      const block = await getAvailabilityBlockById(input.id);
+      if (!block) throw new TRPCError4({ code: "NOT_FOUND", message: "AVAILABILITY_BLOCK_NOT_FOUND" });
+      if (ctx.user.role !== "admin" && block.ownerId !== ctx.user.id) {
+        throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
+      }
+      await deleteAvailabilityBlock(input.id);
       return { success: true };
     })
   }),

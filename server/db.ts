@@ -1,7 +1,7 @@
 import { eq, desc, and, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool, type Pool } from "mysql2";
-import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip } from "../drizzle/schema";
+import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, availabilityBlocks, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip, type AvailabilityBlock, type InsertAvailabilityBlock } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -197,6 +197,64 @@ export async function getBookingById(id: number) {
   if (!db) return undefined;
   const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+type AvailabilityType = "hotel" | "car";
+type AvailabilityRange = { type: AvailabilityType; itemId: number; startsAt: Date; endsAt: Date; excludeBookingId?: number };
+
+/**
+ * Finds either an owner block or an active booking that overlaps a requested
+ * range. The end date is exclusive, allowing a new guest to arrive on the
+ * previous guest's check-out date.
+ */
+export async function findBookingAvailabilityConflict(input: AvailabilityRange) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+
+  const [ownerBlock] = await db.select().from(availabilityBlocks).where(and(
+    eq(availabilityBlocks.type, input.type),
+    eq(availabilityBlocks.itemId, input.itemId),
+    sql`${availabilityBlocks.startsAt} < ${input.endsAt}`,
+    sql`${availabilityBlocks.endsAt} > ${input.startsAt}`,
+  )).limit(1);
+  if (ownerBlock) return { kind: "owner_block" as const, block: ownerBlock };
+
+  const [confirmedBooking] = await db.select().from(bookings).where(and(
+    eq(bookings.type, input.type),
+    eq(bookings.itemId, input.itemId),
+    sql`${bookings.status} IN ('pending', 'confirmed')`,
+    sql`${bookings.checkIn} < ${input.endsAt}`,
+    sql`${bookings.checkOut} > ${input.startsAt}`,
+    input.excludeBookingId === undefined ? sql`1 = 1` : sql`${bookings.id} <> ${input.excludeBookingId}`,
+  )).limit(1);
+  if (confirmedBooking) return { kind: "active_booking" as const, booking: confirmedBooking };
+
+  return null;
+}
+
+export async function listAvailabilityBlocksForOwner(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(availabilityBlocks).where(eq(availabilityBlocks.ownerId, ownerId)).orderBy(desc(availabilityBlocks.startsAt)).limit(200);
+}
+
+export async function getAvailabilityBlockById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(availabilityBlocks).where(eq(availabilityBlocks.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createAvailabilityBlock(input: Pick<InsertAvailabilityBlock, "type" | "itemId" | "ownerId" | "startsAt" | "endsAt" | "reason">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.insert(availabilityBlocks).values(input);
+}
+
+export async function deleteAvailabilityBlock(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.delete(availabilityBlocks).where(eq(availabilityBlocks.id, id));
 }
 
 // ===== CARS =====

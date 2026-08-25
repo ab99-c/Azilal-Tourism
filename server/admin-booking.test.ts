@@ -13,6 +13,7 @@ vi.mock("./db", async importOriginal => {
     getHotelById: vi.fn(async () => ({ id: 1, ownerId: 1, isActive: true })),
     markBookingPaid: vi.fn(async (id: number) => ({ id })),
     confirmBooking: vi.fn(async (id: number) => ({ id })),
+    findBookingAvailabilityConflict: vi.fn(async () => null),
     getAllCars: vi.fn(async () => []),
     getUserFavorites: vi.fn(async () => []),
     addFavorite: vi.fn(async () => ({ success: true })),

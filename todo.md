@@ -489,3 +489,26 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Audit Vercel production secrets, HTTPS/session settings, deployment protection, and runtime exposure
 - [x] Add safe server-side login rate limiting and session hardening without storing plaintext personal data
 - [x] Verify security headers and protected endpoints, then publish the hardened Vercel deployment
+
+## User request: global Vercel WAF and rate limiting
+
+- [x] Inspect Vercel WAF, firewall, and rate-limiting capabilities available to this project
+- [x] Apply the strongest compatible global protection to sensitive authentication and API paths
+- [x] Verify the production protection state and document any account-plan limitation
+
+## Approved ADRAR development plan
+
+- [x] Confirm the Vercel authentication rate-limit rule is published and record its production scope
+- [ ] Add email verification and password-reset foundations with secret-backed email delivery configuration
+- [x] Add owner availability management and conflict-aware booking lifecycle updates
+- [ ] Build unified search, visitor filters, and map/trip-planning improvements
+- [ ] Add multilingual editorial content, technical SEO, and listing review workflows
+- [ ] Complete regression, TypeScript, production-build, mobile, and Vercel verification for each delivered milestone
+
+## User request: hotel and car availability calendar
+
+- [x] Add non-destructive availability blocks for hotel and car owners with item, date-range, and reason fields
+- [x] Enforce server-side checks that prevent active booking overlap and owner-unavailable periods
+- [x] Give owners a mobile-friendly availability calendar and a clear booking status workflow
+- [x] Show guests clear multilingual availability/conflict feedback in hotel and car booking forms
+- [x] Add database, authorization, booking-conflict, UI, and mobile regression coverage before publishing

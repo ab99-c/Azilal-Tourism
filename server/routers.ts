@@ -17,6 +17,8 @@ import {
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, getUserByEmail, createLocalUser, setLocalPassword, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
+  findBookingAvailabilityConflict, listAvailabilityBlocksForOwner, getAvailabilityBlockById,
+  createAvailabilityBlock, deleteAvailabilityBlock,
   createSafetyTrip, getSafetyTripByToken, updateSafetyTrip, listSafetyTrips,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
@@ -100,6 +102,16 @@ const MAX_SHORT = 200;
 const localEmail = z.string().trim().email().max(320).transform(value => value.toLowerCase());
 const localPassword = z.string().min(10).max(200);
 const LOCAL_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+const availabilityDateRange = z.object({
+  type: z.enum(['hotel', 'car']),
+  itemId: z.number().int().positive(),
+  startsAt: z.string(),
+  endsAt: z.string(),
+}).refine((input) => {
+  const start = new Date(input.startsAt);
+  const end = new Date(input.endsAt);
+  return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime();
+}, { message: 'endsAt must be after startsAt' });
 const whatsappInput = z.string().trim().max(50).refine((value) => {
   if (!value) return true;
   const digits = value.replace(/\D/g, '');
@@ -621,10 +633,23 @@ export const appRouter = router({
         let itemId = 0;
         if (input.type === 'car') {
           const car = await getCarById(input.itemId);
-          if (car) { ownerId = car.ownerId; itemId = car.id; }
+          if (!car) throw new TRPCError({ code: 'NOT_FOUND', message: 'ITEM_NOT_FOUND' });
+          ownerId = car.ownerId;
+          itemId = car.id;
         } else {
           const hotel = await getHotelById(input.itemId);
-          if (hotel) { ownerId = hotel.ownerId; itemId = hotel.id; }
+          if (!hotel) throw new TRPCError({ code: 'NOT_FOUND', message: 'ITEM_NOT_FOUND' });
+          ownerId = hotel.ownerId;
+          itemId = hotel.id;
+        }
+        const conflict = await findBookingAvailabilityConflict({
+          type: input.type,
+          itemId,
+          startsAt: new Date(input.checkIn),
+          endsAt: new Date(input.checkOut),
+        });
+        if (conflict) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'BOOKING_DATES_UNAVAILABLE' });
         }
         await createBooking({
           type: input.type,
@@ -664,7 +689,18 @@ export const appRouter = router({
     confirm: ownerProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input, ctx }) => {
-        await requireBookingAccess({ user: ctx.user } as any, input.id);
+        const booking = await requireBookingAccess({ user: ctx.user } as any, input.id);
+        if (booking.status === 'confirmed') return { success: true } as const;
+        const conflict = await findBookingAvailabilityConflict({
+          type: booking.type,
+          itemId: booking.itemId,
+          startsAt: booking.checkIn,
+          endsAt: booking.checkOut,
+          excludeBookingId: booking.id,
+        });
+        if (conflict) {
+          throw new TRPCError({ code: 'CONFLICT', message: 'BOOKING_DATES_UNAVAILABLE' });
+        }
         await confirmBooking(input.id);
         return { success: true } as const;
       }),
@@ -684,6 +720,50 @@ export const appRouter = router({
         await cancelBooking(input.id);
         return { success: true } as const;
       }),
+  }),
+
+  availability: router({
+    check: publicProcedure.input(availabilityDateRange).query(async ({ input }) => {
+      const listing = input.type === 'car' ? await getCarById(input.itemId) : await getHotelById(input.itemId);
+      if (!listing || !listing.isActive) {
+        return { available: false, reason: 'ITEM_UNAVAILABLE' as const };
+      }
+      const conflict = await findBookingAvailabilityConflict({
+        ...input,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt),
+      });
+      return conflict
+        ? { available: false, reason: 'BOOKING_DATES_UNAVAILABLE' as const }
+        : { available: true, reason: null };
+    }),
+    myBlocks: ownerProcedure.query(async ({ ctx }) => {
+      return listAvailabilityBlocksForOwner(ctx.user.id);
+    }),
+    createBlock: ownerProcedure.input(availabilityDateRange.safeExtend({
+      reason: z.string().trim().max(240).optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const listing = input.type === 'car' ? await getCarById(input.itemId) : await getHotelById(input.itemId);
+      await requireOwnership({ user: ctx.user } as any, listing as any, input.type);
+      await createAvailabilityBlock({
+        type: input.type,
+        itemId: input.itemId,
+        ownerId: listing!.ownerId,
+        startsAt: new Date(input.startsAt),
+        endsAt: new Date(input.endsAt),
+        reason: input.reason || null,
+      });
+      return { success: true } as const;
+    }),
+    removeBlock: ownerProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input, ctx }) => {
+      const block = await getAvailabilityBlockById(input.id);
+      if (!block) throw new TRPCError({ code: 'NOT_FOUND', message: 'AVAILABILITY_BLOCK_NOT_FOUND' });
+      if (ctx.user.role !== 'admin' && block.ownerId !== ctx.user.id) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'OWNER_ONLY_ERR' });
+      }
+      await deleteAvailabilityBlock(input.id);
+      return { success: true } as const;
+    }),
   }),
 
   favorites: router({
