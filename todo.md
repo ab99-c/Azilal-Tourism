@@ -512,3 +512,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Give owners a mobile-friendly availability calendar and a clear booking status workflow
 - [x] Show guests clear multilingual availability/conflict feedback in hotel and car booking forms
 - [x] Add database, authorization, booking-conflict, UI, and mobile regression coverage before publishing
+
+## Roadmap phase: unified visitor search and interactive map
+
+- [x] Add a multilingual unified discovery search across hotel, car, restaurant, and café listings
+- [x] Add visitor-friendly type filters, result counts, and links to the matching sections
+- [x] Improve the Azilal landmark map with category filters and a selected-place route action
+- [ ] Add regression coverage, responsive verification, and deployment checks for discovery improvements

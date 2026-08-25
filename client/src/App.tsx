@@ -21,6 +21,7 @@ import ErrorBoundary, { CrashFallback } from "./components/ErrorBoundary";
 import SafetyTripPage from './pages/SafetyTripPage';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import LocalAuthDialog from './components/LocalAuthDialog';
+import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
 
 function App() {
   const isSafetyTripPage = window.location.pathname === '/safety-trip';
@@ -53,6 +54,7 @@ function App() {
             <ConnectionStatusIndicator />
             <main>
               <HeroSection />
+              <UnifiedDiscoverySearch />
               <FeaturedSection />
               <StatsSection />
               <DestinationsSection />

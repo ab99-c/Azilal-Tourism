@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { MapPin, Mountain, Landmark, Sun, X, Star, Phone, Clock } from 'lucide-react';
+import { MapPin, Mountain, Landmark, Sun, X, Star, Phone, Clock, Navigation } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -208,8 +208,10 @@ function createCustomIcon(category: string) {
 export default function MapSection() {
   const { t, lang } = useLanguage();
   const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
+  const [activeCategory, setActiveCategory] = useState<'all' | Landmark['category']>('all');
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const markerLayerRef = useRef<L.LayerGroup | null>(null);
 
   const features = [
     { icon: Mountain, title: 'map.f1.title', desc: 'map.f1.desc' },
@@ -233,21 +235,7 @@ export default function MapSection() {
       maxZoom: 19,
     }).addTo(map);
 
-    // Add markers for each landmark
-    rawLandmarks.forEach((landmark) => {
-      const marker = L.marker([landmark.lat, landmark.lng], {
-        icon: createCustomIcon(landmark.category),
-      }).addTo(map);
-
-      // Click handler
-      marker.on('click', () => {
-        setSelectedLandmark(landmark);
-        map.flyTo([landmark.lat, landmark.lng], 14, {
-          duration: 1.5,
-          easeLinearity: 0.25,
-        });
-      });
-    });
+    markerLayerRef.current = L.layerGroup().addTo(map);
 
     // Store map reference
     mapRef.current = map;
@@ -258,6 +246,26 @@ export default function MapSection() {
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const markerLayer = markerLayerRef.current;
+    if (!map || !markerLayer) return;
+    markerLayer.clearLayers();
+    const visibleLandmarks = activeCategory === 'all'
+      ? rawLandmarks
+      : rawLandmarks.filter((landmark) => landmark.category === activeCategory);
+    visibleLandmarks.forEach((landmark) => {
+      const marker = L.marker([landmark.lat, landmark.lng], { icon: createCustomIcon(landmark.category) }).addTo(markerLayer);
+      marker.on('click', () => {
+        setSelectedLandmark(landmark);
+        map.flyTo([landmark.lat, landmark.lng], 14, { duration: 1.1, easeLinearity: 0.25 });
+      });
+    });
+    if (selectedLandmark && !visibleLandmarks.some((landmark) => landmark.id === selectedLandmark.id)) {
+      setSelectedLandmark(null);
+    }
+  }, [activeCategory, selectedLandmark]);
 
   const getFieldName = (item: Landmark) => item.name[lang] || item.name.en;
   const getDesc = (item: Landmark) => item.desc[lang] || item.desc.en;
@@ -273,9 +281,11 @@ export default function MapSection() {
     culture: lang === 'ar' ? 'ثقافة' : lang === 'fr' ? 'Culture' : lang === 'ber' ? 'ⵜⴰⵖⵍⵉⵜ' : 'Culture',
     adventure: lang === 'ar' ? 'مغامرة' : lang === 'fr' ? 'Aventure' : lang === 'ber' ? 'ⵜⴰⵔⴰⵔⵜ' : 'Adventure',
   };
+  const allLabel = lang === 'ar' ? 'الكل' : lang === 'fr' ? 'Tout' : lang === 'ber' ? 'ⴽⵓⵍⵍⵓ' : 'All';
+  const routeLabel = lang === 'ar' ? 'فتح المسار' : lang === 'fr' ? 'Ouvrir l’itinéraire' : lang === 'ber' ? 'ⵔⵥⵎ ⴰⵙⵓⵔⵙ' : 'Open route';
 
   return (
-    <section id="about" className="py-20 bg-[#f5f5f0]">
+    <section id="map" className="py-20 bg-[#f5f5f0]">
       <div className="container">
         {/* Section Header */}
         <motion.div
@@ -320,6 +330,17 @@ export default function MapSection() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+
+            <div className="mb-6 rounded-2xl border border-[#1b5e3f]/10 bg-[#1b5e3f]/5 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#163b2a]"><MapPin className="h-4 w-4" />{lang === 'ar' ? 'فلتر المعالم' : lang === 'fr' ? 'Filtrer les lieux' : lang === 'ber' ? 'ⵙⵉⴼⴹ ⵉⴷⵖⴰⵔⵏ' : 'Filter landmarks'}</div>
+              <div className="flex flex-wrap gap-2">
+                {(['all', 'nature', 'culture', 'adventure'] as const).map((category) => (
+                  <button key={category} onClick={() => setActiveCategory(category)} className={`rounded-full px-3 py-2 text-xs font-bold transition-colors ${activeCategory === category ? 'bg-[#1b5e3f] text-white' : 'bg-white text-slate-600 hover:bg-[#1b5e3f]/10 hover:text-[#1b5e3f]'}`}>
+                    {category === 'all' ? allLabel : `${categoryIcons[category]} ${categoryLabels[category]}`}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Legend */}
@@ -404,6 +425,9 @@ export default function MapSection() {
                     </div>
                   )}
                 </div>
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLandmark.lat},${selectedLandmark.lng}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1b5e3f] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0f3d28]">
+                  <Navigation className="h-4 w-4" />{routeLabel}
+                </a>
               </motion.div>
             )}
           </motion.div>
