@@ -1,4 +1,4 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -23,6 +23,7 @@ import { cached, invalidateCache } from "./cache";
 import { storagePut } from "./storage";
 import { sdk } from "./_core/sdk";
 import { hashPassword, isValidBootstrapSecret, verifyPassword } from "./localAuth";
+import { assertAuthRateLimit, clearAuthRateLimit } from "./authRateLimit";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -98,6 +99,7 @@ const MAX_TEXT = 5000;
 const MAX_SHORT = 200;
 const localEmail = z.string().trim().email().max(320).transform(value => value.toLowerCase());
 const localPassword = z.string().min(10).max(200);
+const LOCAL_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 const whatsappInput = z.string().trim().max(50).refine((value) => {
   if (!value) return true;
   const digits = value.replace(/\D/g, '');
@@ -130,6 +132,7 @@ export const appRouter = router({
       email: localEmail,
       password: localPassword,
     })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "register");
       const existing = await getUserByEmail(input.email);
       if (existing) throw new TRPCError({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
       const user = await createLocalUser({
@@ -139,17 +142,20 @@ export const appRouter = router({
         passwordHash: await hashPassword(input.password),
       });
       if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      clearAuthRateLimit(ctx.req, "register");
       return { user };
     }),
     login: publicProcedure.input(z.object({ email: localEmail, password: localPassword })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "login");
       const user = await getUserByEmail(input.email);
       if (!user || !await verifyPassword(input.password, user.passwordHash)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "INVALID_CREDENTIALS" });
       }
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      clearAuthRateLimit(ctx.req, "login");
       return { user };
     }),
     activateExistingAdmin: publicProcedure.input(z.object({
@@ -157,6 +163,7 @@ export const appRouter = router({
       password: localPassword,
       bootstrapSecret: z.string().min(12).max(200),
     })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "admin-activation");
       if (!isValidBootstrapSecret(input.bootstrapSecret)) {
         throw new TRPCError({ code: "FORBIDDEN", message: "INVALID_BOOTSTRAP_SECRET" });
       }
@@ -166,8 +173,9 @@ export const appRouter = router({
       }
       if (user.passwordHash) throw new TRPCError({ code: "CONFLICT", message: "ADMIN_ALREADY_ACTIVATED" });
       await setLocalPassword(user.id, await hashPassword(input.password));
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      clearAuthRateLimit(ctx.req, "admin-activation");
       return { user: { ...user, passwordHash: null, loginMethod: "email_password" } };
     }),
   }),

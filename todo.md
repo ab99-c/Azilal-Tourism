@@ -483,3 +483,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Remove the existing-administrator activation link from the normal visitor login dialog
 - [x] Expose administrator activation only through a deliberate private URL parameter and retain server-side secret validation
 - [x] Add regression coverage, verify mobile UI, and save the published update
+
+## User request: protect user information on Vercel
+
+- [x] Audit Vercel production secrets, HTTPS/session settings, deployment protection, and runtime exposure
+- [x] Add safe server-side login rate limiting and session hardening without storing plaintext personal data
+- [x] Verify security headers and protected endpoints, then publish the hardened Vercel deployment

@@ -914,8 +914,8 @@ function getSessionCookieOptions(req) {
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req)
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production" || isSecureRequest(req)
   };
 }
 
@@ -1089,7 +1089,7 @@ var systemRouter = router({
 });
 
 // server/routers.ts
-import { TRPCError as TRPCError3 } from "@trpc/server";
+import { TRPCError as TRPCError4 } from "@trpc/server";
 import { z as z2 } from "zod";
 import { randomBytes as randomBytes2 } from "node:crypto";
 
@@ -1194,10 +1194,48 @@ function isValidBootstrapSecret(candidate) {
   return timingSafeEqual(Buffer.from(candidate), Buffer.from(expected));
 }
 
+// server/authRateLimit.ts
+import { TRPCError as TRPCError3 } from "@trpc/server";
+var WINDOW_MS = 15 * 60 * 1e3;
+var MAX_ATTEMPTS = {
+  register: 5,
+  login: 10,
+  "admin-activation": 3
+};
+var buckets = /* @__PURE__ */ new Map();
+function getClientAddress(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  const firstForwarded = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(",")[0];
+  return firstForwarded?.trim() || req.socket.remoteAddress || "unknown";
+}
+function bucketKey(req, action) {
+  return `${action}:${getClientAddress(req)}`;
+}
+function pruneExpired(now) {
+  if (buckets.size < 1e3) return;
+  for (const [key, bucket] of Array.from(buckets.entries())) {
+    if (bucket.resetAt <= now) buckets.delete(key);
+  }
+}
+function assertAuthRateLimit(req, action, now = Date.now()) {
+  pruneExpired(now);
+  const key = bucketKey(req, action);
+  const previous = buckets.get(key);
+  const bucket = !previous || previous.resetAt <= now ? { count: 0, resetAt: now + WINDOW_MS } : previous;
+  if (bucket.count >= MAX_ATTEMPTS[action]) {
+    throw new TRPCError3({ code: "TOO_MANY_REQUESTS", message: "AUTH_RATE_LIMITED" });
+  }
+  bucket.count += 1;
+  buckets.set(key, bucket);
+}
+function clearAuthRateLimit(req, action) {
+  buckets.delete(bucketKey(req, action));
+}
+
 // server/routers.ts
 var adminProcedure2 = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
-    throw new TRPCError3({ code: "FORBIDDEN", message: "ADMIN_ONLY_ERR" });
+    throw new TRPCError4({ code: "FORBIDDEN", message: "ADMIN_ONLY_ERR" });
   }
   return next({ ctx });
 });
@@ -1225,16 +1263,16 @@ var ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, ownerId: ctx.user.id } });
 });
 async function requireOwnership(ctx, item, itemKind) {
-  if (!item) throw new TRPCError3({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+  if (!item) throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
   if (ctx.user.role !== "admin" && item.ownerId !== ctx.user.id) {
-    throw new TRPCError3({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
+    throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
   }
 }
 async function requireBookingAccess(ctx, id) {
   const booking = await getBookingById(id);
-  if (!booking) throw new TRPCError3({ code: "NOT_FOUND", message: "BOOKING_NOT_FOUND" });
+  if (!booking) throw new TRPCError4({ code: "NOT_FOUND", message: "BOOKING_NOT_FOUND" });
   if (ctx.user.role !== "admin" && booking.ownerId !== ctx.user.id) {
-    throw new TRPCError3({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
+    throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
   }
   return booking;
 }
@@ -1245,6 +1283,7 @@ var MAX_TEXT = 5e3;
 var MAX_SHORT = 200;
 var localEmail = z2.string().trim().email().max(320).transform((value) => value.toLowerCase());
 var localPassword = z2.string().min(10).max(200);
+var LOCAL_SESSION_MS = 30 * 24 * 60 * 60 * 1e3;
 var whatsappInput = z2.string().trim().max(50).refine((value) => {
   if (!value) return true;
   const digits = value.replace(/\D/g, "");
@@ -1276,26 +1315,30 @@ var appRouter = router({
       email: localEmail,
       password: localPassword
     })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "register");
       const existing = await getUserByEmail(input.email);
-      if (existing) throw new TRPCError3({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
+      if (existing) throw new TRPCError4({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
       const user = await createLocalUser({
         openId: `local_${randomBytes2(24).toString("base64url")}`,
         name: input.name,
         email: input.email,
         passwordHash: await hashPassword(input.password)
       });
-      if (!user) throw new TRPCError3({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      if (!user) throw new TRPCError4({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      clearAuthRateLimit(ctx.req, "register");
       return { user };
     }),
     login: publicProcedure.input(z2.object({ email: localEmail, password: localPassword })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "login");
       const user = await getUserByEmail(input.email);
       if (!user || !await verifyPassword(input.password, user.passwordHash)) {
-        throw new TRPCError3({ code: "UNAUTHORIZED", message: "INVALID_CREDENTIALS" });
+        throw new TRPCError4({ code: "UNAUTHORIZED", message: "INVALID_CREDENTIALS" });
       }
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      clearAuthRateLimit(ctx.req, "login");
       return { user };
     }),
     activateExistingAdmin: publicProcedure.input(z2.object({
@@ -1303,17 +1346,19 @@ var appRouter = router({
       password: localPassword,
       bootstrapSecret: z2.string().min(12).max(200)
     })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "admin-activation");
       if (!isValidBootstrapSecret(input.bootstrapSecret)) {
-        throw new TRPCError3({ code: "FORBIDDEN", message: "INVALID_BOOTSTRAP_SECRET" });
+        throw new TRPCError4({ code: "FORBIDDEN", message: "INVALID_BOOTSTRAP_SECRET" });
       }
       const user = await getUserByEmail(input.email);
       if (!user || user.role !== "admin") {
-        throw new TRPCError3({ code: "FORBIDDEN", message: "ADMIN_ACCOUNT_NOT_FOUND" });
+        throw new TRPCError4({ code: "FORBIDDEN", message: "ADMIN_ACCOUNT_NOT_FOUND" });
       }
-      if (user.passwordHash) throw new TRPCError3({ code: "CONFLICT", message: "ADMIN_ALREADY_ACTIVATED" });
+      if (user.passwordHash) throw new TRPCError4({ code: "CONFLICT", message: "ADMIN_ALREADY_ACTIVATED" });
       await setLocalPassword(user.id, await hashPassword(input.password));
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      clearAuthRateLimit(ctx.req, "admin-activation");
       return { user: { ...user, passwordHash: null, loginMethod: "email_password" } };
     })
   }),
@@ -1334,7 +1379,7 @@ var appRouter = router({
     })).mutation(async ({ input }) => {
       const now = /* @__PURE__ */ new Date();
       if (input.expectedArrivalAt.getTime() - now.getTime() > 7 * 24 * 60 * 60 * 1e3) {
-        throw new TRPCError3({ code: "BAD_REQUEST", message: "Trip duration cannot exceed 7 days" });
+        throw new TRPCError4({ code: "BAD_REQUEST", message: "Trip duration cannot exceed 7 days" });
       }
       const publicToken = randomBytes2(36).toString("base64url");
       const trip = await createSafetyTrip({
@@ -1355,7 +1400,7 @@ var appRouter = router({
     }),
     get: publicProcedure.input(z2.object({ token: z2.string().min(32).max(96) })).query(async ({ input }) => {
       const trip = await getSafetyTripByToken(input.token);
-      if (!trip) throw new TRPCError3({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      if (!trip) throw new TRPCError4({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
       return trip;
     }),
     checkIn: publicProcedure.input(z2.object({
@@ -1364,7 +1409,7 @@ var appRouter = router({
       longitude: z2.number().min(-180).max(180).optional()
     })).mutation(async ({ input }) => {
       const trip = await getSafetyTripByToken(input.token);
-      if (!trip) throw new TRPCError3({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      if (!trip) throw new TRPCError4({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
       if (trip.status === "safe" || trip.status === "closed") return trip;
       const now = /* @__PURE__ */ new Date();
       return updateSafetyTrip(input.token, {
@@ -1379,7 +1424,7 @@ var appRouter = router({
     }),
     markSafe: publicProcedure.input(z2.object({ token: z2.string().min(32).max(96) })).mutation(async ({ input }) => {
       const trip = await getSafetyTripByToken(input.token);
-      if (!trip) throw new TRPCError3({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      if (!trip) throw new TRPCError4({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
       return updateSafetyTrip(input.token, { status: "safe", lastCheckInAt: /* @__PURE__ */ new Date() });
     }),
     adminList: adminProcedure2.query(async () => listSafetyTrips())
@@ -1650,11 +1695,11 @@ var appRouter = router({
       await requireOwnership({ user: ctx.user }, restaurant, "restaurant");
       const ext = (extractExt(input.fileName || "image.png") || "png").toLowerCase();
       if (!ALLOWED_IMAGE_EXTS.has(ext)) {
-        throw new TRPCError3({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
+        throw new TRPCError4({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
       }
       const bytes = base64ToBuffer(input.base64);
       if (bytes.length > MAX_IMAGE_BYTES) {
-        throw new TRPCError3({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
+        throw new TRPCError4({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
       }
       const { url } = await storagePut(
         `restaurants/${ctx.user.id}/${safeName(input.fileName || "image")}.${ext}`,
@@ -1740,11 +1785,11 @@ var appRouter = router({
       await requireOwnership({ user: ctx.user }, cafe, "cafe");
       const ext = (extractExt(input.fileName || "image.png") || "png").toLowerCase();
       if (!ALLOWED_IMAGE_EXTS.has(ext)) {
-        throw new TRPCError3({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
+        throw new TRPCError4({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
       }
       const bytes = base64ToBuffer(input.base64);
       if (bytes.length > MAX_IMAGE_BYTES) {
-        throw new TRPCError3({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
+        throw new TRPCError4({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
       }
       const { url } = await storagePut(
         `cafes/${ctx.user.id}/${safeName(input.fileName || "image")}.${ext}`,
@@ -1845,9 +1890,9 @@ var appRouter = router({
     // Cancel a booking: guest may cancel only their own bookings
     cancel: protectedProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
       const booking = await getBookingById(input.id);
-      if (!booking) throw new TRPCError3({ code: "NOT_FOUND", message: "Booking not found" });
+      if (!booking) throw new TRPCError4({ code: "NOT_FOUND", message: "Booking not found" });
       if (booking.guestUserId !== ctx.user.id) {
-        throw new TRPCError3({ code: "FORBIDDEN", message: "You can only cancel your own booking" });
+        throw new TRPCError4({ code: "FORBIDDEN", message: "You can only cancel your own booking" });
       }
       await cancelBooking(input.id);
       return { success: true };
