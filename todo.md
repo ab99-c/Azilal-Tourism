@@ -502,8 +502,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [ ] Add email verification and password-reset foundations with secret-backed email delivery configuration
 - [x] Add owner availability management and conflict-aware booking lifecycle updates
 - [x] Build unified search, visitor filters, and map/trip-planning improvements
-- [ ] Add multilingual editorial content, technical SEO, and listing review workflows
-- [ ] Complete regression, TypeScript, production-build, mobile, and Vercel verification for each delivered milestone
+- [x] Add multilingual editorial content, technical SEO, and listing review workflows
+- [x] Complete regression, TypeScript, production-build, mobile, and Vercel verification for each delivered milestone
 
 ## User request: hotel and car availability calendar
 
@@ -526,4 +526,4 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a concise multilingual visitor-planning content section without fabricated reviews or ratings
 - [x] Route new non-admin owner listings to an admin review queue while preserving existing published listings
 - [x] Add admin-only approve or hide controls with strict server-side authorization and owner-facing pending status
-- [ ] Add tests, migration/schema checks if needed, responsive verification, and live deployment validation
+- [x] Add tests, migration/schema checks if needed, responsive verification, and live deployment validation
