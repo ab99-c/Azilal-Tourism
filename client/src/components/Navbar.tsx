@@ -80,6 +80,7 @@ export default function Navbar() {
     { key: 'nav.cafes', href: '#cafes' },
     { key: 'nav.cars', href: '#cars' },
     { key: 'nav.activities', href: '#activities' },
+    { key: 'nav.planning', href: '/visitor-planning', page: true },
   ];
 
   return (
@@ -120,6 +121,10 @@ export default function Navbar() {
               <a
                 href={link.href}
                 onClick={(e) => {
+                  if (link.page) {
+                    setMobileOpen(false);
+                    return;
+                  }
                   e.preventDefault();
                   scrollToSection(link.href);
                 }}
@@ -255,6 +260,10 @@ export default function Navbar() {
                   key={link.key}
                   href={link.href}
                   onClick={(e) => {
+                    if (link.page) {
+                      setMobileOpen(false);
+                      return;
+                    }
                     e.preventDefault();
                     scrollToSection(link.href);
                     setMobileOpen(false);

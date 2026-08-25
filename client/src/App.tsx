@@ -22,7 +22,7 @@ import SafetyTripPage from './pages/SafetyTripPage';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
-import VisitorPlanningSection from './components/VisitorPlanningSection';
+import VisitorPlanningPage from './pages/VisitorPlanningPage';
 import { useAuth } from '@/_core/hooks/useAuth';
 
 function AuthenticatedDashboards() {
@@ -32,9 +32,11 @@ function AuthenticatedDashboards() {
 }
 
 function App() {
-  const isSafetyTripPage = window.location.pathname === '/safety-trip';
+  const currentPath = window.location.pathname;
+  const isSafetyTripPage = currentPath === '/safety-trip';
+  const isVisitorPlanningPage = currentPath === '/visitor-planning';
 
-  if (isSafetyTripPage) {
+  if (isSafetyTripPage || isVisitorPlanningPage) {
     return (
       <ErrorBoundary fallbackRender={({ error }) => <CrashFallback message={error?.message} />}>
         <LanguageProvider>
@@ -42,7 +44,7 @@ function App() {
             <Toaster />
             <ConnectionStatusIndicator />
             <LocalAuthDialog />
-            <SafetyTripPage />
+            {isSafetyTripPage ? <SafetyTripPage /> : <VisitorPlanningPage />}
           </TooltipProvider>
         </LanguageProvider>
       </ErrorBoundary>
@@ -63,7 +65,6 @@ function App() {
             <main>
               <HeroSection />
               <UnifiedDiscoverySearch />
-              <VisitorPlanningSection />
               <FeaturedSection />
               <StatsSection />
               <DestinationsSection />
