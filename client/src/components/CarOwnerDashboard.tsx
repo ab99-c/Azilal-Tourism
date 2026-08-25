@@ -14,13 +14,14 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import {
   Plus, Pencil, Trash2, X, Car, ChevronDown,
   Save, RotateCcw, Image, ClipboardList, CheckCircle2,
-  CreditCard, Clock, Utensils, Coffee, Upload, MessageCircle, Building2
+  CreditCard, Clock, Utensils, Coffee, Upload, MessageCircle, Building2, ShieldCheck
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import WhatsAppButton from './WhatsAppButton';
 import { getCustomerWhatsAppMessage } from '@/lib/whatsapp';
 import AvailabilityManager from './AvailabilityManager';
+import ListingReviewPanel from './ListingReviewPanel';
 
 type Lang = 'ar' | 'en' | 'fr' | 'ber';
 
@@ -48,7 +49,7 @@ export default function CarOwnerDashboard() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cars' | 'hotels' | 'restaurants' | 'cafes' | 'bookings' | 'availability'>('cars');
+  const [activeTab, setActiveTab] = useState<'cars' | 'hotels' | 'restaurants' | 'cafes' | 'bookings' | 'availability' | 'review'>('cars');
   const [bookingTypeFilter, setBookingTypeFilter] = useState<'all' | 'hotel' | 'car' | 'restaurant' | 'cafe'>('all');
   const [hotelWhatsAppDrafts, setHotelWhatsAppDrafts] = useState<Record<number, string>>({});
 
@@ -413,12 +414,8 @@ export default function CarOwnerDashboard() {
     utils.availability.check.invalidate();
   };
 
-  const isAdmin = (() => {
-    try {
-      const me = (window as any).__arkarAdminCache;
-      return Boolean(me);
-    } catch { return false; }
-  })();
+  const isAdmin = user?.role === 'admin';
+  const waitingReviewCount = [...cars, ...(myHotels || []), ...restaurants, ...cafes].filter((item: any) => item.isActive === false).length;
 
   const isRTL = lang === 'ar';
   const dir = isRTL ? 'rtl' : 'ltr';
@@ -616,8 +613,11 @@ export default function CarOwnerDashboard() {
             >
               <Clock className="w-4 h-4 inline me-1.5" />{l('tabAvailability')}
             </button>
+            {isAdmin && <button onClick={() => setActiveTab('review')} className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'review' ? 'bg-[#c8a951] text-[#1b5e3f]' : 'text-white/70 hover:text-white'}`}><ShieldCheck className="w-4 h-4 inline me-1.5" />{lang === 'ar' ? 'المراجعة' : lang === 'fr' ? 'Révision' : lang === 'ber' ? 'ⴰⵙⵙⵉⵇⵙⵉ' : 'Review'}</button>}
           </div>
         </div>
+
+        {!isAdmin && waitingReviewCount > 0 && <div className="mx-auto mb-6 max-w-3xl rounded-xl border border-[#c8a951]/35 bg-[#c8a951]/10 px-4 py-3 text-center text-sm text-white/90">{lang === 'ar' ? `عندك ${waitingReviewCount} إعلان كيتسنى المراجعة قبل ما يبان للزوار.` : lang === 'fr' ? `${waitingReviewCount} annonce(s) attend(ent) une révision avant publication.` : lang === 'ber' ? `${waitingReviewCount} ⵜⵉⵔⵔⴰ ⵜⵜⵔⴰⵊⵓⵏⵜ ⴰⵙⵙⵉⵇⵙⵉ ⵣⵣⴰⵜ ⴰⴷ ⵜⵜⵓⵙⴽⴰⵏⵏⵜ.` : `${waitingReviewCount} listing(s) await review before visitors can see them.`}</div>}
 
         {/* Action Buttons (cars tab) */}
         {activeTab === 'cars' && (
@@ -750,6 +750,8 @@ export default function CarOwnerDashboard() {
             <AvailabilityManager cars={cars} hotels={myHotels || []} bookings={bookingsData || []} />
           </motion.div>
         )}
+
+        {activeTab === 'review' && isAdmin && <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}><ListingReviewPanel /></motion.div>}
 
         {/* Cars List */}
         {activeTab === 'cars' && (

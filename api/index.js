@@ -630,6 +630,17 @@ async function deleteCafe(id) {
   if (!db) throw new Error("Database not available");
   return db.delete(cafes).where(eq(cafes.id, id));
 }
+async function getPendingListingReviewQueue() {
+  const db = await getDb();
+  if (!db) return { cars: [], hotels: [], restaurants: [], cafes: [] };
+  const [pendingCars, pendingHotels, pendingRestaurants, pendingCafes] = await Promise.all([
+    db.select().from(cars).where(eq(cars.isActive, false)).orderBy(desc(cars.createdAt)).limit(100),
+    db.select().from(hotels).where(eq(hotels.isActive, false)).orderBy(desc(hotels.createdAt)).limit(100),
+    db.select().from(restaurants).where(eq(restaurants.isActive, false)).orderBy(desc(restaurants.createdAt)).limit(100),
+    db.select().from(cafes).where(eq(cafes.isActive, false)).orderBy(desc(cafes.createdAt)).limit(100)
+  ]);
+  return { cars: pendingCars, hotels: pendingHotels, restaurants: pendingRestaurants, cafes: pendingCafes };
+}
 async function createBooking(data) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -1543,7 +1554,7 @@ var appRouter = router({
       whatsapp: whatsappInput,
       image: z2.string().max(2e3).optional()
     })).mutation(async ({ input, ctx }) => {
-      await createCar({ ...input, ownerId: ctx.user.id });
+      await createCar({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
       invalidateCache("cars");
       return { success: true };
     }),
@@ -1571,7 +1582,7 @@ var appRouter = router({
       const { id, ...data } = input;
       const car = await getCarById(id);
       await requireOwnership({ user: ctx.user }, car, "car");
-      await updateCar(id, data);
+      await updateCar(id, { ...data, isActive: ctx.user.role === "admin" });
       invalidateCache("cars");
       return { success: true };
     }),
@@ -1636,7 +1647,7 @@ var appRouter = router({
       amenities: z2.any().optional(),
       image: z2.string().max(2e3).optional()
     })).mutation(async ({ input, ctx }) => {
-      await createHotel({ ...input, ownerId: ctx.user.id });
+      await createHotel({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
       invalidateCache("hotels");
       return { success: true };
     }),
@@ -1666,7 +1677,7 @@ var appRouter = router({
       const { id, ...data } = input;
       const hotel = await getHotelById(id);
       await requireOwnership({ user: ctx.user }, hotel, "hotel");
-      await updateHotel(id, data);
+      await updateHotel(id, { ...data, isActive: ctx.user.role === "admin" });
       invalidateCache("hotels");
       return { success: true };
     }),
@@ -1712,7 +1723,7 @@ var appRouter = router({
       whatsapp: whatsappInput,
       image: z2.string().max(2e3).optional()
     })).mutation(async ({ input, ctx }) => {
-      const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id });
+      const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
       return { success: true, id };
     }),
     update: ownerProcedure.input(z2.object({
@@ -1742,7 +1753,7 @@ var appRouter = router({
       const { id, ...data } = input;
       const restaurant = await getRestaurantById(id);
       await requireOwnership({ user: ctx.user }, restaurant, "restaurant");
-      await updateRestaurant(id, data);
+      await updateRestaurant(id, { ...data, isActive: ctx.user.role === "admin" });
       return { success: true };
     }),
     delete: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
@@ -1806,7 +1817,7 @@ var appRouter = router({
       whatsapp: whatsappInput,
       image: z2.string().max(2e3).optional()
     })).mutation(async ({ input, ctx }) => {
-      const { id } = await createCafe({ ...input, ownerId: ctx.user.id });
+      const { id } = await createCafe({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
       return { success: true, id };
     }),
     update: ownerProcedure.input(z2.object({
@@ -1832,7 +1843,7 @@ var appRouter = router({
       const { id, ...data } = input;
       const cafe = await getCafeById(id);
       await requireOwnership({ user: ctx.user }, cafe, "cafe");
-      await updateCafe(id, data);
+      await updateCafe(id, { ...data, isActive: ctx.user.role === "admin" });
       return { success: true };
     }),
     delete: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
@@ -2019,6 +2030,46 @@ var appRouter = router({
         throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
       }
       await deleteAvailabilityBlock(input.id);
+      return { success: true };
+    })
+  }),
+  listingReview: router({
+    queue: adminProcedure2.query(async () => {
+      const pending = await getPendingListingReviewQueue();
+      const toSafeItem = (type, item) => ({
+        id: item.id,
+        type,
+        nameAr: item.nameAr,
+        nameEn: item.nameEn,
+        nameFr: item.nameFr,
+        nameBer: item.nameBer,
+        createdAt: item.createdAt
+      });
+      return [
+        ...pending.cars.map((item) => toSafeItem("car", item)),
+        ...pending.hotels.map((item) => toSafeItem("hotel", item)),
+        ...pending.restaurants.map((item) => toSafeItem("restaurant", item)),
+        ...pending.cafes.map((item) => toSafeItem("cafe", item))
+      ];
+    }),
+    approve: adminProcedure2.input(z2.object({ type: z2.enum(["car", "hotel", "restaurant", "cafe"]), id: z2.number().int().positive() })).mutation(async ({ input }) => {
+      const item = input.type === "car" ? await getCarById(input.id) : input.type === "hotel" ? await getHotelById(input.id) : input.type === "restaurant" ? await getRestaurantById(input.id) : await getCafeById(input.id);
+      if (!item) throw new TRPCError4({ code: "NOT_FOUND", message: "LISTING_NOT_FOUND" });
+      if (input.type === "car") await updateCar(input.id, { isActive: true });
+      if (input.type === "hotel") await updateHotel(input.id, { isActive: true });
+      if (input.type === "restaurant") await updateRestaurant(input.id, { isActive: true });
+      if (input.type === "cafe") await updateCafe(input.id, { isActive: true });
+      invalidateCache(input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes");
+      return { success: true };
+    }),
+    hide: adminProcedure2.input(z2.object({ type: z2.enum(["car", "hotel", "restaurant", "cafe"]), id: z2.number().int().positive() })).mutation(async ({ input }) => {
+      const item = input.type === "car" ? await getCarById(input.id) : input.type === "hotel" ? await getHotelById(input.id) : input.type === "restaurant" ? await getRestaurantById(input.id) : await getCafeById(input.id);
+      if (!item) throw new TRPCError4({ code: "NOT_FOUND", message: "LISTING_NOT_FOUND" });
+      if (input.type === "car") await updateCar(input.id, { isActive: false });
+      if (input.type === "hotel") await updateHotel(input.id, { isActive: false });
+      if (input.type === "restaurant") await updateRestaurant(input.id, { isActive: false });
+      if (input.type === "cafe") await updateCafe(input.id, { isActive: false });
+      invalidateCache(input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes");
       return { success: true };
     })
   }),

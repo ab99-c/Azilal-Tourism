@@ -405,6 +405,23 @@ export async function deleteCafe(id: number) {
   return db.delete(cafes).where(eq(cafes.id, id));
 }
 
+/**
+ * Inactive records are new or re-submitted owner listings awaiting a review.
+ * Existing published records remain untouched and public readers still select
+ * only active records.
+ */
+export async function getPendingListingReviewQueue() {
+  const db = await getDb();
+  if (!db) return { cars: [], hotels: [], restaurants: [], cafes: [] };
+  const [pendingCars, pendingHotels, pendingRestaurants, pendingCafes] = await Promise.all([
+    db.select().from(cars).where(eq(cars.isActive, false)).orderBy(desc(cars.createdAt)).limit(100),
+    db.select().from(hotels).where(eq(hotels.isActive, false)).orderBy(desc(hotels.createdAt)).limit(100),
+    db.select().from(restaurants).where(eq(restaurants.isActive, false)).orderBy(desc(restaurants.createdAt)).limit(100),
+    db.select().from(cafes).where(eq(cafes.isActive, false)).orderBy(desc(cafes.createdAt)).limit(100),
+  ]);
+  return { cars: pendingCars, hotels: pendingHotels, restaurants: pendingRestaurants, cafes: pendingCafes };
+}
+
 // ===== BOOKINGS =====
 export async function createBooking(data: Partial<Booking>) {
   const db = await getDb();

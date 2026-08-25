@@ -519,3 +519,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add visitor-friendly type filters, result counts, and links to the matching sections
 - [x] Improve the Azilal landmark map with category filters and a selected-place route action
 - [x] Add regression coverage, responsive verification, and deployment checks for discovery improvements
+
+## Roadmap phase: multilingual content, SEO, and listing review
+
+- [x] Remove unverified contact claims from structured data and preserve accurate multilingual SEO metadata
+- [x] Add a concise multilingual visitor-planning content section without fabricated reviews or ratings
+- [x] Route new non-admin owner listings to an admin review queue while preserving existing published listings
+- [x] Add admin-only approve or hide controls with strict server-side authorization and owner-facing pending status
+- [ ] Add tests, migration/schema checks if needed, responsive verification, and live deployment validation

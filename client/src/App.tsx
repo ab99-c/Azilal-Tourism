@@ -22,6 +22,7 @@ import SafetyTripPage from './pages/SafetyTripPage';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
+import VisitorPlanningSection from './components/VisitorPlanningSection';
 
 function App() {
   const isSafetyTripPage = window.location.pathname === '/safety-trip';
@@ -55,6 +56,7 @@ function App() {
             <main>
               <HeroSection />
               <UnifiedDiscoverySearch />
+              <VisitorPlanningSection />
               <FeaturedSection />
               <StatsSection />
               <DestinationsSection />

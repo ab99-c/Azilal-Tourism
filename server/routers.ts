@@ -17,6 +17,7 @@ import {
   getUserFavorites, addFavorite, removeFavorite,
   getUserByOpenId, getUserByEmail, createLocalUser, setLocalPassword, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
+  getPendingListingReviewQueue,
   findBookingAvailabilityConflict, listAvailabilityBlocksForOwner, getAvailabilityBlockById,
   createAvailabilityBlock, deleteAvailabilityBlock,
   createSafetyTrip, getSafetyTripByToken, updateSafetyTrip, listSafetyTrips,
@@ -307,7 +308,7 @@ export const appRouter = router({
         image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        await createCar({ ...input, ownerId: ctx.user.id } as any);
+        await createCar({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" } as any);
         invalidateCache("cars");
         return { success: true } as const;
       }),
@@ -329,7 +330,7 @@ export const appRouter = router({
         const { id, ...data } = input;
         const car = await getCarById(id);
         await requireOwnership({ user: ctx.user } as any, car as any, "car");
-        await updateCar(id, data);
+        await updateCar(id, { ...data, isActive: ctx.user.role === "admin" } as any);
         invalidateCache("cars");
         return { success: true } as const;
       }),
@@ -380,7 +381,7 @@ export const appRouter = router({
         amenities: z.any().optional(), image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        await createHotel({ ...input, ownerId: ctx.user.id } as any);
+        await createHotel({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" } as any);
         invalidateCache("hotels");
         return { success: true } as const;
       }),
@@ -403,7 +404,7 @@ export const appRouter = router({
         const { id, ...data } = input;
         const hotel = await getHotelById(id);
         await requireOwnership({ user: ctx.user } as any, hotel as any, "hotel");
-        await updateHotel(id, data);
+        await updateHotel(id, { ...data, isActive: ctx.user.role === "admin" } as any);
         invalidateCache("hotels");
         return { success: true } as const;
       }),
@@ -446,7 +447,7 @@ export const appRouter = router({
         phone: z.string().max(MAX_SHORT).optional(), whatsapp: whatsappInput, image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id } as any);
+        const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" } as any);
         return { success: true, id } as const;
       }),
     update: ownerProcedure
@@ -468,7 +469,7 @@ export const appRouter = router({
         const { id, ...data } = input;
         const restaurant = await getRestaurantById(id);
         await requireOwnership({ user: ctx.user } as any, restaurant as any, "restaurant");
-        await updateRestaurant(id, data);
+        await updateRestaurant(id, { ...data, isActive: ctx.user.role === "admin" } as any);
         return { success: true } as const;
       }),
     delete: ownerProcedure
@@ -533,7 +534,7 @@ export const appRouter = router({
         phone: z.string().max(MAX_SHORT).optional(), whatsapp: whatsappInput, image: z.string().max(2000).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
-        const { id } = await createCafe({ ...input, ownerId: ctx.user.id } as any);
+        const { id } = await createCafe({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" } as any);
         return { success: true, id } as const;
       }),
     update: ownerProcedure
@@ -553,7 +554,7 @@ export const appRouter = router({
         const { id, ...data } = input;
         const cafe = await getCafeById(id);
         await requireOwnership({ user: ctx.user } as any, cafe as any, "cafe");
-        await updateCafe(id, data);
+        await updateCafe(id, { ...data, isActive: ctx.user.role === "admin" } as any);
         return { success: true } as const;
       }),
     delete: ownerProcedure
@@ -763,7 +764,58 @@ export const appRouter = router({
       }
       await deleteAvailabilityBlock(input.id);
       return { success: true } as const;
+      }),
+  }),
+
+  listingReview: router({
+    queue: adminProcedure.query(async () => {
+      const pending = await getPendingListingReviewQueue();
+      const toSafeItem = (type: "car" | "hotel" | "restaurant" | "cafe", item: any) => ({
+        id: item.id,
+        type,
+        nameAr: item.nameAr,
+        nameEn: item.nameEn,
+        nameFr: item.nameFr,
+        nameBer: item.nameBer,
+        createdAt: item.createdAt,
+      });
+      return [
+        ...pending.cars.map((item) => toSafeItem("car", item)),
+        ...pending.hotels.map((item) => toSafeItem("hotel", item)),
+        ...pending.restaurants.map((item) => toSafeItem("restaurant", item)),
+        ...pending.cafes.map((item) => toSafeItem("cafe", item)),
+      ];
     }),
+    approve: adminProcedure
+      .input(z.object({ type: z.enum(["car", "hotel", "restaurant", "cafe"]), id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const item = input.type === "car" ? await getCarById(input.id)
+          : input.type === "hotel" ? await getHotelById(input.id)
+            : input.type === "restaurant" ? await getRestaurantById(input.id)
+              : await getCafeById(input.id);
+        if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "LISTING_NOT_FOUND" });
+        if (input.type === "car") await updateCar(input.id, { isActive: true } as any);
+        if (input.type === "hotel") await updateHotel(input.id, { isActive: true } as any);
+        if (input.type === "restaurant") await updateRestaurant(input.id, { isActive: true } as any);
+        if (input.type === "cafe") await updateCafe(input.id, { isActive: true } as any);
+        invalidateCache(input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes");
+        return { success: true } as const;
+      }),
+    hide: adminProcedure
+      .input(z.object({ type: z.enum(["car", "hotel", "restaurant", "cafe"]), id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const item = input.type === "car" ? await getCarById(input.id)
+          : input.type === "hotel" ? await getHotelById(input.id)
+            : input.type === "restaurant" ? await getRestaurantById(input.id)
+              : await getCafeById(input.id);
+        if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "LISTING_NOT_FOUND" });
+        if (input.type === "car") await updateCar(input.id, { isActive: false } as any);
+        if (input.type === "hotel") await updateHotel(input.id, { isActive: false } as any);
+        if (input.type === "restaurant") await updateRestaurant(input.id, { isActive: false } as any);
+        if (input.type === "cafe") await updateCafe(input.id, { isActive: false } as any);
+        invalidateCache(input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes");
+        return { success: true } as const;
+      }),
   }),
 
   favorites: router({
