@@ -501,7 +501,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Confirm the Vercel authentication rate-limit rule is published and record its production scope
 - [ ] Add email verification and password-reset foundations with secret-backed email delivery configuration
 - [x] Add owner availability management and conflict-aware booking lifecycle updates
-- [ ] Build unified search, visitor filters, and map/trip-planning improvements
+- [x] Build unified search, visitor filters, and map/trip-planning improvements
 - [ ] Add multilingual editorial content, technical SEO, and listing review workflows
 - [ ] Complete regression, TypeScript, production-build, mobile, and Vercel verification for each delivered milestone
 
@@ -518,4 +518,4 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a multilingual unified discovery search across hotel, car, restaurant, and café listings
 - [x] Add visitor-friendly type filters, result counts, and links to the matching sections
 - [x] Improve the Azilal landmark map with category filters and a selected-place route action
-- [ ] Add regression coverage, responsive verification, and deployment checks for discovery improvements
+- [x] Add regression coverage, responsive verification, and deployment checks for discovery improvements
