@@ -43,18 +43,22 @@ export async function registerServiceWorker(): Promise<void> {
     // Listen for a newer service worker. Because sw.js lives at the root and
     // the server sends Cache-Control: no-cache for it, any content change
     // (e.g. CACHE version bump) is detected as an update.
+    const activateUpdatedWorker = (worker: ServiceWorker | null) => {
+      if (!worker) return;
+      worker.postMessage({ type: "SKIP_WAITING" });
+      if (navigator.serviceWorker.controller) window.location.reload();
+    };
+
+    if (registration.waiting) activateUpdatedWorker(registration.waiting);
+
     registration.addEventListener("updatefound", () => {
       const newWorker = registration.installing;
       if (!newWorker) return;
       newWorker.addEventListener("statechange", () => {
         if (newWorker.state === "installed") {
-          newWorker.postMessage({ type: "SKIP_WAITING" });
-          // A new service worker installed → the app shell just changed.
-          // Force one full reload so the browser re-fetches the fresh
-          // index.html instead of serving a stale cached shell.
-          if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-            window.location.reload();
-          }
+          // A new service worker installed → activate it and re-fetch the
+          // current production shell instead of serving a stale cached shell.
+          activateUpdatedWorker(newWorker);
         }
       });
     });

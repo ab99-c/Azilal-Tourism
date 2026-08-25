@@ -9,7 +9,7 @@ describe("safety activities flow", () => {
 
   it("navigates to a dedicated Safety Trip page from the three relevant activities", () => {
     expect(categoriesSource).toContain('id="activities"');
-    expect(categoriesSource).toContain("onClick={() => openActivity(cat.title, cat.safety)}");
+    expect(categoriesSource).toContain("onClick={() => openActivity(cat)}");
     expect(categoriesSource).toContain("window.location.assign(`/safety-trip?activity=");
     expect(categoriesSource).toContain("title: 'cat.nature'");
     expect(categoriesSource).toContain("title: 'cat.adventure'");
@@ -17,7 +17,7 @@ describe("safety activities flow", () => {
     expect(categoriesSource).toContain("title: 'cat.sports'");
     expect(categoriesSource).toContain("safety: false");
     expect(categoriesSource.match(/safety: true/g)?.length).toBe(3);
-    expect(appSource).toContain("window.location.pathname === '/safety-trip'");
+    expect(appSource).toContain("const isSafetyTripPage = currentPath === '/safety-trip'");
     expect(appSource).toContain("<SafetyTripPage />");
     expect(appSource).not.toContain("<SafetyTripSection />");
   });

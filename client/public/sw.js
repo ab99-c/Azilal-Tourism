@@ -1,5 +1,5 @@
 // ADRAR PWA service worker — network-first with offline Safety Trip support.
-const CACHE = "adrar-shell-v3";
+const CACHE = "adrar-shell-v4";
 const SHELL = ["/", "/safety-trip", "/manifest.json", "/icon-512.png", "/icon-192.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", event => {

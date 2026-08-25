@@ -30,7 +30,7 @@ describe("Safety Trip offline emergency storage", () => {
 
   it("caches the Safety Trip route and app assets for offline access", () => {
     expect(serviceWorker).toContain('"/safety-trip"');
-    expect(serviceWorker).toContain("adrar-shell-v3");
+    expect(serviceWorker).toContain("adrar-shell-v4");
     expect(serviceWorker).toContain('"script", "style", "font", "image"');
     expect(serviceWorker).toContain('caches.match("/safety-trip")');
   });

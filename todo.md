@@ -586,3 +586,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Remove the marked decorative element from the local products section heading without removing its content
 - [x] Verify the four languages, mobile layout, build, live deployment, and screenshot result
 
+
+## User report: Vercel still shows the old products card
+
+- [x] Compare the exact live Vercel response, deployment commit, and current GitHub source
+- [x] Repair the production deployment or cache path if the live source is stale
+- [x] Verify the corrected card through the exact public Vercel URL and responsive views
+
