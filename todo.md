@@ -500,6 +500,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 - [x] Confirm the Vercel authentication rate-limit rule is published and record its production scope
 - [ ] Add email verification and password-reset foundations with secret-backed email delivery configuration
+- [ ] Resume account-email delivery only after the owner provides a verified sender email or domain and the provider credential passes the non-sending authentication check
 - [x] Add owner availability management and conflict-aware booking lifecycle updates
 - [x] Build unified search, visitor filters, and map/trip-planning improvements
 - [x] Add multilingual editorial content, technical SEO, and listing review workflows
@@ -527,3 +528,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Route new non-admin owner listings to an admin review queue while preserving existing published listings
 - [x] Add admin-only approve or hide controls with strict server-side authorization and owner-facing pending status
 - [x] Add tests, migration/schema checks if needed, responsive verification, and live deployment validation
+
+## User report: latest addition disrupted the site
+
+- [x] Diagnose the latest site disruption using fresh local, browser, and production evidence
+- [x] Fix the root cause without changing existing booking, availability, or database records
+- [x] Re-run TypeScript, focused tests, production build, and responsive/live verification
+- [ ] Save and publish the verified repair, then document the affected addition and outcome
+

@@ -18,7 +18,7 @@ const langNames: Record<Lang, string> = {
 
 export default function Navbar() {
   const { lang, setLang, t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showChoice, setShowChoice] = useState(false);
@@ -45,9 +45,17 @@ export default function Navbar() {
     };
   }, []);
 
-  // Show the two-choice dialog once, right after the user completes login
-  const prevAuth = useRef(isAuthenticated);
+  // Show the two-choice dialog only after a real login transition. Do not treat
+  // the first authenticated session read on page load as a new login.
+  const prevAuth = useRef(false);
+  const authHasResolved = useRef(false);
   useEffect(() => {
+    if (authLoading) return;
+    if (!authHasResolved.current) {
+      authHasResolved.current = true;
+      prevAuth.current = isAuthenticated;
+      return;
+    }
     if (isAuthenticated && !prevAuth.current) {
       const alreadyShown = sessionStorage.getItem('adrar_choice_done');
       if (!alreadyShown) {
@@ -56,7 +64,7 @@ export default function Navbar() {
       }
     }
     prevAuth.current = isAuthenticated;
-  }, [isAuthenticated]);
+  }, [authLoading, isAuthenticated]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -239,7 +247,7 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
             className="lg:hidden bg-white/98 backdrop-blur-xl border-t border-gray-100 shadow-2xl overflow-y-auto overscroll-contain"
-            style={{ maxHeight: 'calc(100dvh - 100%)' }}
+            style={{ maxHeight: 'calc(100dvh - 4.5rem)' }}
           >
             <div className="container max-w-full py-4 flex flex-col gap-3">
               {navLinks.map((link) => (

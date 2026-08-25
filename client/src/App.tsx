@@ -23,6 +23,13 @@ import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
 import VisitorPlanningSection from './components/VisitorPlanningSection';
+import { useAuth } from '@/_core/hooks/useAuth';
+
+function AuthenticatedDashboards() {
+  const { user, loading } = useAuth();
+  if (loading || !user) return null;
+  return <><CarOwnerDashboard /><GuestDashboard /></>;
+}
 
 function App() {
   const isSafetyTripPage = window.location.pathname === '/safety-trip';
@@ -65,8 +72,7 @@ function App() {
               <RestaurantsSection />
               <CafesSection />
               <CarRentalSection />
-              <CarOwnerDashboard />
-              <GuestDashboard />
+              <AuthenticatedDashboards />
               <MapSection />
               <FooterSection />
             </main>
