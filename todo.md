@@ -543,3 +543,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a dedicated visitor-planning page with a clear return path and an accessible entry link
 - [x] Verify homepage, dedicated page, mobile layout, tests, build, and live deployment
 
+
+## User request: Arabic interface should use Modern Standard Arabic
+
+- [x] Replace colloquial Arabic copy in the visitor-facing interface with clear Modern Standard Arabic
+- [x] Preserve English, French, and Amazigh translations and keep Arabic layout direction intact
+- [x] Add translation regression checks, verify mobile presentation, build, and publish the language correction
+

@@ -8,18 +8,18 @@ type DiscoveryKind = 'hotel' | 'car' | 'restaurant' | 'cafe';
 
 const labels = {
   eyebrow: { ar: 'اكتشف أزيلال', en: 'Explore Azilal', fr: 'Explorer Azilal', ber: 'ⵔⵣⵓ ⴰⵣⵉⵍⴰⵍ' },
-  title: { ar: 'لقّي الإقامة، النقل أو الأكل اللي كيقلب عليه', en: 'Find stays, transport and local places', fr: 'Trouvez séjours, transport et bonnes adresses', ber: 'ⴰⴼ ⵜⵉⵏⵎⵍ ⵏ ⵜⵉⵎⵣⵉⵣⵍⵜ ⴷ ⵉⴷⵖⴰⵔⵏ' },
-  description: { ar: 'بحث واحد كيجمع العروض المتاحة فـ ADRAR، ومنه كتقدر تمشي مباشرة للقسم المناسب.', en: 'One search brings together ADRAR listings and takes you straight to the matching section.', fr: 'Une seule recherche réunit les annonces ADRAR et vous mène à la bonne section.', ber: 'ⴰⵏⴰⴷⵉ ⵢⴰⵏ ⴰⴷ ⵉⵙⵎⵓⵏ ⵜⵉⵔⵔⴰ ⵏ ADRAR ⴷ ⴰⴷ ⴽ ⵉⵙⵙⵉⵡⴹ ⵙ ⵓⵏⴳⵔⴰⵡ.' },
-  placeholder: { ar: 'قلب بالاسم، المكان أو الوصف…', en: 'Search by name, place or description…', fr: 'Rechercher par nom, lieu ou description…', ber: 'ⵔⵣⵓ ⵙ ⵉⵙⵎ, ⴰⵏⵙⴰ ⵏⵖ ⴰⴳⵍⴰⵎ…' },
+  title: { ar: 'اعثر على الإقامة أو وسيلة النقل أو المطعم الذي تبحث عنه', en: 'Find stays, transport and local places', fr: 'Trouvez séjours, transport et bonnes adresses', ber: 'ⴰⴼ ⵜⵉⵏⵎⵍ ⵏ ⵜⵉⵎⵣⵉⵣⵍⵜ ⴷ ⵉⴷⵖⴰⵔⵏ' },
+  description: { ar: 'يجمع بحث واحد العروض المتاحة في ADRAR، ويمكنك الانتقال منه مباشرةً إلى القسم المناسب.', en: 'One search brings together ADRAR listings and takes you straight to the matching section.', fr: 'Une seule recherche réunit les annonces ADRAR et vous mène à la bonne section.', ber: 'ⴰⵏⴰⴷⵉ ⵢⴰⵏ ⴰⴷ ⵉⵙⵎⵓⵏ ⵜⵉⵔⵔⴰ ⵏ ADRAR ⴷ ⴰⴷ ⴽ ⵉⵙⵙⵉⵡⴹ ⵙ ⵓⵏⴳⵔⴰⵡ.' },
+  placeholder: { ar: 'ابحث بالاسم أو المكان أو الوصف…', en: 'Search by name, place or description…', fr: 'Rechercher par nom, lieu ou description…', ber: 'ⵔⵣⵓ ⵙ ⵉⵙⵎ, ⴰⵏⵙⴰ ⵏⵖ ⴰⴳⵍⴰⵎ…' },
   all: { ar: 'الكل', en: 'All', fr: 'Tout', ber: 'ⴽⵓⵍⵍⵓ' },
   hotel: { ar: 'الفنادق', en: 'Hotels', fr: 'Hôtels', ber: 'ⵉⵙⵏⴷⵇⵏ' },
   car: { ar: 'السيارات', en: 'Cars', fr: 'Voitures', ber: 'ⵜⵙⵍⵍⴰⵙⵜ' },
   restaurant: { ar: 'المطاعم', en: 'Restaurants', fr: 'Restaurants', ber: 'ⵉⵎⵙⵙⴽⵜⵏ' },
   cafe: { ar: 'المقاهي', en: 'Cafés', fr: 'Cafés', ber: 'ⵉⵇⵀⵡⴰⵢⵏ' },
   results: { ar: 'نتائج', en: 'results', fr: 'résultats', ber: 'ⵉⴳⵎⴰⴹⵏ' },
-  open: { ar: 'شوف القسم', en: 'View section', fr: 'Voir la section', ber: 'ⵙⴽⵏ ⴰⵏⴳⵔⴰⵡ' },
-  empty: { ar: 'ما لقيناش نتائج مطابقة. جرّب كلمة أخرى أو بدّل النوع.', en: 'No matching results. Try another word or category.', fr: 'Aucun résultat. Essayez un autre mot ou une autre catégorie.', ber: 'ⵓⵔ ⵏⵓⴼⵉ ⴰⵔⵏⵏⴰⵡ. ⵔⵣⵓ ⵙ ⵢⴰⵏ ⵓⵡⴰⵍ ⵏⵖ ⴰⵏⴰⵡ ⵢⴰⴹⵏ.' },
-  loading: { ar: 'كنوجدّو العروض…', en: 'Loading listings…', fr: 'Chargement des annonces…', ber: 'ⴰⵔ ⵏⵙⵎⵓⵜⵜⵉ ⵜⵉⵔⵔⴰ…' },
+  open: { ar: 'عرض القسم', en: 'View section', fr: 'Voir la section', ber: 'ⵙⴽⵏ ⴰⵏⴳⵔⴰⵡ' },
+  empty: { ar: 'لم نعثر على نتائج مطابقة. جرّب كلمة أخرى أو اختر نوعاً مختلفاً.', en: 'No matching results. Try another word or category.', fr: 'Aucun résultat. Essayez un autre mot ou une autre catégorie.', ber: 'ⵓⵔ ⵏⵓⴼⵉ ⴰⵔⵏⵏⴰⵡ. ⵔⵣⵓ ⵙ ⵢⴰⵏ ⵓⵡⴰⵍ ⵏⵖ ⴰⵏⴰⵡ ⵢⴰⴹⵏ.' },
+  loading: { ar: 'جارٍ تحميل العروض…', en: 'Loading listings…', fr: 'Chargement des annonces…', ber: 'ⴰⵔ ⵏⵙⵎⵓⵜⵜⵉ ⵜⵉⵔⵔⴰ…' },
 };
 
 const sectionByKind: Record<DiscoveryKind, string> = {

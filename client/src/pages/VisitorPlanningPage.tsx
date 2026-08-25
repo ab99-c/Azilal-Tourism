@@ -4,7 +4,7 @@ import VisitorPlanningSection from '@/components/VisitorPlanningSection';
 import FooterSection from '@/components/FooterSection';
 
 const pageCopy = {
-  ar: { back: 'رجوع للرئيسية', title: 'خطّط لزيارتك لأزيلال بهدوء', intro: 'جمعنا لك الخطوات الأساسية باش تقارن، تأكد التواريخ، وتتواصل مع المالك قبل ما تمشي.' },
+  ar: { back: 'العودة إلى الصفحة الرئيسية', title: 'خطّط لزيارتك إلى أزيلال بهدوء', intro: 'جمعنا لك الخطوات الأساسية لمقارنة الخيارات وتأكيد التواريخ والتواصل مع المالك قبل السفر.' },
   en: { back: 'Back to home', title: 'Plan your Azilal visit with confidence', intro: 'Use these simple steps to compare options, confirm dates, and contact an owner before you travel.' },
   fr: { back: "Retour à l'accueil", title: 'Préparez votre visite à Azilal', intro: 'Suivez ces étapes simples pour comparer, confirmer vos dates et contacter un propriétaire avant votre départ.' },
   ber: { back: 'ⵔⵔ ⵖⵔ ⵓⵙⵏⵓⴱⴳ', title: 'ⵙⵎⵓⵜⵜⵉ ⵉ ⵓⵔⴰⵔ ⵏⵏⴽ ⴳ ⵣⵉⵍⴰⵍ', intro: 'ⵙⵙⵎⵔⵙ ⵜⵉⵎⵙⵉⵔⵉⵏ ⴰⴷ ⵜⵙⵎⵍⴰⵍⴷ ⵜⵉⴼⵔⴰⵜⵉⵏ, ⵜⵙⵙⵎⵔⵙⴷ ⵜⵉⵣⵡⵉⵔⵉⵏ ⴷ ⵜⵎⵙⴰⵡⴰⴹⴷ ⴷ ⵓⵎⴰⵙⵙ.' },
