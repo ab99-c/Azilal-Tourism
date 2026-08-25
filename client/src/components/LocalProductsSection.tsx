@@ -1,4 +1,4 @@
-import { HandHeart, Leaf, MessageCircle, PackageSearch } from 'lucide-react';
+import { HandHeart, MessageCircle, PackageSearch } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const copy = {
@@ -55,7 +55,7 @@ export default function LocalProductsSection() {
   return (
     <div id="local-products" className="mt-16 scroll-mt-24 rounded-[2rem] border border-[#c8a951]/25 bg-[#fbfcf7] p-5 sm:p-8" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="mx-auto max-w-3xl text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#c8a951]/15 px-3 py-1.5 text-xs font-extrabold text-[#725b1d]"><Leaf className="h-3.5 w-3.5" />{t.eyebrow}</span>
+        <span className="inline-flex items-center rounded-full bg-[#c8a951]/15 px-3 py-1.5 text-xs font-extrabold text-[#725b1d]">{t.eyebrow}</span>
         <h3 className="mt-4 text-2xl font-black text-[#1b5e3f] sm:text-3xl">{t.title}</h3>
         <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">{t.description}</p>
       </div>

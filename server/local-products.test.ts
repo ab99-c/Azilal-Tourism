@@ -12,6 +12,8 @@ describe('local products and associations activity section', () => {
     expect(categoriesSource).toContain("anchor: 'local-products'");
     expect(categoriesSource).toContain('categories.localProductsCta');
     expect(source).toContain('id="local-products"');
+    expect(source).not.toContain('<Leaf');
+    expect(categoriesSource).toContain("title: 'cat.localProducts'");
     const navbarSource = readFileSync(fileURLToPath(new URL('../client/src/components/Navbar.tsx', import.meta.url)), 'utf8');
     expect(navbarSource).toContain("{ key: 'nav.localProducts', href: '#local-products' }");
     for (const marker of ['منتجات أدرار والجمعيات المحلية', 'ADRAR products and local associations', 'Produits ADRAR et associations locales', 'ⵉⵎⵥⵍⴰⵢ']) {

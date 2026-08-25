@@ -579,3 +579,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Push or repair the deployment path so the fifth tourism card is included in production
 - [x] Verify the live Vercel card and direct anchor on mobile and desktop
 
+
+## User request: refine local products card from marked screenshot
+
+- [x] Simplify the fifth tourism card to «المنتجات الطبيعية» while keeping the associations card separate
+- [x] Remove the marked decorative element from the local products section heading without removing its content
+- [x] Verify the four languages, mobile layout, build, live deployment, and screenshot result
+
