@@ -575,7 +575,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User report: fifth tourism card missing on Vercel
 
-- [ ] Compare the live Vercel deployment with the verified local checkpoint and GitHub branch
-- [ ] Push or repair the deployment path so the fifth tourism card is included in production
-- [ ] Verify the live Vercel card and direct anchor on mobile and desktop
+- [x] Compare the live Vercel deployment with the verified local checkpoint and GitHub branch
+- [x] Push or repair the deployment path so the fifth tourism card is included in production
+- [x] Verify the live Vercel card and direct anchor on mobile and desktop
 
