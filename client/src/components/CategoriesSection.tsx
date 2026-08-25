@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mountain, Compass, Landmark, Bike } from 'lucide-react';
+import LocalProductsSection from './LocalProductsSection';
 
 export default function CategoriesSection() {
   const { t } = useLanguage();
@@ -85,6 +86,7 @@ export default function CategoriesSection() {
             </motion.button>
           ))}
         </div>
+        <LocalProductsSection />
       </div>
     </section>
   );

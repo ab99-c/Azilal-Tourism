@@ -550,3 +550,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Preserve English, French, and Amazigh translations and keep Arabic layout direction intact
 - [x] Add translation regression checks, verify mobile presentation, build, and publish the language correction
 
+
+## User request: natural products and local associations in activities
+
+- [x] Add a multilingual activities sub-section for verified natural products and local associations
+- [x] Provide safe contact or participation CTAs without inventing sellers, phone numbers, reviews, or ratings
+- [x] Add clear empty-state and owner-submission guidance until real product or association records are available
+- [x] Add translation and responsive regression coverage, verify build, and publish the activities update
+
