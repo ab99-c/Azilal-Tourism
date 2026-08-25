@@ -477,3 +477,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 - [x] Remove the Manus and Google wording from the independent-login dialog in all supported languages
 - [x] Verify the revised dialog on mobile and save the published update
+
+## User request: hide administrator activation from visitors
+
+- [x] Remove the existing-administrator activation link from the normal visitor login dialog
+- [x] Expose administrator activation only through a deliberate private URL parameter and retain server-side secret validation
+- [x] Add regression coverage, verify mobile UI, and save the published update

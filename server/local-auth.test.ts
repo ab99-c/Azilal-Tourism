@@ -36,6 +36,9 @@ describe("independent email/password authentication", () => {
     expect(authDialog).toContain("استعمل بريدك الإلكتروني وكلمة السر ديال ADRAR.");
     expect(authDialog).not.toContain("No Manus or Google");
     expect(authDialog).not.toContain("لا Manus لا Google");
+    expect(authDialog).toContain("authIntent === 'activate-admin'");
+    expect(authDialog).not.toContain("{mode !== 'activate' && <button");
+    expect(authDialog).not.toContain("{c.admin}</button>");
     expect(fs.existsSync("api/trpc/[trpc].ts")).toBe(false);
     expect(fs.existsSync("api/server.ts")).toBe(false);
     expect(fs.readFileSync("server/vercel-api.ts", "utf8")).not.toContain("registerOAuthRoutes");
