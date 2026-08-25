@@ -570,5 +570,5 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 - [x] Add natural products and local associations as a visible fifth tourism-type card
 - [x] Keep the card multilingual and link it directly to the verified section without fabricated listings
-- [ ] Test the card on mobile and desktop, run the build, and publish the layout change
+- [x] Test the card on mobile and desktop, run the build, and publish the layout change
 
