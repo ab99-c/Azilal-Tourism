@@ -613,3 +613,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Move the weak-connection notice into the mountain activities / Safety Trip context only
 - [x] Remove the global weak-connection indicator from the homepage and unrelated sections
 - [x] Keep the notice in Modern Standard Arabic and verify mobile behavior, tests, build, GitHub, and Vercel
+
+## User request: clarify connection warning colors
+
+- [x] Make «الاتصال ضعيف» orange and «لا يوجد اتصال» red with readable contrast
+- [x] Run focused tests and build, then push GitHub and verify Vercel

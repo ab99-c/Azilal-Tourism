@@ -15,6 +15,8 @@ describe("connection status indicator", () => {
     expect(source).toContain("effectiveType");
     expect(source).toContain('window.addEventListener("offline"');
     expect(source).toContain('window.addEventListener("online"');
+    expect(source).toContain('border-orange-300 bg-orange-50 text-orange-700');
+    expect(source).toContain('border-red-400 bg-red-50 text-red-700');
   });
 
   it("is accessible, responsive, and mounted only in the mountain Safety Trip flow", () => {

@@ -66,8 +66,8 @@ export default function ConnectionStatusIndicator({ hideWhenOnline = false }: { 
   const palette = state === "online"
     ? "border-[#1b5e3f]/20 bg-[#f0f8f2] text-[#1b5e3f]"
     : state === "weak"
-      ? "border-[#c8a951]/40 bg-[#fff8df] text-[#856b18]"
-      : "border-[#b84b45]/30 bg-[#fff1ef] text-[#9b302b]";
+      ? "border-orange-300 bg-orange-50 text-orange-700"
+      : "border-red-400 bg-red-50 text-red-700";
 
   return (
     <div
