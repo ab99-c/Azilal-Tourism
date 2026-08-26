@@ -702,3 +702,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add multilingual strength labels and actionable password guidance
 - [x] Add regression tests and verify mobile rendering, TypeScript, and production build
 - [x] Save a checkpoint after the password-strength improvement is verified
+
+## UX improvement: show or hide reset password
+- [x] Add a show/hide control to the new-password field in reset mode
+- [x] Add translated accessible labels and preserve strength-meter behavior
+- [x] Add regression tests and verify mobile rendering, TypeScript, and production build
+- [x] Save a checkpoint after the show/hide control is verified

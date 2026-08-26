@@ -31,6 +31,10 @@ describe('email authentication foundation', () => {
     expect(authDialogSource).toContain('strengthLabels');
     expect(authDialogSource).toContain('role="progressbar"');
     expect(authDialogSource).toContain('passwordStrength >= 4');
+    expect(authDialogSource).toContain('showPassword');
+    expect(authDialogSource).toContain("type={mode === 'reset' && showPassword ? 'text' : 'password'}");
+    expect(authDialogSource).toContain('aria-label={showPassword ? c.hidePassword : c.showPassword}');
+    expect(authDialogSource).toContain('EyeOff');
   });
 
   it('keeps dispatch disabled while exposing verification and reset contracts', () => {
