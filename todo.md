@@ -714,3 +714,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Show immediate translated mismatch feedback and block reset until values match
 - [x] Add regression tests and verify mobile rendering, TypeScript, and production build
 - [x] Save a checkpoint after the confirmation flow is verified
+
+## UX improvement: return to sign-in from recovery
+- [x] Add a clear return-to-sign-in button in password-recovery modes
+- [x] Reset recovery feedback and preserve intentional email state when returning
+- [x] Add regression tests and verify mobile rendering, TypeScript, and production build
+- [x] Save a checkpoint after the return control is verified
