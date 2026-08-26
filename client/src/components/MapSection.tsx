@@ -219,6 +219,15 @@ export default function MapSection() {
     { icon: Sun, title: 'map.f3.title', desc: 'map.f3.desc' },
   ];
 
+  // Open the requested map category when a visitor arrives from Safety Trip.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('map');
+    if (requested === 'nature' || requested === 'culture' || requested === 'adventure') {
+      setActiveCategory(requested);
+      window.setTimeout(() => document.getElementById('map')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }
+  }, []);
+
   // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;

@@ -669,3 +669,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Improve Azilal local-search signals using only verified place and business information
 - [x] Add factual answer-oriented content and structured data without fabricated reviews, ratings, or contacts
 - [x] Test SEO assets, build, push GitHub, and verify Vercel
+
+## User request: connect mountain trails and adventures to Azilal map
+
+- [x] Review current Azilal map, activity cards, and offline trail points
+- [x] Add a shared verified trail/activity map data model without inventing new coordinates
+- [x] Link mountain and adventure cards to map focus and external directions where available
+- [x] Keep Offline GPX points aligned with the map and test mobile, build, GitHub, and Vercel
