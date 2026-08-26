@@ -696,3 +696,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add clear, field-aware error messages for invalid, expired, or incomplete reset/verification inputs in AR/EN/FR/BER
 - [x] Add regression tests and verify responsive dialog rendering, TypeScript, and production build
 - [x] Save a checkpoint after the UX improvements are verified
+
+## UX improvement: password strength during reset
+- [x] Add a visual password-strength meter to the reset-password mode
+- [x] Add multilingual strength labels and actionable password guidance
+- [x] Add regression tests and verify mobile rendering, TypeScript, and production build
+- [x] Save a checkpoint after the password-strength improvement is verified

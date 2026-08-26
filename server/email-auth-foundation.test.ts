@@ -27,6 +27,10 @@ describe('email authentication foundation', () => {
     expect(authDialogSource).toContain('border-red-200 bg-red-50');
     expect(authDialogSource).toContain('formIncomplete');
     expect(authDialogSource).toContain('invalidToken');
+    expect(authDialogSource).toContain('getPasswordStrength');
+    expect(authDialogSource).toContain('strengthLabels');
+    expect(authDialogSource).toContain('role="progressbar"');
+    expect(authDialogSource).toContain('passwordStrength >= 4');
   });
 
   it('keeps dispatch disabled while exposing verification and reset contracts', () => {
