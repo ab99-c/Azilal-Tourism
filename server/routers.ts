@@ -15,7 +15,7 @@ import {
   getGuestBookings, cancelBooking,
   getMyRestaurants, getMyCafes,
   getUserFavorites, addFavorite, removeFavorite,
-  getUserByOpenId, getUserByEmail, createLocalUser, setLocalPassword, upsertUser,
+  getUserByOpenId, getUserByEmail, getUserById, createLocalUser, setLocalPassword, markEmailVerified, issueEmailAuthToken, consumeEmailAuthToken, upsertUser,
   getMyCars, getMyHotels, getMyBookings,
   getPendingListingReviewQueue,
   findBookingAvailabilityConflict, listAvailabilityBlocksForOwner, getAvailabilityBlockById,
@@ -139,6 +139,32 @@ export const appRouter = router({
         });
       }
       return { success: true } as const;
+    }),
+    prepareEmailVerification: protectedProcedure.mutation(async ({ ctx }) => {
+      const user = await getUserByOpenId(ctx.user.openId);
+      if (!user?.email) return { ready: false, reason: 'EMAIL_MISSING' as const, dispatchEnabled: false };
+      await issueEmailAuthToken({ userId: user.id, kind: 'email_verification', ttlMs: 24 * 60 * 60 * 1000 });
+      return { ready: true, dispatchEnabled: false, expiresInMs: 24 * 60 * 60 * 1000 } as const;
+    }),
+    requestPasswordReset: publicProcedure.input(z.object({ email: localEmail })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, 'password-reset');
+      const user = await getUserByEmail(input.email);
+      if (user) await issueEmailAuthToken({ userId: user.id, kind: 'password_reset', ttlMs: 60 * 60 * 1000 });
+      clearAuthRateLimit(ctx.req, 'password-reset');
+      return { accepted: true, dispatchEnabled: false } as const;
+    }),
+    verifyEmail: publicProcedure.input(z.object({ token: z.string().trim().min(32).max(128) })).mutation(async ({ input }) => {
+      const token = await consumeEmailAuthToken({ rawToken: input.token, kind: 'email_verification' });
+      if (!token) throw new TRPCError({ code: 'BAD_REQUEST', message: 'INVALID_OR_EXPIRED_TOKEN' });
+      await markEmailVerified(token.userId);
+      const user = await getUserById(token.userId);
+      return { verified: Boolean(user?.emailVerifiedAt) } as const;
+    }),
+    resetPassword: publicProcedure.input(z.object({ token: z.string().trim().min(32).max(128), password: localPassword })).mutation(async ({ input }) => {
+      const token = await consumeEmailAuthToken({ rawToken: input.token, kind: 'password_reset' });
+      if (!token) throw new TRPCError({ code: 'BAD_REQUEST', message: 'INVALID_OR_EXPIRED_TOKEN' });
+      await setLocalPassword(token.userId, await hashPassword(input.password));
+      return { reset: true } as const;
     }),
     register: publicProcedure.input(z.object({
       name: z.string().trim().min(2).max(120),

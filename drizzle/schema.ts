@@ -10,6 +10,7 @@ export const users = mysqlTable("users", {
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
+  emailVerifiedAt: timestamp("emailVerifiedAt"),
   loginMethod: varchar("loginMethod", { length: 64 }),
   passwordHash: varchar("passwordHash", { length: 255 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
@@ -20,6 +21,28 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+/**
+ * Single-use, hashed email-auth tokens. The raw token is never persisted.
+ * Dispatch is intentionally handled separately and remains disabled until a
+ * verified sender is configured.
+ */
+export const emailAuthTokens = mysqlTable("email_auth_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  kind: mysqlEnum("kind", ["email_verification", "password_reset"]).notNull(),
+  tokenHash: varchar("tokenHash", { length: 128 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  usedAt: timestamp("usedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (t) => ({
+  tokenHashIdx: uniqueIndex("idx_email_auth_tokens_hash").on(t.tokenHash),
+  userKindIdx: index("idx_email_auth_tokens_user_kind").on(t.userId, t.kind),
+  expiryIdx: index("idx_email_auth_tokens_expiry").on(t.expiresAt),
+}));
+
+export type EmailAuthToken = typeof emailAuthTokens.$inferSelect;
+export type InsertEmailAuthToken = typeof emailAuthTokens.$inferInsert;
 
 /**
  * Cars table - stores car rental data

@@ -93,6 +93,7 @@ import { SignJWT, jwtVerify } from "jose";
 
 // server/db.ts
 import { eq, desc, and, isNull, sql } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool } from "mysql2";
 
@@ -103,6 +104,7 @@ var users = mysqlTable("users", {
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
+  emailVerifiedAt: timestamp("emailVerifiedAt"),
   loginMethod: varchar("loginMethod", { length: 64 }),
   passwordHash: varchar("passwordHash", { length: 255 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
@@ -110,6 +112,19 @@ var users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()
 });
+var emailAuthTokens = mysqlTable("email_auth_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  kind: mysqlEnum("kind", ["email_verification", "password_reset"]).notNull(),
+  tokenHash: varchar("tokenHash", { length: 128 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  usedAt: timestamp("usedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull()
+}, (t2) => ({
+  tokenHashIdx: uniqueIndex("idx_email_auth_tokens_hash").on(t2.tokenHash),
+  userKindIdx: index("idx_email_auth_tokens_user_kind").on(t2.userId, t2.kind),
+  expiryIdx: index("idx_email_auth_tokens_expiry").on(t2.expiresAt)
+}));
 var cars = mysqlTable("cars", {
   id: int("id").autoincrement().primaryKey(),
   nameAr: varchar("nameAr", { length: 255 }).notNull(),
@@ -421,6 +436,50 @@ async function getUserByEmail(email) {
   if (!db) return void 0;
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return result[0];
+}
+async function getUserById(id) {
+  const db = await getDb();
+  if (!db) return void 0;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+function createEmailAuthTokenValue() {
+  const rawToken = randomBytes(32).toString("hex");
+  const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+  return { rawToken, tokenHash };
+}
+async function issueEmailAuthToken(input) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const { rawToken, tokenHash } = createEmailAuthTokenValue();
+  await db.delete(emailAuthTokens).where(and(eq(emailAuthTokens.userId, input.userId), eq(emailAuthTokens.kind, input.kind), isNull(emailAuthTokens.usedAt)));
+  await db.insert(emailAuthTokens).values({
+    userId: input.userId,
+    kind: input.kind,
+    tokenHash,
+    expiresAt: new Date(Date.now() + input.ttlMs)
+  });
+  return rawToken;
+}
+async function consumeEmailAuthToken(input) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const tokenHash = createHash("sha256").update(input.rawToken).digest("hex");
+  const updated = await db.update(emailAuthTokens).set({ usedAt: /* @__PURE__ */ new Date() }).where(and(
+    eq(emailAuthTokens.tokenHash, tokenHash),
+    eq(emailAuthTokens.kind, input.kind),
+    isNull(emailAuthTokens.usedAt),
+    sql`${emailAuthTokens.expiresAt} > NOW()`
+  ));
+  const result = updated;
+  if (!result.affectedRows) return void 0;
+  const token = await db.select().from(emailAuthTokens).where(eq(emailAuthTokens.tokenHash, tokenHash)).limit(1);
+  return token[0];
+}
+async function markEmailVerified(userId) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(users).set({ emailVerifiedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, userId));
 }
 async function createLocalUser(input) {
   const db = await getDb();
@@ -1157,7 +1216,7 @@ var systemRouter = router({
 // server/routers.ts
 import { TRPCError as TRPCError4 } from "@trpc/server";
 import { z as z2 } from "zod";
-import { randomBytes as randomBytes2 } from "node:crypto";
+import { randomBytes as randomBytes3 } from "node:crypto";
 
 // server/cache.ts
 var DEFAULT_TTL_MS = 6e4;
@@ -1231,12 +1290,12 @@ async function storagePut(relKey, data, contentType = "application/octet-stream"
 }
 
 // server/localAuth.ts
-import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { randomBytes as randomBytes2, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 var scrypt = promisify(scryptCallback);
 var KEY_LENGTH = 64;
 async function hashPassword(password) {
-  const salt = randomBytes(16);
+  const salt = randomBytes2(16);
   const derived = await scrypt(password, salt, KEY_LENGTH);
   return `scrypt$${salt.toString("base64url")}$${derived.toString("base64url")}`;
 }
@@ -1266,7 +1325,8 @@ var WINDOW_MS = 15 * 60 * 1e3;
 var MAX_ATTEMPTS = {
   register: 5,
   login: 10,
-  "admin-activation": 3
+  "admin-activation": 3,
+  "password-reset": 5
 };
 var buckets = /* @__PURE__ */ new Map();
 function getClientAddress(req) {
@@ -1386,6 +1446,32 @@ var appRouter = router({
       }
       return { success: true };
     }),
+    prepareEmailVerification: protectedProcedure.mutation(async ({ ctx }) => {
+      const user = await getUserByOpenId(ctx.user.openId);
+      if (!user?.email) return { ready: false, reason: "EMAIL_MISSING", dispatchEnabled: false };
+      await issueEmailAuthToken({ userId: user.id, kind: "email_verification", ttlMs: 24 * 60 * 60 * 1e3 });
+      return { ready: true, dispatchEnabled: false, expiresInMs: 24 * 60 * 60 * 1e3 };
+    }),
+    requestPasswordReset: publicProcedure.input(z2.object({ email: localEmail })).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "password-reset");
+      const user = await getUserByEmail(input.email);
+      if (user) await issueEmailAuthToken({ userId: user.id, kind: "password_reset", ttlMs: 60 * 60 * 1e3 });
+      clearAuthRateLimit(ctx.req, "password-reset");
+      return { accepted: true, dispatchEnabled: false };
+    }),
+    verifyEmail: publicProcedure.input(z2.object({ token: z2.string().trim().min(32).max(128) })).mutation(async ({ input }) => {
+      const token = await consumeEmailAuthToken({ rawToken: input.token, kind: "email_verification" });
+      if (!token) throw new TRPCError4({ code: "BAD_REQUEST", message: "INVALID_OR_EXPIRED_TOKEN" });
+      await markEmailVerified(token.userId);
+      const user = await getUserById(token.userId);
+      return { verified: Boolean(user?.emailVerifiedAt) };
+    }),
+    resetPassword: publicProcedure.input(z2.object({ token: z2.string().trim().min(32).max(128), password: localPassword })).mutation(async ({ input }) => {
+      const token = await consumeEmailAuthToken({ rawToken: input.token, kind: "password_reset" });
+      if (!token) throw new TRPCError4({ code: "BAD_REQUEST", message: "INVALID_OR_EXPIRED_TOKEN" });
+      await setLocalPassword(token.userId, await hashPassword(input.password));
+      return { reset: true };
+    }),
     register: publicProcedure.input(z2.object({
       name: z2.string().trim().min(2).max(120),
       email: localEmail,
@@ -1395,7 +1481,7 @@ var appRouter = router({
       const existing = await getUserByEmail(input.email);
       if (existing) throw new TRPCError4({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
       const user = await createLocalUser({
-        openId: `local_${randomBytes2(24).toString("base64url")}`,
+        openId: `local_${randomBytes3(24).toString("base64url")}`,
         name: input.name,
         email: input.email,
         passwordHash: await hashPassword(input.password)
@@ -1457,7 +1543,7 @@ var appRouter = router({
       if (input.expectedArrivalAt.getTime() - now.getTime() > 7 * 24 * 60 * 60 * 1e3) {
         throw new TRPCError4({ code: "BAD_REQUEST", message: "Trip duration cannot exceed 7 days" });
       }
-      const publicToken = randomBytes2(36).toString("base64url");
+      const publicToken = randomBytes3(36).toString("base64url");
       const trip = await createSafetyTrip({
         publicToken,
         travelerName: input.travelerName,

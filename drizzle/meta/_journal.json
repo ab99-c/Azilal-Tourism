@@ -71,6 +71,20 @@
       "when": 1787671154173,
       "tag": "0009_bent_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787761988770,
+      "tag": "0010_closed_yellowjacket",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1787762099994,
+      "tag": "0011_panoramic_wasp",
+      "breakpoints": true
     }
   ]
 }

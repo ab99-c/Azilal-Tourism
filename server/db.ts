@@ -1,7 +1,8 @@
 import { eq, desc, and, isNull, sql } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool, type Pool } from "mysql2";
-import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, availabilityBlocks, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip, type AvailabilityBlock, type InsertAvailabilityBlock } from "../drizzle/schema";
+import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, availabilityBlocks, emailAuthTokens, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip, type AvailabilityBlock, type InsertAvailabilityBlock } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -146,6 +147,57 @@ export async function getUserByEmail(email: string) {
   if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return result[0];
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+
+type EmailAuthTokenKind = 'email_verification' | 'password_reset';
+
+export function createEmailAuthTokenValue() {
+  const rawToken = randomBytes(32).toString('hex');
+  const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+  return { rawToken, tokenHash };
+}
+
+export async function issueEmailAuthToken(input: { userId: number; kind: EmailAuthTokenKind; ttlMs: number }) {
+  const db = await getDb();
+  if (!db) throw new Error('Database unavailable');
+  const { rawToken, tokenHash } = createEmailAuthTokenValue();
+  await db.delete(emailAuthTokens).where(and(eq(emailAuthTokens.userId, input.userId), eq(emailAuthTokens.kind, input.kind), isNull(emailAuthTokens.usedAt)));
+  await db.insert(emailAuthTokens).values({
+    userId: input.userId,
+    kind: input.kind,
+    tokenHash,
+    expiresAt: new Date(Date.now() + input.ttlMs),
+  });
+  return rawToken;
+}
+
+export async function consumeEmailAuthToken(input: { rawToken: string; kind: EmailAuthTokenKind }) {
+  const db = await getDb();
+  if (!db) throw new Error('Database unavailable');
+  const tokenHash = createHash('sha256').update(input.rawToken).digest('hex');
+  const updated = await db.update(emailAuthTokens).set({ usedAt: new Date() }).where(and(
+    eq(emailAuthTokens.tokenHash, tokenHash),
+    eq(emailAuthTokens.kind, input.kind),
+    isNull(emailAuthTokens.usedAt),
+    sql`${emailAuthTokens.expiresAt} > NOW()`,
+  ));
+  const result = updated as unknown as { affectedRows?: number };
+  if (!result.affectedRows) return undefined;
+  const token = await db.select().from(emailAuthTokens).where(eq(emailAuthTokens.tokenHash, tokenHash)).limit(1);
+  return token[0];
+}
+
+export async function markEmailVerified(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error('Database unavailable');
+  await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, userId));
 }
 
 export async function createLocalUser(input: { openId: string; name: string; email: string; passwordHash: string }) {

@@ -676,3 +676,17 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a shared verified trail/activity map data model without inventing new coordinates
 - [x] Link mountain and adventure cards to map focus and external directions where available
 - [x] Keep Offline GPX points aligned with the map and test mobile, build, GitHub, and Vercel
+
+## User request: prepare email-auth foundations without sending
+
+- [ ] Add non-destructive verification and password-reset token storage
+- [ ] Add expiring, single-use token helpers and protected auth procedures without email dispatch
+- [ ] Add local UI contracts and tests; keep dispatch disabled until a verified sender exists
+
+## Email verification and password reset foundation
+- [x] إنشاء migration لحقل emailVerifiedAt وتطبيقه على قاعدة البيانات
+- [x] إضافة إجراءات tRPC للتحقق من البريد وإعادة تعيين كلمة السر دون إرسال فعلي
+- [x] إضافة حماية تحديد المحاولات لطلبات إعادة تعيين كلمة السر
+- [x] إضافة عقود واجهة محلية للتحقق والاستعادة مع نص عربي فصيح
+- [x] إضافة اختبارات أساس البريد والتحقق من TypeScript وبناء Vercel
+- [x] حفظ checkpoint النهائي ومزامنة تغييرات GitHub/Vercel

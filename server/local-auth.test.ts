@@ -33,10 +33,10 @@ describe("independent email/password authentication", () => {
     expect(navbar).not.toContain("MAIN_SITE_URL");
     expect(bookingModal).not.toContain("redirectToMainSite");
     expect(main).not.toContain("startLogin");
-    expect(authDialog).toContain("استعمل بريدك الإلكتروني وكلمة السر ديال ADRAR.");
+    expect(authDialog).toContain("استخدم بريدك الإلكتروني وكلمة السر الخاصة بك في ADRAR.");
     expect(authDialog).not.toContain("No Manus or Google");
     expect(authDialog).not.toContain("لا Manus لا Google");
-    expect(authDialog).toContain("authIntent === 'activate-admin'");
+    expect(authDialog).toContain("params.get('auth') === 'activate-admin'");
     expect(authDialog).not.toContain("{mode !== 'activate' && <button");
     expect(authDialog).not.toContain("{c.admin}</button>");
     expect(fs.existsSync("api/trpc/[trpc].ts")).toBe(false);
