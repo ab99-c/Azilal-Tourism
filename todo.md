@@ -593,3 +593,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Repair the production deployment or cache path if the live source is stale
 - [x] Verify the corrected card through the exact public Vercel URL and responsive views
 
+
+## User request: move products to a dedicated page
+
+- [x] Create a dedicated multilingual products page matching the requested mobile layout
+- [x] Link the navbar «المنتجات» item and tourism card to the dedicated page
+- [x] Remove the products section from the home page and verify mobile/desktop behavior
+- [x] Run focused tests and build, push to GitHub, and verify Vercel production

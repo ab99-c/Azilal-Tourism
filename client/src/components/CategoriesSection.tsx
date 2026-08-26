@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mountain, Compass, Landmark, Bike, Leaf } from 'lucide-react';
-import LocalProductsSection from './LocalProductsSection';
 
 export default function CategoriesSection() {
   const { t } = useLanguage();
@@ -40,13 +39,13 @@ export default function CategoriesSection() {
       title: 'cat.localProducts',
       count: 'cat.localProducts.count',
       safety: false,
-      anchor: 'local-products',
+      page: true,
     },
   ];
 
   const openActivity = (category: (typeof categories)[number]) => {
-    if (category.anchor) {
-      document.getElementById(category.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (category.page) {
+      window.location.assign('/products');
       return;
     }
     if (!category.safety) return;
@@ -67,9 +66,6 @@ export default function CategoriesSection() {
             {t('categories.title')}
           </h2>
           <p className="text-lg text-gray-500">{t('categories.subtitle')}</p>
-          <a href="#local-products" className="mt-5 inline-flex rounded-full bg-[#1b5e3f] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#164d34] focus:outline-none focus:ring-4 focus:ring-[#1b5e3f]/20">
-            {t('categories.localProductsCta')}
-          </a>
         </motion.div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -106,7 +102,6 @@ export default function CategoriesSection() {
             </motion.button>
           ))}
         </div>
-        <LocalProductsSection />
       </div>
     </section>
   );

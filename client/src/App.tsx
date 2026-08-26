@@ -23,6 +23,7 @@ import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
 import VisitorPlanningPage from './pages/VisitorPlanningPage';
+import LocalProductsPage from './pages/LocalProductsPage';
 import { useAuth } from '@/_core/hooks/useAuth';
 
 function AuthenticatedDashboards() {
@@ -35,8 +36,9 @@ function App() {
   const currentPath = window.location.pathname;
   const isSafetyTripPage = currentPath === '/safety-trip';
   const isVisitorPlanningPage = currentPath === '/visitor-planning';
+  const isLocalProductsPage = currentPath === '/products';
 
-  if (isSafetyTripPage || isVisitorPlanningPage) {
+  if (isSafetyTripPage || isVisitorPlanningPage || isLocalProductsPage) {
     return (
       <ErrorBoundary fallbackRender={({ error }) => <CrashFallback message={error?.message} />}>
         <LanguageProvider>
@@ -44,7 +46,7 @@ function App() {
             <Toaster />
             <ConnectionStatusIndicator />
             <LocalAuthDialog />
-            {isSafetyTripPage ? <SafetyTripPage /> : <VisitorPlanningPage />}
+            {isSafetyTripPage ? <SafetyTripPage /> : isVisitorPlanningPage ? <VisitorPlanningPage /> : <LocalProductsPage />}
           </TooltipProvider>
         </LanguageProvider>
       </ErrorBoundary>

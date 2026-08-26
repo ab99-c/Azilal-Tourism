@@ -71,7 +71,7 @@ export default function LocalProductsSection() {
       </div>
       <div className="mt-5 flex flex-col items-center justify-between gap-4 rounded-2xl bg-[#1b5e3f]/5 p-4 text-center sm:flex-row sm:text-start">
         <p className="text-sm font-semibold text-[#163b2a]">{t.empty}</p>
-        <a href="#contact" className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#1b5e3f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#164d34] focus:outline-none focus:ring-4 focus:ring-[#1b5e3f]/20"><MessageCircle className="h-4 w-4" />{t.contact}</a>
+        <a href="/#contact" className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#1b5e3f] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#164d34] focus:outline-none focus:ring-4 focus:ring-[#1b5e3f]/20"><MessageCircle className="h-4 w-4" />{t.contact}</a>
       </div>
     </div>
   );

@@ -80,7 +80,7 @@ export default function Navbar() {
     { key: 'nav.cafes', href: '#cafes' },
     { key: 'nav.cars', href: '#cars' },
     { key: 'nav.activities', href: '#activities' },
-    { key: 'nav.localProducts', href: '#local-products' },
+    { key: 'nav.localProducts', href: '/products', page: true },
     { key: 'nav.planning', href: '/visitor-planning', page: true },
   ];
 
