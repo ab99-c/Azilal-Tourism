@@ -13,6 +13,10 @@ describe('mountain activities offline mode', () => {
     expect(offlineCard).toContain("number: '190'");
     expect(offlineCard).toContain('localStorage.setItem(STORAGE_KEY');
     expect(offlineCard).toContain('const saveGuide = () =>');
+    expect(offlineCard).toContain('const downloadTrailPack = () =>');
+    expect(offlineCard).toContain('adrar-mountain-waypoints.gpx');
+    expect(offlineCard).toContain('application/gpx+xml');
+    expect(offlineCard).toContain('trailPoints');
     expect(offlineCard).toContain('version: 1');
     expect(offlineCard).toContain('This is general activity information');
   });
@@ -25,6 +29,7 @@ describe('mountain activities offline mode', () => {
     expect(offlineCard).toContain('أرقام الطوارئ والإنقاذ');
     expect(offlineCard).toContain('localStorage.removeItem(STORAGE_KEY)');
     expect(offlineCard).toContain('يمكنك الرجوع إلى هذه المعلومات عند انقطاع الإنترنت');
+    expect(offlineCard).toContain('هذه نقاط إرشادية وليست مساراً تفصيلياً');
   });
 
   it('is scoped to the mountain Safety Trip page', () => {

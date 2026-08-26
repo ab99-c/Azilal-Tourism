@@ -15,12 +15,27 @@ type EmergencyContact = {
   label: Record<Lang, string>;
 };
 
+type TrailPoint = {
+  id: string;
+  lat: number;
+  lng: number;
+  name: Record<Lang, string>;
+  category: 'nature' | 'adventure';
+};
+
 type OfflineSnapshot = {
   version: 1;
   savedAt: string;
   activities: Record<Lang, ActivityGuide[]>;
   emergencyContacts: EmergencyContact[];
+  trailPoints: TrailPoint[];
 };
+
+const trailPoints: TrailPoint[] = [
+  { id: 'bin-el-ouidane', lat: 32.2853, lng: -6.6106, category: 'nature', name: { ar: 'بحيرة بين الويدان', en: 'Bin el Ouidane Lake', fr: 'Lac de Bin el Ouidane', ber: 'ⴰⵖⵏⵛⴰⵡ ⵏ ⴱⵉⵏ ⵍⵡⵉⴷⴰⵏ' } },
+  { id: 'tisnirt', lat: 32.1287, lng: -6.7736, category: 'nature', name: { ar: 'شلالات تيسنيرت', en: 'Tisnirt Waterfalls', fr: 'Cascades de Tisnirt', ber: 'ⵉⵔⵣⵣⵉⵜⵏ ⵏ ⵜⵉⵙⵏⵉⵔⵜ' } },
+  { id: 'high-atlas-peak', lat: 32.35, lng: -6.48, category: 'adventure', name: { ar: 'قمم الأطلس الكبير', en: 'High Atlas Peaks', fr: 'Sommets du Haut Atlas', ber: 'ⵉⵡⴷⵉⵡⵏ ⵏ ⵓⵟⵍⴰⵙ' } },
+];
 
 const emergencyContacts: EmergencyContact[] = [
   { number: '141', label: { ar: 'الطوارئ الطبية', en: 'Emergency medical services', fr: 'Urgences médicales', ber: 'ⵜⵉⵏⵎⵍ ⵜⴰⵙⵏⴰⵎⵜ' } },
@@ -60,10 +75,10 @@ const activities: Record<Lang, ActivityGuide[]> = {
 };
 
 const copy = {
-  ar: { title: 'حفظ أنشطة الجبال بلا إنترنت', description: 'احفظ هذا الدليل على جهازك قبل التوجه إلى منطقة قد تضعف فيها الشبكة.', save: 'حفظ الدليل على الجهاز', saved: 'الدليل محفوظ على هذا الجهاز', available: 'يمكنك الرجوع إلى هذه المعلومات عند انقطاع الإنترنت.', delete: 'حذف الدليل', privacy: 'هذه معلومات عامة عن الأنشطة، ولا تتضمن اسمك أو رقم هاتفك أو موقعك.' },
-  en: { title: 'Save mountain activities offline', description: 'Save this guide before entering an area where coverage may be limited.', save: 'Save guide on this device', saved: 'Guide saved on this device', available: 'You can return to this information when offline.', delete: 'Delete guide', privacy: 'This is general activity information; it does not include your name, phone number, or location.' },
-  fr: { title: 'Enregistrer les activités hors ligne', description: 'Enregistrez ce guide avant d’entrer dans une zone où le réseau peut être limité.', save: 'Enregistrer sur cet appareil', saved: 'Guide enregistré sur cet appareil', available: 'Vous pourrez consulter ces informations hors ligne.', delete: 'Supprimer le guide', privacy: 'Ces informations générales ne contiennent ni votre nom, ni votre numéro, ni votre position.' },
-  ber: { title: 'ⵃⴼⴹ ⵉⵎⵙⵙⵓⵜⵉⵏ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ', description: 'ⵃⴼⴹ ⴰⵎⵏⴰⵡ ⴰⴷ ⵏ ⵣⵔⵉ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ.', save: 'ⵃⴼⴹ ⴳ ⵓⵎⴰⵙⵙ', saved: 'ⵉⵜⵜⵓⵃⴼⴹ ⴳ ⵓⵎⴰⵙⵙ', available: 'ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵙⵙⵏⴷ ⵉⵙⴼⴽⴰ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ.', delete: 'ⴽⴽⵙ ⴰⵎⵏⴰⵡ', privacy: 'ⵉⵙⴼⴽⴰ ⴰⴷ ⵓⵔ ⵙⵙⵏⵏ ⵉⵙⵎ، ⵓⵟⵟⵓⵏ ⵏⵖ ⴰⵎⵏⵣⵓ.' },
+  ar: { title: 'حفظ أنشطة الجبال بلا إنترنت', description: 'احفظ هذا الدليل على جهازك قبل التوجه إلى منطقة قد تضعف فيها الشبكة.', save: 'حفظ الدليل على الجهاز', saved: 'الدليل محفوظ على هذا الجهاز', available: 'يمكنك الرجوع إلى هذه المعلومات عند انقطاع الإنترنت.', delete: 'حذف الدليل', privacy: 'هذه معلومات عامة عن الأنشطة، ولا تتضمن اسمك أو رقم هاتفك أو موقعك.', maps: 'تحميل نقاط المسارات', mapsSaved: 'حزمة المسارات محفوظة', mapsDescription: 'حمّل نقاطاً إرشادية بصيغة GPX لفتحها في تطبيق خرائط يدعم العمل دون اتصال.', mapsDisclaimer: 'هذه نقاط إرشادية وليست مساراً تفصيلياً أو بديلاً عن مرشد محلي أو التحقق من الطريق.' },
+  en: { title: 'Save mountain activities offline', description: 'Save this guide before entering an area where coverage may be limited.', save: 'Save guide on this device', saved: 'Guide saved on this device', available: 'You can return to this information when offline.', delete: 'Delete guide', privacy: 'This is general activity information; it does not include your name, phone number, or location.', maps: 'Download trail points', mapsSaved: 'Trail pack saved', mapsDescription: 'Download GPX waypoints to open in an offline-capable mapping app.', mapsDisclaimer: 'These are waypoints, not a turn-by-turn trail or a substitute for a local guide and route check.' },
+  fr: { title: 'Enregistrer les activités hors ligne', description: 'Enregistrez ce guide avant d’entrer dans une zone où le réseau peut être limité.', save: 'Enregistrer sur cet appareil', saved: 'Guide enregistré sur cet appareil', available: 'Vous pourrez consulter ces informations hors ligne.', delete: 'Supprimer le guide', privacy: 'Ces informations générales ne contiennent ni votre nom, ni votre numéro, ni votre position.', maps: 'Télécharger les points des sentiers', mapsSaved: 'Pack des sentiers enregistré', mapsDescription: 'Téléchargez les points GPX pour les ouvrir dans une application cartographique hors ligne.', mapsDisclaimer: 'Ces points sont indicatifs et ne remplacent ni un itinéraire détaillé ni un guide local.' },
+  ber: { title: 'ⵃⴼⴹ ⵉⵎⵙⵙⵓⵜⵉⵏ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ', description: 'ⵃⴼⴹ ⴰⵎⵏⴰⵡ ⴰⴷ ⵏ ⵣⵔⵉ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ.', save: 'ⵃⴼⴹ ⴳ ⵓⵎⴰⵙⵙ', saved: 'ⵉⵜⵜⵓⵃⴼⴹ ⴳ ⵓⵎⴰⵙⵙ', available: 'ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵙⵙⵏⴷ ⵉⵙⴼⴽⴰ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ.', delete: 'ⴽⴽⵙ ⴰⵎⵏⴰⵡ', privacy: 'ⵉⵙⴼⴽⴰ ⴰⴷ ⵓⵔ ⵙⵙⵏⵏ ⵉⵙⵎ، ⵓⵟⵟⵓⵏ ⵏⵖ ⴰⵎⵏⵣⵓ.', maps: 'ⵙⵙⵉⵔⵉ ⵉⵙⵏⵉⵔⴰⵏ', mapsSaved: 'ⵉⵜⵜⵓⵃⴼⴹ ⵓⵎⵏⴰⵡ', mapsDescription: 'ⵙⵙⵉⵔⵉ ⵉⵙⴼⴽⴰ GPX ⵉ ⵓⵙⵏⵓⴱⵔⵛ ⵙ ⵓⵔ ⵜⵉⵏⵎⵍ.', mapsDisclaimer: 'ⵉⵙⵏⵉⵔⴰⵏ ⴰⴷ ⵉⵎⵙⵙⴰⵡⵏ, ⵓⵔ ⴽⴽⴰⵏ ⴰⵙⵓⵔⵙ ⵏ ⵓⵎⵏⵉⵔ.' },
 };
 
 export default function MountainActivitiesOfflineCard() {
@@ -80,14 +95,14 @@ export default function MountainActivitiesOfflineCard() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as OfflineSnapshot;
-      if (parsed.version === 1 && parsed.activities) setSaved(parsed);
+      if (parsed.version === 1 && parsed.activities && parsed.trailPoints) setSaved(parsed);
     } catch {
       setSaved(null);
     }
   }, []);
 
   const saveGuide = () => {
-    const snapshot: OfflineSnapshot = { version: 1, savedAt: new Date().toISOString(), activities, emergencyContacts };
+    const snapshot: OfflineSnapshot = { version: 1, savedAt: new Date().toISOString(), activities, emergencyContacts, trailPoints };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
       setSaved(snapshot);
@@ -99,6 +114,22 @@ export default function MountainActivitiesOfflineCard() {
   const deleteGuide = () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* no-op */ }
     setSaved(null);
+  };
+
+  const downloadTrailPack = () => {
+    const escapeXml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&apos;');
+    const gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="ADRAR" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>ADRAR mountain activity waypoints</name><desc>Reference waypoints from ADRAR. These are not turn-by-turn tracks.</desc></metadata>\n${trailPoints.map((point) => `  <wpt lat="${point.lat}" lon="${point.lng}"><name>${escapeXml(point.name.en)}</name><type>${point.category}</type></wpt>`).join('\\n')}\n</gpx>`;
+    const snapshot: OfflineSnapshot = { version: 1, savedAt: new Date().toISOString(), activities, emergencyContacts, trailPoints };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      setSaved(snapshot);
+    } catch { /* the file download can still work if storage is full */ }
+    const url = URL.createObjectURL(new Blob([gpx], { type: 'application/gpx+xml;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'adrar-mountain-waypoints.gpx';
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -137,6 +168,18 @@ export default function MountainActivitiesOfflineCard() {
           ))}
         </div>
         <p className="mt-3 text-xs leading-5 text-red-800">{emergency.note}</p>
+      </div>
+      <div className="mt-5 rounded-2xl border border-[#1b5e3f]/15 bg-[#eef6f0] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-black text-[#1b5e3f]">{saved ? c.mapsSaved : c.maps}</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600">{c.mapsDescription}</p>
+          </div>
+          <button type="button" onClick={downloadTrailPack} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1b5e3f] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#164d34] focus:outline-none focus:ring-4 focus:ring-[#1b5e3f]/20">
+            <Download className="h-4 w-4" />{c.maps}
+          </button>
+        </div>
+        <p className="mt-3 text-xs leading-5 text-[#725b1d]">{c.mapsDisclaimer}</p>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-3">
         {currentActivities.map((activity) => (

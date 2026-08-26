@@ -655,3 +655,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Improve mountain-activity discovery with clearer planning and offline entry points
 - [x] Improve booking feedback, loading, and error clarity without enabling email delivery
 - [x] Test and publish this continuation to GitHub and Vercel
+
+## User request: offline mountain trail maps
+
+- [x] Review current mountain map and available trail data before adding an offline download action
+- [x] Add a real downloadable trail-data package with local offline storage and clear provider limitations
+- [x] Add multilingual download/open/delete controls inside Safety Trip and verify offline restoration
+- [x] Test, build, push GitHub, and verify Vercel
