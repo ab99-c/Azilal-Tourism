@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const features = [
   {
@@ -70,11 +70,9 @@ export default function FeaturedSection() {
                 </span>
               </div>
               <div className="p-6">
-                <div className="flex items-center gap-1 mb-2">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-[#c8a951] text-[#c8a951]" />
-                  ))}
-                </div>
+                <span className="inline-flex items-center rounded-full bg-[#eef6f0] px-3 py-1 text-xs font-bold text-[#1b5e3f] mb-3">
+                  {t('featured.localLabel')}
+                </span>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {t(feature.title)}
                 </h3>

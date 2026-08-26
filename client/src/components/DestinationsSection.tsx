@@ -132,9 +132,9 @@ export default function DestinationsSection() {
                   alt={getTitle(dest)}
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
                 />
-                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 font-bold text-sm text-[#c8a951]">
+                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 font-bold text-sm text-[#1b5e3f]">
                   <MapPin className="w-3.5 h-3.5" />
-                  4.8
+                  {lang === 'ar' ? 'وجهة طبيعية' : lang === 'fr' ? 'Destination naturelle' : lang === 'ber' ? 'ⴰⵎⵙⵙⴰⵡ ⴰⵎⴰⵏ' : 'Natural destination'}
                 </div>
               </div>
               <div className="p-6">

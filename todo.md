@@ -631,3 +631,17 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Verify Morocco and Azilal-relevant emergency and rescue contacts from reliable sources
 - [x] Add the verified contacts to the locally saved mountain activities guide with click-to-call actions
 - [x] Add multilingual emergency labels, safety disclaimer, tests, build, GitHub push, and Vercel verification
+
+## User request: benchmark ADRAR against major tourism sites
+
+- [x] Audit current ADRAR pages, mobile experience, trust signals, booking flow, discovery, SEO, and performance
+- [x] Compare relevant practices from major tourism and booking platforms
+- [x] Produce a prioritized gap analysis and measurable roadmap without changing production data
+
+## User request: implement the benchmark roadmap
+
+- [ ] Build reusable detail-page foundations without changing existing bookings or listings
+- [ ] Add trustworthy detail views for hotels, cars, restaurants, cafes, and mountain activities
+- [ ] Improve booking clarity with totals, status, cancellation guidance, and visitor booking history where supported
+- [ ] Test and publish the first roadmap phase, then continue with search, activity planning, and performance priorities
+- [x] Replace unverified fixed destination ratings and decorative review stars with honest discovery labels
