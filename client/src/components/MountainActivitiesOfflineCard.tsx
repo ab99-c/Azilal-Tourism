@@ -10,11 +10,31 @@ type ActivityGuide = {
   safety: string;
 };
 
+type EmergencyContact = {
+  number: string;
+  label: Record<Lang, string>;
+};
+
 type OfflineSnapshot = {
   version: 1;
   savedAt: string;
   activities: Record<Lang, ActivityGuide[]>;
+  emergencyContacts: EmergencyContact[];
 };
+
+const emergencyContacts: EmergencyContact[] = [
+  { number: '141', label: { ar: 'الطوارئ الطبية', en: 'Emergency medical services', fr: 'Urgences médicales', ber: 'ⵜⵉⵏⵎⵍ ⵜⴰⵙⵏⴰⵎⵜ' } },
+  { number: '150', label: { ar: 'الوقاية المدنية والإسعاف والإطفاء', en: 'Civil Protection, ambulance and fire', fr: 'Protection civile, ambulance et incendie', ber: 'ⵜⴰⵏⴼⵍⵜ ⵜⴰⵎⴰⵙⵙⵜ، ⴰⵙⵙⵉⵔⵉ ⴷ ⵓⵙⵙⵉⵔ' } },
+  { number: '177', label: { ar: 'الدرك الملكي — الطرق والمناطق القروية', en: 'Royal Gendarmerie — rural and mountain roads', fr: 'Gendarmerie royale — routes rurales et montagne', ber: 'ⴰⵙⵏⴰⵎ ⴰⵎⵔⵔⵓⵙ — ⵉⵙⵏⵉⵔⴰⵏ ⴷ ⵜⵉⵔⵔⴰ' } },
+  { number: '190', label: { ar: 'الشرطة', en: 'Police', fr: 'Police', ber: 'ⵙⵙⵓⵔⵜⴰ' } },
+];
+
+const emergencyCopy = {
+  ar: { title: 'أرقام الطوارئ والإنقاذ', note: 'احفظ هذه الأرقام قبل الانطلاق. قد تختلف إمكانية الاتصال بحسب الشبكة والمكان، وهذه الأرقام لا تغني عن إخبار شخص بوجهتك.', call: 'اتصال' },
+  en: { title: 'Emergency and rescue contacts', note: 'Save these numbers before leaving. Calling may depend on network and location; also tell someone your destination.', call: 'Call' },
+  fr: { title: 'Contacts d’urgence et de secours', note: 'Enregistrez ces numéros avant de partir. L’appel dépend du réseau et du lieu ; informez aussi un proche de votre destination.', call: 'Appeler' },
+  ber: { title: 'ⵉⵙⵏⵙⴰ ⵏ ⵜⵏⴼⵍⵜ ⴷ ⵓⵙⵙⵉⵔ', note: 'ⵃⴼⴹ ⵉⵙⵏⵙⴰ ⴰⴷ ⵣⵔⵉⴷ. ⵉⵣⵎⵔ ⵓⵙⵙⵉⵡⵍ ⴰⴷ ⵉⵏⵙⵙ ⵙ ⵜⵉⵏⵎⵍ ⴷ ⵓⵙⵏⴰⵙ.', call: 'ⵙⵙⵉⵡⵍ' },
+} as const;
 
 const activities: Record<Lang, ActivityGuide[]> = {
   ar: [
@@ -52,6 +72,8 @@ export default function MountainActivitiesOfflineCard() {
   const c = copy[lang];
   const direction = lang === 'ar' || lang === 'ber' ? 'rtl' : 'ltr';
   const currentActivities = useMemo(() => saved?.activities[lang] ?? activities[lang], [saved, lang]);
+  const currentEmergencyContacts = saved?.emergencyContacts ?? emergencyContacts;
+  const emergency = emergencyCopy[lang];
 
   useEffect(() => {
     try {
@@ -65,7 +87,7 @@ export default function MountainActivitiesOfflineCard() {
   }, []);
 
   const saveGuide = () => {
-    const snapshot: OfflineSnapshot = { version: 1, savedAt: new Date().toISOString(), activities };
+    const snapshot: OfflineSnapshot = { version: 1, savedAt: new Date().toISOString(), activities, emergencyContacts };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
       setSaved(snapshot);
@@ -100,6 +122,21 @@ export default function MountainActivitiesOfflineCard() {
             <Download className="h-4 w-4" />{c.save}
           </button>
         )}
+      </div>
+      <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/60 p-4">
+        <div className="flex items-center gap-2">
+          <WifiOff className="h-5 w-5 text-red-700" aria-hidden="true" />
+          <h3 className="font-black text-red-800">{emergency.title}</h3>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {currentEmergencyContacts.map((contact) => (
+            <a key={contact.number} href={`tel:${contact.number}`} className="flex items-center justify-between gap-3 rounded-xl border border-red-100 bg-white px-3 py-3 transition hover:border-red-300 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-200" aria-label={`${contact.label[lang]}: ${contact.number}`}>
+              <span className="text-sm font-bold text-red-900">{contact.label[lang]}</span>
+              <span className="shrink-0 rounded-full bg-red-700 px-3 py-1 text-sm font-black text-white">{contact.number}</span>
+            </a>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-red-800">{emergency.note}</p>
       </div>
       <div className="mt-5 grid gap-3 md:grid-cols-3">
         {currentActivities.map((activity) => (

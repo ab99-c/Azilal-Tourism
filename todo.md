@@ -625,3 +625,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a multilingual save/offline status UI inside the mountain activities / Safety Trip area
 - [x] Restore the saved activity data when the device is offline and provide a delete action
 - [x] Test offline behavior, build, push GitHub, and verify Vercel
+
+## User request: offline emergency contacts
+
+- [x] Verify Morocco and Azilal-relevant emergency and rescue contacts from reliable sources
+- [x] Add the verified contacts to the locally saved mountain activities guide with click-to-call actions
+- [x] Add multilingual emergency labels, safety disclaimer, tests, build, GitHub push, and Vercel verification
