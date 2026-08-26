@@ -1,6 +1,13 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { MapPin, ArrowUpRight } from 'lucide-react';
+import { MapPin, PhoneCall } from 'lucide-react';
+
+const contactLabels = {
+  ar: 'اتصل الآن',
+  en: 'Contact now',
+  fr: 'Appeler maintenant',
+  ber: 'ⵙⵙⵉⵡⵍ ⵖⵉⵍⴰⴷ',
+} as const;
 
 const destinations = [
   {
@@ -146,10 +153,12 @@ export default function DestinationsSection() {
                     {lang === 'ar' ? 'مجاني' : lang === 'fr' ? 'Gratuit' : lang === 'ber' ? 'ⴱⴷⴷⵓ' : 'Free'}
                   </span>
                   <a
-                    href="#"
-                    className="w-10 h-10 rounded-full bg-[#1b5e3f] text-white flex items-center justify-center hover:bg-[#0f3d28] transition-all hover:rotate-[-45deg]"
+                    href="#contact"
+                    aria-label={contactLabels[lang]}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#1b5e3f] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0f3d28] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#1b5e3f]/20"
                   >
-                    <ArrowUpRight className="w-5 h-5 rtl:rotate-180" />
+                    <PhoneCall className="h-4 w-4" aria-hidden="true" />
+                    <span>{contactLabels[lang]}</span>
                   </a>
                 </div>
               </div>

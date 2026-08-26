@@ -600,3 +600,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Link the navbar «المنتجات» item and tourism card to the dedicated page
 - [x] Remove the products section from the home page and verify mobile/desktop behavior
 - [x] Run focused tests and build, push to GitHub, and verify Vercel production
+
+## User request: add contact action inside activities
+
+- [x] Add a visible contact action inside activity/place cards using only verified contact data
+- [x] Add multilingual labels and safe empty states when no phone or WhatsApp is available
+- [x] Verify responsive layout, tests, build, GitHub push, and Vercel production
+- [x] Use the Modern Standard Arabic contact label «اتصل الآن» next to the activity contact icon
