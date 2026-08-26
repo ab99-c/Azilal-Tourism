@@ -238,6 +238,9 @@ export default function CafesSection() {
                     {cafe.hours}
                   </span>
                 </div>
+                <a href={`/listing-details?type=cafe&id=${cafe.id}`} className="mb-2 flex items-center justify-center rounded-xl border border-[#1b5e3f]/20 px-3 py-2 text-xs font-bold text-[#1b5e3f] hover:bg-white">
+                  {lang === 'ar' ? 'عرض التفاصيل' : lang === 'fr' ? 'Voir les détails' : lang === 'ber' ? 'ⵙⵙⵏ ⵉⵙⴼⴽⴰ' : 'View details'}
+                </a>
                 <WhatsAppButton
                   phone={fromDb ? (cafe.whatsapp || cafe.phone) : cafe.whatsapp}
                   message={getWhatsAppMessage(lang, getName(cafe), 'cafe')}

@@ -11,6 +11,7 @@ const contactLabels = {
 
 const destinations = [
   {
+    slug: 'lake',
     img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/NToyBNlacJDpjOIV.jpg',
     location: 'أزيلال - الأطلس الكبير',
     title_ar: 'بحيرة بين الويدان',
@@ -23,6 +24,7 @@ const destinations = [
     desc_ber: 'ⴰⵖⵏⵛⴰⵡ ⵉⵜⵜⵔⵣⵢⵏ ⵉⵜⵜⴰⵡⵢⵏ ⵙ ⵉⵡⴷⵉⵡⵏ ⵏ ⴰⵟⵍⴰⵙ',
   },
   {
+    slug: 'waterfalls',
     img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/YYvpyYbTLJRQRuNJ.jpg',
     location: 'أزيلال - وادي أزيلال',
     title_ar: 'شلالات تيسنيرت',
@@ -35,6 +37,7 @@ const destinations = [
     desc_ber: 'ⵉⵔⵣⵣⵉⵜⵏ ⵉⵜⵜⵔⵣⵢⵏ ⵙⴳ ⵉⵣⴳⴰⵏ ⵉⵖⴱⵉⴱⵏ',
   },
   {
+    slug: 'villages',
     img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/KGpeWLOJRkcROyxb.jpg',
     location: 'أزيلال - الجبل',
     title_ar: 'قرى أيت بومهدى',
@@ -153,7 +156,7 @@ export default function DestinationsSection() {
                     {lang === 'ar' ? 'مجاني' : lang === 'fr' ? 'Gratuit' : lang === 'ber' ? 'ⴱⴷⴷⵓ' : 'Free'}
                   </span>
                   <a
-                    href="#contact"
+                    href={`/details?type=destination&slug=${dest.slug}`}
                     aria-label={contactLabels[lang]}
                     className="inline-flex items-center gap-2 rounded-full bg-[#1b5e3f] px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#0f3d28] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#1b5e3f]/20"
                   >

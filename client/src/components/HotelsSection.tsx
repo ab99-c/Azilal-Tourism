@@ -147,6 +147,9 @@ export default function HotelsSection() {
                     );
                   })}
                 </div>
+                <a href={`/listing-details?type=hotel&id=${hotel.id}`} className="mb-2 flex items-center justify-center rounded-xl border border-[#1b5e3f]/20 px-3 py-2 text-xs font-bold text-[#1b5e3f] hover:bg-[#f7faf7]">
+                  {lang === 'ar' ? 'عرض التفاصيل' : lang === 'fr' ? 'Voir les détails' : lang === 'ber' ? 'ⵙⵙⵏ ⵉⵙⴼⴽⴰ' : 'View details'}
+                </a>
                 <div className="flex gap-2">
                   <button onClick={() => setSelectedHotel(hotel)} className="flex-1 py-2.5 bg-[#1b5e3f] text-white rounded-xl font-bold text-xs hover:bg-[#0f3d28] transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
                     <Calendar className="w-3.5 h-3.5" />

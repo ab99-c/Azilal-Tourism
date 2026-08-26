@@ -24,6 +24,8 @@ import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
 import VisitorPlanningPage from './pages/VisitorPlanningPage';
 import LocalProductsPage from './pages/LocalProductsPage';
+import DetailPage from './pages/DetailPage';
+import ListingDetailPage from './pages/ListingDetailPage';
 import { useAuth } from '@/_core/hooks/useAuth';
 
 function AuthenticatedDashboards() {
@@ -37,8 +39,10 @@ function App() {
   const isSafetyTripPage = currentPath === '/safety-trip';
   const isVisitorPlanningPage = currentPath === '/visitor-planning';
   const isLocalProductsPage = currentPath === '/products';
+  const isDetailPage = currentPath === '/details';
+  const isListingDetailPage = currentPath === '/listing-details';
 
-  if (isSafetyTripPage || isVisitorPlanningPage || isLocalProductsPage) {
+  if (isSafetyTripPage || isVisitorPlanningPage || isLocalProductsPage || isDetailPage || isListingDetailPage) {
     return (
       <ErrorBoundary fallbackRender={({ error }) => <CrashFallback message={error?.message} />}>
         <LanguageProvider>
@@ -46,7 +50,7 @@ function App() {
             <Toaster />
             {isSafetyTripPage && <ConnectionStatusIndicator hideWhenOnline />}
             <LocalAuthDialog />
-            {isSafetyTripPage ? <SafetyTripPage /> : isVisitorPlanningPage ? <VisitorPlanningPage /> : <LocalProductsPage />}
+            {isSafetyTripPage ? <SafetyTripPage /> : isVisitorPlanningPage ? <VisitorPlanningPage /> : isLocalProductsPage ? <LocalProductsPage /> : isDetailPage ? <DetailPage /> : <ListingDetailPage />}
           </TooltipProvider>
         </LanguageProvider>
       </ErrorBoundary>

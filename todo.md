@@ -640,8 +640,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User request: implement the benchmark roadmap
 
-- [ ] Build reusable detail-page foundations without changing existing bookings or listings
-- [ ] Add trustworthy detail views for hotels, cars, restaurants, cafes, and mountain activities
-- [ ] Improve booking clarity with totals, status, cancellation guidance, and visitor booking history where supported
+- [x] Build reusable detail-page foundations without changing existing bookings or listings
+- [x] Add trustworthy detail views for hotels, cars, restaurants, cafes, and mountain activities
+- [x] Improve booking clarity with totals, status, cancellation guidance, and visitor booking history where supported
 - [ ] Test and publish the first roadmap phase, then continue with search, activity planning, and performance priorities
 - [x] Replace unverified fixed destination ratings and decorative review stars with honest discovery labels

@@ -6,7 +6,7 @@ const source = readFileSync('client/src/components/DestinationsSection.tsx', 'ut
 describe('activity card contact action', () => {
   it('shows a visible contact icon and uses the translated contact label', () => {
     expect(source).toContain("import { MapPin, PhoneCall } from 'lucide-react'");
-    expect(source).toContain('href="#contact"');
+    expect(source).toContain('href={`/details?type=destination&slug=${dest.slug}`}');
     expect(source).toContain("aria-label={contactLabels[lang]}");
     expect(source).toContain("<PhoneCall className=\"h-4 w-4\"");
     expect(source).toContain("<span>{contactLabels[lang]}</span>");

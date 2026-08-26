@@ -4,18 +4,21 @@ import { ArrowRight } from 'lucide-react';
 
 const features = [
   {
+    slug: 'lake',
     img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/NToyBNlacJDpjOIV.jpg',
     badge: 'featured.1.badge',
     title: 'featured.1.title',
     desc: 'featured.1.desc',
   },
   {
+    slug: 'waterfalls',
     img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/YYvpyYbTLJRQRuNJ.jpg',
     badge: 'featured.2.badge',
     title: 'featured.2.title',
     desc: 'featured.2.desc',
   },
   {
+    slug: 'villages',
     img: 'https://files.manuscdn.com/user_upload_by_module/session_file/310519663817279330/KGpeWLOJRkcROyxb.jpg',
     badge: 'featured.3.badge',
     title: 'featured.3.title',
@@ -80,7 +83,7 @@ export default function FeaturedSection() {
                   {t(feature.desc)}
                 </p>
                 <a
-                  href="#"
+                  href={`/details?type=destination&slug=${feature.slug}`}
                   className="inline-flex items-center gap-2 bg-[#1b5e3f] text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-[#0f3d28] transition-all hover:shadow-lg group-hover:-translate-x-1"
                 >
                   {t('destinations.view')}

@@ -301,6 +301,9 @@ export default function CarRentalSection() {
                       <span>{car.phone || '-'}</span>
                     </div>
                   </div>
+                  <a href={`/listing-details?type=car&id=${car.id}`} className="mb-2 flex items-center justify-center rounded-xl border border-[#1b5e3f]/20 px-3 py-2 text-xs font-bold text-[#1b5e3f] hover:bg-[#f7faf7]">
+                    {lang === 'ar' ? 'عرض التفاصيل' : lang === 'fr' ? 'Voir les détails' : lang === 'ber' ? 'ⵙⵙⵏ ⵉⵙⴼⴽⴰ' : 'View details'}
+                  </a>
                   <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
                     <button className="flex-1 px-3 py-2 bg-[#1b5e3f] text-white text-sm rounded-xl hover:bg-[#14522f] transition-colors">
                       {lang === 'ar' ? 'احجز الآن' : lang === 'fr' ? 'Réserver' : lang === 'ber' ? 'ⵔⵣⵓ' : 'Book Now'}

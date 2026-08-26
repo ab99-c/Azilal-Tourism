@@ -106,6 +106,7 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.datesAvailable': 'هذه التواريخ متاحة حالياً.',
         'booking.datesUnavailable': 'هذه التواريخ غير متاحة. اختر فترة أخرى.',
         'booking.availabilityError': 'تعذر فحص التوفر الآن. تحقق من اتصالك ثم أعد المحاولة.',
+        'booking.cancellation': 'سياسة الإلغاء تختلف حسب المالك. تواصل مع الجهة مباشرة قبل تأكيد الحجز لمعرفة الشروط.',
       },
       en: {
         'booking.title.hotel': 'Book Hotel',
@@ -152,6 +153,7 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.datesAvailable': 'These dates are currently available.',
         'booking.datesUnavailable': 'These dates are unavailable. Please choose another period.',
         'booking.availabilityError': 'Availability cannot be checked right now. Check your connection and try again.',
+        'booking.cancellation': 'Cancellation terms vary by owner. Contact the provider before confirming to ask about the conditions.',
       },
       fr: {
         'booking.title.hotel': 'Réserver Hôtel',
@@ -198,6 +200,7 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.datesAvailable': 'Ces dates sont actuellement disponibles.',
         'booking.datesUnavailable': 'Ces dates ne sont pas disponibles. Choisissez une autre période.',
         'booking.availabilityError': 'La disponibilité ne peut pas être vérifiée maintenant. Réessayez après avoir vérifié votre connexion.',
+        'booking.cancellation': 'Les conditions d’annulation varient selon le propriétaire. Contactez-le avant de confirmer.',
       },
       ber: {
         'booking.title.hotel': 'ⵙⵏⴷⵇ',
@@ -244,6 +247,7 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
         'booking.datesAvailable': 'ⵉⵙⵙⴰⵏ ⴰⴷ ⵍⵍⴰⵏ ⴷⴰⵖ.',
         'booking.datesUnavailable': 'ⵉⵙⵙⴰⵏ ⴰⴷ ⵓⵔ ⵍⵍⵉⵏ. ⵙⵜⵉ ⵜⴰⵍⴰⵎⵎⴰⵙⵜ ⵢⴰⴹⵏ.',
         'booking.availabilityError': 'ⵓⵔ ⵏⵣⵎⵎⵔ ⴰⴷ ⵏⵙⵙⵉⵡⵍ ⵅⴼ ⵜⵉⵍⵉ ⵜⵜⵓⵔⵉⵎ. ⵙⵎⵢⴰⵙⴰ ⴰⵙⵎⵇⵇⵍ ⵏⵏⴽ ⵜⵓⵖⴰⵍ.',
+        'booking.cancellation': 'ⵜⵉⵏⵎⵍ ⵏ ⵓⵙⵙⵉⵔⵉ ⵜⵎⵙⵙⵉⵔ ⵙ ⴱⴰⴱ ⵏ ⵓⵎⵙⵙⴰⵡ. ⵙⵙⵉⵡⵍ ⵉⵙ ⵣⵔⵉⵏ ⵉⵙⵏⴰⵙⵏ.',
       },
     };
     return translations[lang]?.[key] || key;
@@ -642,6 +646,9 @@ export default function BookingModal({ isOpen, onClose, type, itemId, itemName, 
 
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
                     {t_book('booking.payOnArrivalNote')}
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+                    {t_book('booking.cancellation')}
                   </div>
                 </motion.div>
               )}

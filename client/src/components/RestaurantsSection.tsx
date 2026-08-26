@@ -241,6 +241,9 @@ export default function RestaurantsSection() {
                     <Phone className="w-3.5 h-3.5 shrink-0" />
                     {restaurant.phone || '-'}
                   </div>
+                  <a href={`/listing-details?type=restaurant&id=${restaurant.id}`} className="flex items-center justify-center rounded-xl border border-[#1b5e3f]/20 px-3 py-2 text-xs font-bold text-[#1b5e3f] hover:bg-[#f7faf7]">
+                    {lang === 'ar' ? 'عرض التفاصيل' : lang === 'fr' ? 'Voir les détails' : lang === 'ber' ? 'ⵙⵙⵏ ⵉⵙⴼⴽⴰ' : 'View details'}
+                  </a>
                   <WhatsAppButton
                     phone={fromDb ? (restaurant.whatsapp || restaurant.phone) : restaurant.whatsapp}
                     message={getWhatsAppMessage(lang, getName(restaurant), 'restaurant')}
