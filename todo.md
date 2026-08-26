@@ -649,3 +649,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Replace unverified fixed destination ratings and decorative review stars with honest discovery labels
 - [x] Add a clear activity-planning route from mountain detail pages and lazy-load non-critical listing imagery
 - [x] Test the activity-planning link and image loading hints, then publish the roadmap update
+
+## User request: continue roadmap without email dependency
+
+- [x] Improve mountain-activity discovery with clearer planning and offline entry points
+- [x] Improve booking feedback, loading, and error clarity without enabling email delivery
+- [x] Test and publish this continuation to GitHub and Vercel

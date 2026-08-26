@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Globe, Home, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Compass, Globe, Home, ShieldCheck } from 'lucide-react';
 import SafetyTripSection from '@/components/SafetyTripSection';
 import MountainActivitiesOfflineCard from '@/components/MountainActivitiesOfflineCard';
 import { useLanguage, type Lang } from '@/contexts/LanguageContext';
@@ -11,10 +11,10 @@ const languageNames: Record<Lang, string> = {
 };
 
 const pageCopy = {
-  ar: { back: 'رجوع للصفحة الرئيسية', heading: 'سلامتك فالمسارات الجبلية', selected: 'النشاط المختار' },
-  en: { back: 'Back to homepage', heading: 'Your safety on mountain routes', selected: 'Selected activity' },
-  fr: { back: 'Retour à la page d’accueil', heading: 'Votre sécurité sur les routes de montagne', selected: 'Activité choisie' },
-  ber: { back: 'ⵓⵔⴰⵔ ⵙ ⵜⵏⴰⵙⵜ ⵜⴰⵎⵣⵡⴰⵔⵓⵜ', heading: 'ⵜⴰⵏⴼⵍⵜ ⵏⵏⴽ ⴳ ⵉⵙⵏⵉⵔⴰⵏ', selected: 'ⴰⵙⵏⵙⵓ ⵉⵜⵜⵓⵙⵜⵉ' },
+  ar: { back: 'العودة إلى الصفحة الرئيسية', heading: 'سلامتك في المسارات الجبلية', selected: 'النشاط المختار', plan: 'خطّط لرحلتك' },
+  en: { back: 'Back to homepage', heading: 'Your safety on mountain routes', selected: 'Selected activity', plan: 'Plan your trip' },
+  fr: { back: 'Retour à la page d’accueil', heading: 'Votre sécurité sur les routes de montagne', selected: 'Activité choisie', plan: 'Planifier votre voyage' },
+  ber: { back: 'ⵓⵔⴰⵔ ⵙ ⵜⵏⴰⵙⵜ ⵜⴰⵎⵣⵡⴰⵔⵓⵜ', heading: 'ⵜⴰⵏⴼⵍⵜ ⵏⵏⴽ ⴳ ⵉⵙⵏⵉⵔⴰⵏ', selected: 'ⴰⵙⵏⵙⵓ ⵉⵜⵜⵓⵙⵜⵉ', plan: 'ⵙⵙⵏⵓⴱⵔⵛ ⵜⵉⵔⴰ' },
 } as const;
 
 const activityNames = {
@@ -63,6 +63,10 @@ export default function SafetyTripPage() {
           <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#176b4d]"><ShieldCheck className="h-5 w-5" /> ADRAR Safety</div>
           <h1 className="mt-4 text-2xl font-black text-[#164b38] md:text-4xl">{c.heading}</h1>
           {activityName && <p className="mt-3 text-sm font-bold text-[#5b6c63]">{c.selected}: {activityName}</p>}
+          <a href="/visitor-planning" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#176b4d] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#0f5139] focus:outline-none focus:ring-4 focus:ring-[#176b4d]/20">
+            <Compass className="h-4 w-4" />
+            {c.plan}
+          </a>
         </div>
         <MountainActivitiesOfflineCard />
         <SafetyTripSection />
