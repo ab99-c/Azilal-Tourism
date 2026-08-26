@@ -708,3 +708,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add translated accessible labels and preserve strength-meter behavior
 - [x] Add regression tests and verify mobile rendering, TypeScript, and production build
 - [x] Save a checkpoint after the show/hide control is verified
+
+## UX improvement: confirm reset password
+- [x] Add a confirmation-password field to reset mode
+- [x] Show immediate translated mismatch feedback and block reset until values match
+- [x] Add regression tests and verify mobile rendering, TypeScript, and production build
+- [x] Save a checkpoint after the confirmation flow is verified

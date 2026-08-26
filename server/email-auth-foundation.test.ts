@@ -35,6 +35,11 @@ describe('email authentication foundation', () => {
     expect(authDialogSource).toContain("type={mode === 'reset' && showPassword ? 'text' : 'password'}");
     expect(authDialogSource).toContain('aria-label={showPassword ? c.hidePassword : c.showPassword}');
     expect(authDialogSource).toContain('EyeOff');
+    expect(authDialogSource).toContain('confirmPassword');
+    expect(authDialogSource).toContain('passwordMismatch');
+    expect(authDialogSource).toContain('aria-invalid={confirmPassword.length > 0 && password !== confirmPassword}');
+    expect(authDialogSource).toContain('password !== confirmPassword');
+    expect(authDialogSource).toContain('passwordMatch');
   });
 
   it('keeps dispatch disabled while exposing verification and reset contracts', () => {
