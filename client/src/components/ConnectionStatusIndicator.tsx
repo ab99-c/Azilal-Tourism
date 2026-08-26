@@ -14,19 +14,19 @@ type NetworkInformation = {
 
 const copy: Record<ConnectionState, Record<Lang, { label: string; detail: string }>> = {
   online: {
-    ar: { label: "الاتصال مزيان", detail: "الإنترنت خدام بشكل عادي" },
+    ar: { label: "الاتصال جيد", detail: "يعمل اتصال الإنترنت بصورة طبيعية" },
     en: { label: "Good connection", detail: "Your internet connection is working normally" },
     fr: { label: "Bonne connexion", detail: "Votre connexion internet fonctionne normalement" },
     ber: { label: "ⵜⵉⵏⵎⵍ ⵏ ⵡⴰⵔⴰⵎ", detail: "ⵉⵏⵜⵉⵔⵏⵜ ⵜⵅⴷⵎ ⵙ ⵎⵏⵉⵔ" },
   },
   weak: {
-    ar: { label: "الاتصال ضعيف", detail: "التحميل قد يتأخر، حاول تبقى قريب من شبكة قوية" },
+    ar: { label: "الاتصال ضعيف", detail: "قد يستغرق التحميل وقتاً أطول؛ حاول الاقتراب من شبكة قوية" },
     en: { label: "Weak connection", detail: "Loading may take longer; try a stronger network" },
     fr: { label: "Connexion faible", detail: "Le chargement peut prendre plus de temps" },
     ber: { label: "ⵜⵉⵏⵎⵍ ⵏ ⵡⴰⵔⴰⵎ ⵜⵣⵔⵉ", detail: "ⴰⵙⵙⵉⵔⵉ ⵉⵣⵎⵔ ⴰⴷ ⵉⵣⵔⵉ" },
   },
   offline: {
-    ar: { label: "ما كاينش اتصال", detail: "تحقق من Wi‑Fi أو بيانات الهاتف ثم عاود المحاولة" },
+    ar: { label: "لا يوجد اتصال", detail: "تحقق من شبكة Wi‑Fi أو بيانات الهاتف ثم حاول مرة أخرى" },
     en: { label: "You are offline", detail: "Check Wi‑Fi or mobile data, then try again" },
     fr: { label: "Vous êtes hors ligne", detail: "Vérifiez le Wi‑Fi ou les données mobiles" },
     ber: { label: "ⵓⵔ ⵜⵍⵍⵉ ⵜⵉⵏⵎⵍ", detail: "ⵙⵙⵏ ⵡⵉ-ⴼⵉ ⵏⵖ ⵉⵙⴼⴽⴰ ⵏ ⵓⵎⵣⵔⵓⵢ" },
@@ -42,7 +42,7 @@ function getNetworkState(): ConnectionState {
   return slowType || slowMetrics ? "weak" : "online";
 }
 
-export default function ConnectionStatusIndicator() {
+export default function ConnectionStatusIndicator({ hideWhenOnline = false }: { hideWhenOnline?: boolean }) {
   const { lang, isRTL } = useLanguage();
   const [state, setState] = useState<ConnectionState>(() => getNetworkState());
 
@@ -59,6 +59,8 @@ export default function ConnectionStatusIndicator() {
       connection?.removeEventListener?.("change", update);
     };
   }, []);
+
+  if (hideWhenOnline && state === "online") return null;
 
   const Icon = state === "online" ? CheckCircle2 : state === "weak" ? Gauge : WifiOff;
   const palette = state === "online"

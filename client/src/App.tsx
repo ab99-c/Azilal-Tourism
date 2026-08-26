@@ -44,7 +44,7 @@ function App() {
         <LanguageProvider>
           <TooltipProvider>
             <Toaster />
-            <ConnectionStatusIndicator />
+            {isSafetyTripPage && <ConnectionStatusIndicator hideWhenOnline />}
             <LocalAuthDialog />
             {isSafetyTripPage ? <SafetyTripPage /> : isVisitorPlanningPage ? <VisitorPlanningPage /> : <LocalProductsPage />}
           </TooltipProvider>
@@ -63,7 +63,6 @@ function App() {
           <LocalAuthDialog />
           <div className="min-h-screen bg-[#f5f5f0]">
             <Navbar />
-            <ConnectionStatusIndicator />
             <main>
               <HeroSection />
               <UnifiedDiscoverySearch />

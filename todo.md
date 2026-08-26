@@ -607,3 +607,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add multilingual labels and safe empty states when no phone or WhatsApp is available
 - [x] Verify responsive layout, tests, build, GitHub push, and Vercel production
 - [x] Use the Modern Standard Arabic contact label «اتصل الآن» next to the activity contact icon
+
+## User clarification: weak-connection notice belongs only to mountain activities
+
+- [x] Move the weak-connection notice into the mountain activities / Safety Trip context only
+- [x] Remove the global weak-connection indicator from the homepage and unrelated sections
+- [x] Keep the notice in Modern Standard Arabic and verify mobile behavior, tests, build, GitHub, and Vercel
