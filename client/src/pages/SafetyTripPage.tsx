@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Globe, Home, ShieldCheck } from 'lucide-react';
 import SafetyTripSection from '@/components/SafetyTripSection';
+import MountainActivitiesOfflineCard from '@/components/MountainActivitiesOfflineCard';
 import { useLanguage, type Lang } from '@/contexts/LanguageContext';
 
 const languageNames: Record<Lang, string> = {
@@ -63,6 +64,7 @@ export default function SafetyTripPage() {
           <h1 className="mt-4 text-2xl font-black text-[#164b38] md:text-4xl">{c.heading}</h1>
           {activityName && <p className="mt-3 text-sm font-bold text-[#5b6c63]">{c.selected}: {activityName}</p>}
         </div>
+        <MountainActivitiesOfflineCard />
         <SafetyTripSection />
       </main>
     </div>

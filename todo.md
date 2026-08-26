@@ -618,3 +618,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 - [x] Make «الاتصال ضعيف» orange and «لا يوجد اتصال» red with readable contrast
 - [x] Run focused tests and build, then push GitHub and verify Vercel
+
+## User request: offline mountain activities data
+
+- [x] Add local storage for the essential mountain activities data with explicit user consent
+- [x] Add a multilingual save/offline status UI inside the mountain activities / Safety Trip area
+- [x] Restore the saved activity data when the device is offline and provide a delete action
+- [x] Test offline behavior, build, push GitHub, and verify Vercel
