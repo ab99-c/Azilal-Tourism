@@ -26,6 +26,7 @@ import VisitorPlanningPage from './pages/VisitorPlanningPage';
 import LocalProductsPage from './pages/LocalProductsPage';
 import DetailPage from './pages/DetailPage';
 import ListingDetailPage from './pages/ListingDetailPage';
+import AnswerReadySection from './components/AnswerReadySection';
 import { useAuth } from '@/_core/hooks/useAuth';
 
 function AuthenticatedDashboards() {
@@ -80,6 +81,7 @@ function App() {
               <CarRentalSection />
               <AuthenticatedDashboards />
               <MapSection />
+              <AnswerReadySection />
               <FooterSection />
             </main>
             <ChatWidget />

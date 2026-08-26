@@ -27,24 +27,7 @@ const SITE_URL = "https://azilal-tourism.vercel.app/";
  * Actual entities listed on the platform (from the site's own datasets).
  * Facts only — no fabricated reviews, ratings, or ratings-derived claims.
  */
-export const SEO_ENTITIES: SeoEntity[] = [
-  { type: "LodgingBusiness", nameAr: "فندق أدرار الأطلس", nameEn: "ADRAR Atlas Hotel", nameFr: "Hôtel ADRAR Atlas", locationEn: "Azilal city center" },
-  { type: "LodgingBusiness", nameAr: "نزل بيربر التقليدي", nameEn: "Traditional Berber Lodge", nameFr: "Gîte Berbère Traditionnel", locationEn: "Ait Boumehdi village" },
-  { type: "LodgingBusiness", nameAr: "رياد بين الويدان", nameEn: "Bin el Ouidane Riad", nameFr: "Riad Bin el Ouidane", locationEn: "Bin el Ouidane Lake" },
-  { type: "LodgingBusiness", nameAr: "مخيم الأطلس المغامر", nameEn: "Atlas Adventure Camp", nameFr: "Camp d'Aventure Atlas", locationEn: "Ait Bougmez Valley" },
-  { type: "Restaurant", nameAr: "مطعم أدرار التقليدي", nameEn: "Azilal Traditional Restaurant", nameFr: "Restaurant Traditionnel Azilal", locationEn: "Azilal city" },
-  { type: "Restaurant", nameAr: "مطعم البحيرة", nameEn: "Lake View Restaurant", nameFr: "Restaurant Vue sur le Lac", locationEn: "Bin el Ouidane Lake" },
-  { type: "Restaurant", nameAr: "مطعم الشفق", nameEn: "Twilight Restaurant", nameFr: "Restaurant Crépuscule", locationEn: "Azilal city" },
-  { type: "Restaurant", nameAr: "مطعم الجبل الأخضر", nameEn: "Green Mountain Restaurant", nameFr: "Restaurant Montagne Verte", locationEn: "Atlas Mountains, Azilal" },
-  { type: "CafeOrCoffeeShop", nameAr: "مقهى الأطلس", nameEn: "Atlas Café", nameFr: "Café Atlas", locationEn: "Azilal city" },
-  { type: "CafeOrCoffeeShop", nameAr: "مقهى الوادي", nameEn: "Valley Café", nameFr: "Café de la Vallée", locationEn: "Azilal" },
-  { type: "CafeOrCoffeeShop", nameAr: "مقهى الأمازيغ", nameEn: "Amazigh Café", nameFr: "Café Amazigh", locationEn: "Azilal city" },
-  { type: "CafeOrCoffeeShop", nameAr: "مقهى البحيرة", nameEn: "Lakeside Café", nameFr: "Café du Lac", locationEn: "Bin el Ouidane Lake" },
-  { type: "AutoRental", nameAr: "سيارة عائلية", nameEn: "Family SUV 4x4", nameFr: "SUV Familial 4x4", locationEn: "Azilal" },
-  { type: "AutoRental", nameAr: "سيارة اقتصادية", nameEn: "Economy Car", nameFr: "Voiture Économique", locationEn: "Azilal" },
-  { type: "AutoRental", nameAr: "سيارة فاخرة", nameEn: "Luxury Car", nameFr: "Voiture de Luxe", locationEn: "Azilal" },
-  { type: "AutoRental", nameAr: "دراجة نارية", nameEn: "Adventure Motorcycle", nameFr: "Moto Aventure", locationEn: "Azilal" },
-];
+export const SEO_ENTITIES: SeoEntity[] = [];
 
 export function buildLocalBusinessesJsonLd(entities: SeoEntity[]): object {
   const children = entities.map((e) => {
@@ -72,7 +55,6 @@ export function buildLocalBusinessesJsonLd(entities: SeoEntity[]): object {
         name: "Azilal Province, Morocco",
       },
       url: SITE_URL,
-      priceRange: "$$",
     };
     if (e.type === "LodgingBusiness") {
       return { ...base, "@type": "Hotel" };
@@ -125,11 +107,7 @@ export function buildWebSiteJsonLd(): object {
         "@type": "ImageObject",
         url: "https://cdn.manus.im/webdev-static-assets/J2SX2a5nNx9zeqeJ7oPCCo/icon-512.png",
       },
-      sameAs: [
-        "https://www.tiktok.com/@adrar.azilal",
-        "https://www.instagram.com/adrar.azilal",
-        "https://www.facebook.com/adrar.azilal",
-      ],
+      sameAs: [],
     },
   };
 }
@@ -155,7 +133,6 @@ export function buildOrganizationJsonLd(): object {
     name: "ADRAR Tourism — Centre d'information touristique Azilal",
     alternateName: "أدرار للسياحة",
     url: SITE_URL,
-    email: "info@adrar-tourism.ma",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Azilal",
@@ -165,10 +142,6 @@ export function buildOrganizationJsonLd(): object {
     geo: { "@type": "GeoCoordinates", latitude: 32.8095, longitude: -6.572 },
     areaServed: { "@type": "Place", name: "Azilal Province, Morocco" },
     knowsLanguage: ["Arabic", "French", "English", "Amazigh"],
-    sameAs: [
-      "https://www.tiktok.com/@adrar.azilal",
-      "https://www.instagram.com/adrar.azilal",
-      "https://www.facebook.com/adrar.azilal",
-    ],
+    sameAs: [],
   };
 }

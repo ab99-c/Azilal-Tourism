@@ -662,3 +662,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a real downloadable trail-data package with local offline storage and clear provider limitations
 - [x] Add multilingual download/open/delete controls inside Safety Trip and verify offline restoration
 - [x] Test, build, push GitHub, and verify Vercel
+
+## User request: apply SEO, GEO, and AEO
+
+- [x] Audit and strengthen ADRAR metadata, canonical URLs, crawl files, and multilingual page signals
+- [x] Improve Azilal local-search signals using only verified place and business information
+- [x] Add factual answer-oriented content and structured data without fabricated reviews, ratings, or contacts
+- [x] Test SEO assets, build, push GitHub, and verify Vercel

@@ -33,10 +33,12 @@ const injectJsonLd = (id: string, payload: object) => {
 injectJsonLd("adrar-jsonld-website", buildWebSiteJsonLd());
 injectJsonLd("adrar-jsonld-organization", buildOrganizationJsonLd());
 injectJsonLd("adrar-jsonld-breadcrumb", buildBreadcrumbJsonLd());
-injectJsonLd(
-  "adrar-jsonld-businesses",
-  buildLocalBusinessesJsonLd(SEO_ENTITIES)
-);
+if (SEO_ENTITIES.length > 0) {
+  injectJsonLd(
+    "adrar-jsonld-businesses",
+    buildLocalBusinessesJsonLd(SEO_ENTITIES)
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
