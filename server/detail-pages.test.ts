@@ -7,6 +7,7 @@ const featured = readFileSync('client/src/components/FeaturedSection.tsx', 'utf8
 const detail = readFileSync('client/src/pages/DetailPage.tsx', 'utf8');
 const listingDetail = readFileSync('client/src/pages/ListingDetailPage.tsx', 'utf8');
 const booking = readFileSync('client/src/components/BookingModal.tsx', 'utf8');
+const discovery = readFileSync('client/src/components/UnifiedDiscoverySearch.tsx', 'utf8');
 
 describe('trustworthy destination detail pages', () => {
   it('registers the details route and provides reusable localized content', () => {
@@ -33,6 +34,11 @@ describe('trustworthy destination detail pages', () => {
     expect(listingDetail).toContain('trpc.cafes.list.useQuery');
     expect(booking).toContain("'booking.cancellation'");
     expect(booking).toContain('سياسة الإلغاء تختلف حسب المالك');
+  });
+
+  it('opens search results at the matching listing detail page', () => {
+    expect(discovery).toContain('href={`/listing-details?type=${item.kind}&id=${item.id}`}');
+    expect(discovery).not.toContain("scrollToSection");
   });
 
   it('does not invent public reviews or ratings in the detail view', () => {

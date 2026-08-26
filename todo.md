@@ -643,5 +643,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Build reusable detail-page foundations without changing existing bookings or listings
 - [x] Add trustworthy detail views for hotels, cars, restaurants, cafes, and mountain activities
 - [x] Improve booking clarity with totals, status, cancellation guidance, and visitor booking history where supported
-- [ ] Test and publish the first roadmap phase, then continue with search, activity planning, and performance priorities
+- [x] Test and publish the first roadmap phase
+- [x] Improve unified search result routing to matching detail pages
+- [x] Continue with mountain activity planning and performance priorities
 - [x] Replace unverified fixed destination ratings and decorative review stars with honest discovery labels
+- [x] Add a clear activity-planning route from mountain detail pages and lazy-load non-critical listing imagery
+- [x] Test the activity-planning link and image loading hints, then publish the roadmap update

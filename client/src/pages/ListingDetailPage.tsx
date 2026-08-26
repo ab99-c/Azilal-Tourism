@@ -37,7 +37,7 @@ export default function ListingDetailPage() {
     {query.isLoading && <div className="mt-8 rounded-2xl bg-white p-8 text-center font-bold text-[#1b5e3f]">{t.loading}</div>}
     {!query.isLoading && !item && <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center font-bold text-amber-900">{t.missing}</div>}
     {!query.isLoading && item && <article className="mt-6 overflow-hidden rounded-[2rem] bg-white shadow-xl">
-      {image ? <img src={image} alt={title} className="h-64 w-full object-cover md:h-96" /> : <div className="flex h-48 items-center justify-center bg-[#eaf3ec] font-bold text-[#1b5e3f]">{t.noImage}</div>}
+      {image ? <img src={image} alt={title} loading="lazy" decoding="async" className="h-64 w-full object-cover md:h-96" /> : <div className="flex h-48 items-center justify-center bg-[#eaf3ec] font-bold text-[#1b5e3f]">{t.noImage}</div>}
       <div className="grid gap-8 p-6 md:grid-cols-[1fr_20rem] md:p-10"><section>
         <div className="flex items-center gap-2 text-sm font-bold text-[#1b5e3f]"><ShieldCheck className="h-4 w-4" />{t.details}</div>
         <h1 className="mt-3 text-3xl font-black text-[#1b5e3f]">{title}</h1>

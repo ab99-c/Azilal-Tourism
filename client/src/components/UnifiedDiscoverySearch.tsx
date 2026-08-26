@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Car, Coffee, Compass, Hotel, MapPin, Search, Utensils } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { scrollToSection } from '@/lib/scroll';
 
 type DiscoveryKind = 'hotel' | 'car' | 'restaurant' | 'cafe';
 
@@ -88,11 +87,11 @@ export default function UnifiedDiscoverySearch() {
             {!loading && results.length === 0 ? <p className="rounded-xl bg-[#f5f5f0] px-4 py-5 text-center text-sm text-slate-500">{l('empty')}</p> : <div className="grid gap-2 sm:grid-cols-2">
               {results.map((item) => {
                 const Icon = iconByKind[item.kind];
-                return <button key={`${item.kind}-${item.id}`} onClick={() => scrollToSection(sectionByKind[item.kind])} className="group flex min-w-0 items-center gap-3 rounded-xl border border-slate-100 p-3 text-start transition-colors hover:border-[#1b5e3f]/25 hover:bg-[#1b5e3f]/5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1b5e3f]/10 text-[#1b5e3f]">{item.image ? <img src={item.image} alt="" className="h-full w-full object-cover" /> : <Icon className="h-4 w-4" />}</div>
+                return <a key={`${item.kind}-${item.id}`} href={`/listing-details?type=${item.kind}&id=${item.id}`} className="group flex min-w-0 items-center gap-3 rounded-xl border border-slate-100 p-3 text-start transition-colors hover:border-[#1b5e3f]/25 hover:bg-[#1b5e3f]/5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1b5e3f]/10 text-[#1b5e3f]">{item.image ? <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <Icon className="h-4 w-4" />}</div>
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-800">{item.name || `#${item.id}`}</p><p className="mt-0.5 truncate text-xs text-slate-500">{item.location || l(item.kind)}</p></div>
                   <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-bold text-[#1b5e3f]">{l('open')}<MapPin className="h-3 w-3" /></span>
-                </button>;
+                </a>;
               })}
             </div>}
           </div>}
