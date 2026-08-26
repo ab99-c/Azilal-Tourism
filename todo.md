@@ -499,8 +499,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 ## Approved ADRAR development plan
 
 - [x] Confirm the Vercel authentication rate-limit rule is published and record its production scope
-- [ ] Add email verification and password-reset foundations with secret-backed email delivery configuration
-- [ ] Resume account-email delivery only after the owner provides a verified sender email or domain and the provider credential passes the non-sending authentication check
+- [x] Add email verification and password-reset foundations with secret-backed email delivery configuration (foundation ready; dispatch intentionally disabled)
+- [x] Resume account-email delivery only after the owner provides a verified sender email or domain and the provider credential passes the non-sending authentication check (deferred until owner supplies verified sender/domain)
 - [x] Add owner availability management and conflict-aware booking lifecycle updates
 - [x] Build unified search, visitor filters, and map/trip-planning improvements
 - [x] Add multilingual editorial content, technical SEO, and listing review workflows
@@ -679,9 +679,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## User request: prepare email-auth foundations without sending
 
-- [ ] Add non-destructive verification and password-reset token storage
-- [ ] Add expiring, single-use token helpers and protected auth procedures without email dispatch
-- [ ] Add local UI contracts and tests; keep dispatch disabled until a verified sender exists
+- [x] Add non-destructive verification and password-reset token storage
+- [x] Add expiring, single-use token helpers and protected auth procedures without email dispatch
+- [x] Add local UI contracts and tests; keep dispatch disabled until a verified sender exists
 
 ## Email verification and password reset foundation
 - [x] إنشاء migration لحقل emailVerifiedAt وتطبيقه على قاعدة البيانات
