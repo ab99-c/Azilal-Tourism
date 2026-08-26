@@ -690,3 +690,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إضافة عقود واجهة محلية للتحقق والاستعادة مع نص عربي فصيح
 - [x] إضافة اختبارات أساس البريد والتحقق من TypeScript وبناء Vercel
 - [x] حفظ checkpoint النهائي ومزامنة تغييرات GitHub/Vercel
+
+## UX improvement: verification and password reset dialogs
+- [x] Add smooth, accessible loading states to verification and password-reset actions
+- [x] Add clear, field-aware error messages for invalid, expired, or incomplete reset/verification inputs in AR/EN/FR/BER
+- [x] Add regression tests and verify responsive dialog rendering, TypeScript, and production build
+- [x] Save a checkpoint after the UX improvements are verified

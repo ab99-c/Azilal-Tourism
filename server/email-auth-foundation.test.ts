@@ -5,6 +5,7 @@ import { createEmailAuthTokenValue } from './db';
 
 const routerSource = readFileSync(fileURLToPath(new URL('./routers.ts', import.meta.url)), 'utf8');
 const schemaSource = readFileSync(fileURLToPath(new URL('../drizzle/schema.ts', import.meta.url)), 'utf8');
+const authDialogSource = readFileSync(fileURLToPath(new URL('../client/src/components/LocalAuthDialog.tsx', import.meta.url)), 'utf8');
 
 describe('email authentication foundation', () => {
   it('creates high-entropy raw tokens and stores only a sha256 hash', () => {
@@ -17,6 +18,15 @@ describe('email authentication foundation', () => {
     expect(schemaSource).toContain('tokenHash: varchar("tokenHash", { length: 128 })');
     expect(schemaSource).toContain('usedAt: timestamp("usedAt")');
     expect(schemaSource).toContain('expiresAt: timestamp("expiresAt")');
+  });
+
+  it('shows accessible loading and clear feedback states in the auth dialog', () => {
+    expect(authDialogSource).toContain('Loader2');
+    expect(authDialogSource).toContain('aria-busy={pending}');
+    expect(authDialogSource).toContain('role={feedbackType === \'error\' ? \'alert\' : \'status\'}');
+    expect(authDialogSource).toContain('border-red-200 bg-red-50');
+    expect(authDialogSource).toContain('formIncomplete');
+    expect(authDialogSource).toContain('invalidToken');
   });
 
   it('keeps dispatch disabled while exposing verification and reset contracts', () => {
