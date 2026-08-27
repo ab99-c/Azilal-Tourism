@@ -3,13 +3,13 @@
   "short_name": "ADRAR",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/manus-storage/adrar-splash-no-amazigh-192_c2234fd0.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/manus-storage/adrar-splash-no-amazigh-512_5e3b2ddb.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

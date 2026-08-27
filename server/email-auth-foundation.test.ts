@@ -6,6 +6,8 @@ import { createEmailAuthTokenValue } from './db';
 const routerSource = readFileSync(fileURLToPath(new URL('./routers.ts', import.meta.url)), 'utf8');
 const schemaSource = readFileSync(fileURLToPath(new URL('../drizzle/schema.ts', import.meta.url)), 'utf8');
 const authDialogSource = readFileSync(fileURLToPath(new URL('../client/src/components/LocalAuthDialog.tsx', import.meta.url)), 'utf8');
+const manifestSource = readFileSync(fileURLToPath(new URL('../client/public/manifest.json', import.meta.url)), 'utf8');
+const indexSource = readFileSync(fileURLToPath(new URL('../client/index.html', import.meta.url)), 'utf8');
 
 describe('email authentication foundation', () => {
   it('creates high-entropy raw tokens and stores only a sha256 hash', () => {
@@ -40,6 +42,12 @@ describe('email authentication foundation', () => {
     expect(authDialogSource).toContain('aria-invalid={confirmPassword.length > 0 && password !== confirmPassword}');
     expect(authDialogSource).toContain('password !== confirmPassword');
     expect(authDialogSource).toContain('passwordMatch');
+  });
+
+  it('uses the edited splash icon paths in the install metadata', () => {
+    expect(manifestSource).toContain('/manus-storage/adrar-splash-no-amazigh-192_c2234fd0.png');
+    expect(manifestSource).toContain('/manus-storage/adrar-splash-no-amazigh-512_5e3b2ddb.png');
+    expect(indexSource).toContain('<link rel="apple-touch-icon" href="/manus-storage/adrar-splash-no-amazigh-192_c2234fd0.png" />');
   });
 
   it('keeps dispatch disabled while exposing verification and reset contracts', () => {

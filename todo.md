@@ -720,3 +720,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Reset recovery feedback and preserve intentional email state when returning
 - [x] Add regression tests and verify mobile rendering, TypeScript, and production build
 - [x] Save a checkpoint after the return control is verified
+
+## UX improvement: mobile splash logo
+- [x] Reduce the splash-screen logo size slightly on mobile
+- [x] Remove the Amazigh symbol from the splash logo while preserving ADRAR branding
+- [x] Verify the splash screen visually on mobile and run TypeScript, tests, and production build
+- [x] Save a checkpoint after the splash-logo change is verified
