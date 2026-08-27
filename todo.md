@@ -728,7 +728,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Save a checkpoint after the splash-logo change is verified
 
 ## Delivery: sync splash-logo update
-- [ ] Verify the working tree and target GitHub repository/branch
-- [ ] Commit and push the latest splash-logo update to GitHub
-- [ ] Confirm the latest Vercel deployment is live and accessible
-- [ ] Save a delivery checkpoint after GitHub and Vercel verification
+- [x] Verify the working tree and target GitHub repository/branch
+- [x] Commit and push the latest splash-logo update to GitHub
+- [x] Confirm the latest Vercel deployment is live and accessible
+- [x] Save a delivery checkpoint after GitHub and Vercel verification
