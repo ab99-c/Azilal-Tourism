@@ -726,3 +726,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Remove the Amazigh symbol from the splash logo while preserving ADRAR branding
 - [x] Verify the splash screen visually on mobile and run TypeScript, tests, and production build
 - [x] Save a checkpoint after the splash-logo change is verified
+
+## Delivery: sync splash-logo update
+- [ ] Verify the working tree and target GitHub repository/branch
+- [ ] Commit and push the latest splash-logo update to GitHub
+- [ ] Confirm the latest Vercel deployment is live and accessible
+- [ ] Save a delivery checkpoint after GitHub and Vercel verification
