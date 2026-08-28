@@ -22,6 +22,7 @@ import SafetyTripPage from './pages/SafetyTripPage';
 import ConnectionStatusIndicator from './components/ConnectionStatusIndicator';
 import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
+import EarlyAccessSection from './components/EarlyAccessSection';
 import VisitorPlanningPage from './pages/VisitorPlanningPage';
 import LocalProductsPage from './pages/LocalProductsPage';
 import DetailPage from './pages/DetailPage';
@@ -70,6 +71,7 @@ function App() {
             <Navbar />
             <main>
               <HeroSection />
+              <EarlyAccessSection />
               <UnifiedDiscoverySearch />
               <FeaturedSection />
               <StatsSection />

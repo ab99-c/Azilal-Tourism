@@ -732,3 +732,16 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Commit and push the latest splash-logo update to GitHub
 - [x] Confirm the latest Vercel deployment is live and accessible
 - [x] Save a delivery checkpoint after GitHub and Vercel verification
+
+## Analysis: hypothetical 3-month Early Access forecast
+- [x] Define clearly labeled conservative, base, and optimistic assumptions
+- [x] Create a visual forecast chart for visits and bookings over three months
+- [x] Write the interpretation and limitations of the hypothetical model
+- [x] Deliver the chart and analysis to the user
+
+## Growth upgrade: engineering, marketing, and operations
+- [x] Audit the current visitor-to-contact and visitor-to-booking journey
+- [x] Improve the primary conversion path and early-access calls to action
+- [x] Add measurable early-access source tracking and owner operational follow-up
+- [x] Validate mobile UX, tests, TypeScript, and production build before publishing
+- [x] Save a checkpoint and sync the completed growth upgrade to GitHub and Vercel
