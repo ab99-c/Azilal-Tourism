@@ -757,3 +757,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Define a safe phased plan for payments and reviews without fake data or destructive migration
 - [x] Finish and verify the booking-form loading animation after the architecture review
 - [x] Save a checkpoint after the review and verified UX change
+
+## Delivery: booking loading update
+- [ ] Verify the current commit and target GitHub branch
+- [ ] Push the booking-loading update to GitHub
+- [ ] Confirm the updated site is live on Vercel
+- [ ] Save a delivery checkpoint after verification
