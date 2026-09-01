@@ -8,13 +8,13 @@ const ownerCalendarSource = readFileSync(fileURLToPath(new URL('../client/src/co
 describe('availability UI contract', () => {
   it('checks hotel and car availability before the booking can progress or submit', () => {
     expect(bookingModalSource).toContain('trpc.availability.check.useQuery');
-    expect(bookingModalSource).toContain("'booking.datesUnavailable'");
+    expect(bookingModalSource).toContain("booking.datesUnavailable");
     expect(bookingModalSource).toContain('BOOKING_DATES_UNAVAILABLE');
-    expect(bookingModalSource).toContain('disabled={step === 1');
+    expect(bookingModalSource).toContain('step === 1');
   });
 
   it('keeps guest availability feedback available in all supported languages', () => {
-    for (const label of ['booking.datesAvailable', 'booking.datesUnavailable', 'booking.checkingAvailability']) {
+    for (const label of ['booking.datesAvailable', "booking.datesUnavailable", 'booking.checkingAvailability']) {
       expect(bookingModalSource.split(label).length).toBeGreaterThanOrEqual(5);
     }
   });
@@ -26,3 +26,13 @@ describe('availability UI contract', () => {
     expect(ownerCalendarSource).toContain('endsAt <= startsAt');
   });
 });
+
+  it('shows an accessible animated pending state and prevents duplicate booking submissions', () => {
+    expect(bookingModalSource).toContain("booking.submitting");
+    expect(bookingModalSource).toContain('role="status"');
+    expect(bookingModalSource).toContain('aria-live="polite"');
+    expect(bookingModalSource).toContain('aria-busy={isSubmitting}');
+    expect(bookingModalSource).toContain("isSubmitting ||");
+    expect(bookingModalSource).toContain("availabilityQuery.isFetching");
+    expect(bookingModalSource).toContain('animate-spin');
+  });

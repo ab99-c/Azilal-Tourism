@@ -745,3 +745,15 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add measurable early-access source tracking and owner operational follow-up
 - [x] Validate mobile UX, tests, TypeScript, and production build before publishing
 - [x] Save a checkpoint and sync the completed growth upgrade to GitHub and Vercel
+
+## UX improvement: booking submission loading
+- [x] Add a smooth, accessible loading state to the booking submission button
+- [x] Prevent duplicate booking submissions and keep the form responsive while pending
+- [x] Add regression tests and verify mobile rendering, TypeScript, and production build
+- [x] Save a checkpoint after the booking loading experience is verified
+
+## Architecture review: ADRAR data model
+- [x] Compare the proposed users/organizations/catalog/bookings model with the existing schema
+- [x] Define a safe phased plan for payments and reviews without fake data or destructive migration
+- [x] Finish and verify the booking-form loading animation after the architecture review
+- [x] Save a checkpoint after the review and verified UX change
