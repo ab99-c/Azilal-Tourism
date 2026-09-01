@@ -170,6 +170,7 @@ export const appRouter = router({
       name: z.string().trim().min(2).max(120),
       email: localEmail,
       password: localPassword,
+      providerType: z.enum(["tourist", "hotel_owner", "restaurant_owner", "activity_provider", "guide", "transport_provider"]).optional(),
     })).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "register");
       const existing = await getUserByEmail(input.email);
@@ -179,6 +180,7 @@ export const appRouter = router({
         name: input.name,
         email: input.email,
         passwordHash: await hashPassword(input.password),
+        providerType: input.providerType,
       });
       if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
       const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
@@ -200,6 +202,7 @@ export const appRouter = router({
     activateExistingAdmin: publicProcedure.input(z.object({
       email: localEmail,
       password: localPassword,
+      providerType: z.enum(["tourist", "hotel_owner", "restaurant_owner", "activity_provider", "guide", "transport_provider"]).optional(),
       bootstrapSecret: z.string().min(12).max(200),
     })).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "admin-activation");

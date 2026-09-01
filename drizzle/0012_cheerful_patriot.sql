@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `providerType` enum('tourist','hotel_owner','restaurant_owner','activity_provider','guide','transport_provider') DEFAULT 'tourist' NOT NULL;

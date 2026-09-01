@@ -200,7 +200,7 @@ export async function markEmailVerified(userId: number) {
   await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, userId));
 }
 
-export async function createLocalUser(input: { openId: string; name: string; email: string; passwordHash: string }) {
+export async function createLocalUser(input: { openId: string; name: string; email: string; passwordHash: string; providerType?: "tourist" | "hotel_owner" | "restaurant_owner" | "activity_provider" | "guide" | "transport_provider" }) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
   await db.insert(users).values({
@@ -210,6 +210,7 @@ export async function createLocalUser(input: { openId: string; name: string; ema
     passwordHash: input.passwordHash,
     loginMethod: "email_password",
     role: "user",
+    providerType: input.providerType ?? "tourist",
     lastSignedIn: new Date(),
   });
   return getUserByEmail(input.email);
