@@ -81,6 +81,7 @@ const labels = {
     accountExists:
       "هذا البريد مسجل مسبقاً. سجّل الدخول أو فعّل حساب الإدارة القديم.",
     invalid: "البريد الإلكتروني أو كلمة السر أو رمز الإعداد غير صحيح.",
+    registerError: "تعذر إنشاء الحساب حالياً. تحقق من البيانات وحاول مرة أخرى.",
     formIncomplete: "يرجى إكمال الحقول المطلوبة والتحقق من الرمز وكلمة السر.",
     passwordChanged: "تم تغيير كلمة السر بنجاح. يمكنك تسجيل الدخول الآن.",
     confirmPassword: "تأكيد كلمة السر الجديدة",
@@ -129,6 +130,7 @@ const labels = {
     accountExists:
       "This email already has an account. Sign in or activate the existing administrator account.",
     invalid: "The email or password is incorrect.",
+    registerError: "The account could not be created right now. Check your details and try again.",
     formIncomplete:
       "Please complete the required fields and check the token and password.",
     passwordChanged: "Password changed successfully. You can sign in now.",
@@ -179,6 +181,7 @@ const labels = {
     accountExists:
       "Cet e-mail possède déjà un compte. Connectez-vous ou activez le compte administrateur.",
     invalid: "E-mail ou mot de passe incorrect.",
+    registerError: "Le compte n’a pas pu être créé. Vérifiez vos informations et réessayez.",
     formIncomplete:
       "Veuillez remplir les champs requis et vérifier le jeton et le mot de passe.",
     passwordChanged:
@@ -229,6 +232,7 @@ const labels = {
     passwordWeak: "ⵙⵙⵏ ⵜⴰⵡⴰⵍⵜ ⵜⵣⵎⵔ ⵙ ⵉⵙⴽⴽⵉⵍⵏ ⴷ ⵉⵎⵏⵣⴰⵢⵏ ⴷ ⵉⵎⵣⵣⵉⵣⵏ",
     accountExists: "ⵉⵍⴰ ⴰⵎⵉⴷⴰⵏ",
     invalid: "ⵓⵔ ⵉⵙⵖⵓⴷⴰ",
+    registerError: "ⵓⵔ ⵉⵣⵎⵔ ⵓⵎⵉⴷⴰⵏ ⴰⴷ ⵉⵜⵜⵓⵙⵏⵓⵍⴼⵓ. ⵙⵙⵏ ⵉⵎⵙⵙⴰⵡⵏ ⴷ ⵙⵙⵏ ⵜⵉⴽⵍⵉⵏ.",
     formIncomplete: "ⵙⵙⵎⵔⵙ ⵉⵙⵏ ⵉⵎⵣⵣⵉⵣⵏ ⴷ ⴰⵎⵣⵔⵓⵢ ⴷ ⵜⴰⵡⴰⵍⵜ.",
     passwordChanged: "ⵜⴱⴷⴷⵍ ⵜⴰⵡⴰⵍⵜ",
     confirmPassword: "ⵙⵙⵏ ⵜⴰⵡⴰⵍⵜ ⵜⴰⵎⴰⵢⵏⵓⵜ",
@@ -350,10 +354,21 @@ export default function LocalAuthDialog() {
   });
   const register = trpc.auth.register.useMutation({
     onSuccess: ({ user }) => finish(user, c.verifyPending),
-    onError: err =>
-      showError(
-        err.message === "EMAIL_ALREADY_REGISTERED" ? c.accountExists : c.invalid
-      ),
+    onError: err => {
+      const message = String(err.message ?? "");
+      if (
+        message.includes("EMAIL_ALREADY_REGISTERED") ||
+        err.data?.code === "CONFLICT"
+      ) {
+        showError(c.accountExists);
+        return;
+      }
+      if (message.includes("ACCOUNT_CREATION_FAILED")) {
+        showError(c.registerError);
+        return;
+      }
+      showError(c.registerError);
+    },
   });
   const activate = trpc.auth.activateExistingAdmin.useMutation({
     onSuccess: ({ user }) => finish(user, c.activated),

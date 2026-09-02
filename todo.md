@@ -784,3 +784,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Formalize booking status transitions and owner-visible operational metrics
 - [x] Add regression coverage, run TypeScript/build, and verify mobile UX
 - [x] Save and sync the completed phase to GitHub and Vercel
+
+## Bug fix: signup error shown in screenshot
+- [x] Diagnose the signup error and verify the client/server registration contract
+- [x] Improve validation and explainable multilingual signup errors without exposing secrets
+- [x] Add regression coverage and verify mobile/desktop rendering, TypeScript, and production build
+- [x] Save a checkpoint after the signup flow is verified

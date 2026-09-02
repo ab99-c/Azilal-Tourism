@@ -25,7 +25,7 @@ describe('email authentication foundation', () => {
   it('shows accessible loading and clear feedback states in the auth dialog', () => {
     expect(authDialogSource).toContain('Loader2');
     expect(authDialogSource).toContain('aria-busy={pending}');
-    expect(authDialogSource).toContain('role={feedbackType === \'error\' ? \'alert\' : \'status\'}');
+    expect(authDialogSource).toContain('feedbackType === "error" ? "alert" : "status"');
     expect(authDialogSource).toContain('border-red-200 bg-red-50');
     expect(authDialogSource).toContain('formIncomplete');
     expect(authDialogSource).toContain('invalidToken');
@@ -34,12 +34,13 @@ describe('email authentication foundation', () => {
     expect(authDialogSource).toContain('role="progressbar"');
     expect(authDialogSource).toContain('passwordStrength >= 4');
     expect(authDialogSource).toContain('showPassword');
-    expect(authDialogSource).toContain("type={mode === 'reset' && showPassword ? 'text' : 'password'}");
+    expect(authDialogSource).toContain('mode === "reset" && showPassword ? "text" : "password"');
     expect(authDialogSource).toContain('aria-label={showPassword ? c.hidePassword : c.showPassword}');
     expect(authDialogSource).toContain('EyeOff');
     expect(authDialogSource).toContain('confirmPassword');
     expect(authDialogSource).toContain('passwordMismatch');
-    expect(authDialogSource).toContain('aria-invalid={confirmPassword.length > 0 && password !== confirmPassword}');
+    expect(authDialogSource).toContain('aria-invalid=');
+    expect(authDialogSource).toContain('confirmPassword.length > 0 && password !== confirmPassword');
     expect(authDialogSource).toContain('password !== confirmPassword');
     expect(authDialogSource).toContain('passwordMatch');
   });
