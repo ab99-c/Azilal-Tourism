@@ -52,4 +52,11 @@ describe("independent email/password authentication", () => {
     expect(authDialog).toContain("c.accountExists");
     expect(authDialog).toContain("c.registerError");
   });
+
+  it("keeps the production bundle aligned with the current auth schema and OAuth guidance", () => {
+    const productionBundle = fs.readFileSync("api/index.js", "utf8");
+    expect(productionBundle).toContain('providerType: mysqlEnum');
+    expect(productionBundle).toContain('providerType: input.providerType ?? "tourist"');
+    expect(productionBundle).toContain("OAUTH_ACCOUNT_USE_OAUTH");
+  });
 });

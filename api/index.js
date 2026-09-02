@@ -108,6 +108,7 @@ var users = mysqlTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   passwordHash: varchar("passwordHash", { length: 255 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  providerType: mysqlEnum("providerType", ["tourist", "hotel_owner", "restaurant_owner", "activity_provider", "guide", "transport_provider"]).default("tourist").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()
@@ -169,7 +170,7 @@ var bookings = mysqlTable("bookings", {
   totalPrice: varchar("totalPrice", { length: 100 }),
   paymentMethod: mysqlEnum("paymentMethod", ["pay_on_arrival"]).default("pay_on_arrival").notNull(),
   paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid"]).default("unpaid").notNull(),
-  status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).default("pending").notNull(),
   itemId: int("itemId").default(0).notNull(),
   ownerId: int("ownerId").default(1).notNull(),
   // Logged-in guest who made this booking (NULL for anonymous guests).
@@ -491,6 +492,7 @@ async function createLocalUser(input) {
     passwordHash: input.passwordHash,
     loginMethod: "email_password",
     role: "user",
+    providerType: input.providerType ?? "tourist",
     lastSignedIn: /* @__PURE__ */ new Date()
   });
   return getUserByEmail(input.email);
@@ -721,6 +723,11 @@ async function confirmBooking(id) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.update(bookings).set({ status: "confirmed", paymentStatus: "paid" }).where(eq(bookings.id, id));
+}
+async function completeBooking(id) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(bookings).set({ status: "completed" }).where(eq(bookings.id, id));
 }
 async function getGuestBookings(guestUserId) {
   const db = await getDb();
@@ -1389,14 +1396,16 @@ var ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, ownerId: ctx.user.id } });
 });
 async function requireOwnership(ctx, item, itemKind) {
-  if (!item) throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+  if (!item)
+    throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
   if (ctx.user.role !== "admin" && item.ownerId !== ctx.user.id) {
     throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
   }
 }
 async function requireBookingAccess(ctx, id) {
   const booking = await getBookingById(id);
-  if (!booking) throw new TRPCError4({ code: "NOT_FOUND", message: "BOOKING_NOT_FOUND" });
+  if (!booking)
+    throw new TRPCError4({ code: "NOT_FOUND", message: "BOOKING_NOT_FOUND" });
   if (ctx.user.role !== "admin" && booking.ownerId !== ctx.user.id) {
     throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
   }
@@ -1415,16 +1424,22 @@ var availabilityDateRange = z2.object({
   itemId: z2.number().int().positive(),
   startsAt: z2.string(),
   endsAt: z2.string()
-}).refine((input) => {
-  const start = new Date(input.startsAt);
-  const end = new Date(input.endsAt);
-  return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime();
-}, { message: "endsAt must be after startsAt" });
-var whatsappInput = z2.string().trim().max(50).refine((value) => {
-  if (!value) return true;
-  const digits = value.replace(/\D/g, "");
-  return digits.length >= 8 && digits.length <= 15;
-}, { message: "Enter a valid WhatsApp number" }).optional();
+}).refine(
+  (input) => {
+    const start = new Date(input.startsAt);
+    const end = new Date(input.endsAt);
+    return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end.getTime() > start.getTime();
+  },
+  { message: "endsAt must be after startsAt" }
+);
+var whatsappInput = z2.string().trim().max(50).refine(
+  (value) => {
+    if (!value) return true;
+    const digits = value.replace(/\D/g, "");
+    return digits.length >= 8 && digits.length <= 15;
+  },
+  { message: "Enter a valid WhatsApp number" }
+).optional();
 var appRouter = router({
   system: systemRouter,
   auth: router({
@@ -1448,100 +1463,223 @@ var appRouter = router({
     }),
     prepareEmailVerification: protectedProcedure.mutation(async ({ ctx }) => {
       const user = await getUserByOpenId(ctx.user.openId);
-      if (!user?.email) return { ready: false, reason: "EMAIL_MISSING", dispatchEnabled: false };
-      await issueEmailAuthToken({ userId: user.id, kind: "email_verification", ttlMs: 24 * 60 * 60 * 1e3 });
-      return { ready: true, dispatchEnabled: false, expiresInMs: 24 * 60 * 60 * 1e3 };
+      if (!user?.email)
+        return {
+          ready: false,
+          reason: "EMAIL_MISSING",
+          dispatchEnabled: false
+        };
+      await issueEmailAuthToken({
+        userId: user.id,
+        kind: "email_verification",
+        ttlMs: 24 * 60 * 60 * 1e3
+      });
+      return {
+        ready: true,
+        dispatchEnabled: false,
+        expiresInMs: 24 * 60 * 60 * 1e3
+      };
     }),
     requestPasswordReset: publicProcedure.input(z2.object({ email: localEmail })).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "password-reset");
       const user = await getUserByEmail(input.email);
-      if (user) await issueEmailAuthToken({ userId: user.id, kind: "password_reset", ttlMs: 60 * 60 * 1e3 });
+      if (user)
+        await issueEmailAuthToken({
+          userId: user.id,
+          kind: "password_reset",
+          ttlMs: 60 * 60 * 1e3
+        });
       clearAuthRateLimit(ctx.req, "password-reset");
       return { accepted: true, dispatchEnabled: false };
     }),
     verifyEmail: publicProcedure.input(z2.object({ token: z2.string().trim().min(32).max(128) })).mutation(async ({ input }) => {
-      const token = await consumeEmailAuthToken({ rawToken: input.token, kind: "email_verification" });
-      if (!token) throw new TRPCError4({ code: "BAD_REQUEST", message: "INVALID_OR_EXPIRED_TOKEN" });
+      const token = await consumeEmailAuthToken({
+        rawToken: input.token,
+        kind: "email_verification"
+      });
+      if (!token)
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "INVALID_OR_EXPIRED_TOKEN"
+        });
       await markEmailVerified(token.userId);
       const user = await getUserById(token.userId);
       return { verified: Boolean(user?.emailVerifiedAt) };
     }),
-    resetPassword: publicProcedure.input(z2.object({ token: z2.string().trim().min(32).max(128), password: localPassword })).mutation(async ({ input }) => {
-      const token = await consumeEmailAuthToken({ rawToken: input.token, kind: "password_reset" });
-      if (!token) throw new TRPCError4({ code: "BAD_REQUEST", message: "INVALID_OR_EXPIRED_TOKEN" });
-      await setLocalPassword(token.userId, await hashPassword(input.password));
+    resetPassword: publicProcedure.input(
+      z2.object({
+        token: z2.string().trim().min(32).max(128),
+        password: localPassword
+      })
+    ).mutation(async ({ input }) => {
+      const token = await consumeEmailAuthToken({
+        rawToken: input.token,
+        kind: "password_reset"
+      });
+      if (!token)
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "INVALID_OR_EXPIRED_TOKEN"
+        });
+      await setLocalPassword(
+        token.userId,
+        await hashPassword(input.password)
+      );
       return { reset: true };
     }),
-    register: publicProcedure.input(z2.object({
-      name: z2.string().trim().min(2).max(120),
-      email: localEmail,
-      password: localPassword
-    })).mutation(async ({ input, ctx }) => {
+    register: publicProcedure.input(
+      z2.object({
+        name: z2.string().trim().min(2).max(120),
+        email: localEmail,
+        password: localPassword,
+        providerType: z2.enum([
+          "tourist",
+          "hotel_owner",
+          "restaurant_owner",
+          "activity_provider",
+          "guide",
+          "transport_provider"
+        ]).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "register");
       const existing = await getUserByEmail(input.email);
-      if (existing) throw new TRPCError4({ code: "CONFLICT", message: "EMAIL_ALREADY_REGISTERED" });
-      const user = await createLocalUser({
-        openId: `local_${randomBytes3(24).toString("base64url")}`,
-        name: input.name,
-        email: input.email,
-        passwordHash: await hashPassword(input.password)
+      if (existing)
+        throw new TRPCError4({
+          code: "CONFLICT",
+          message: "EMAIL_ALREADY_REGISTERED"
+        });
+      let user;
+      try {
+        user = await createLocalUser({
+          openId: `local_${randomBytes3(24).toString("base64url")}`,
+          name: input.name,
+          email: input.email,
+          passwordHash: await hashPassword(input.password),
+          providerType: input.providerType
+        });
+      } catch (error) {
+        const message = String(error instanceof Error ? error.message : error);
+        if (/duplicate|unique|already exists/i.test(message)) {
+          throw new TRPCError4({
+            code: "CONFLICT",
+            message: "EMAIL_ALREADY_REGISTERED"
+          });
+        }
+        console.error("[Auth] Local account creation failed", {
+          code: "ACCOUNT_CREATION_FAILED"
+        });
+        throw new TRPCError4({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "ACCOUNT_CREATION_FAILED"
+        });
+      }
+      if (!user)
+        throw new TRPCError4({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "ACCOUNT_CREATION_FAILED"
+        });
+      const token = await sdk.createSessionToken(user.openId, {
+        name: user.name || "",
+        expiresInMs: LOCAL_SESSION_MS
       });
-      if (!user) throw new TRPCError4({ code: "INTERNAL_SERVER_ERROR", message: "ACCOUNT_CREATION_FAILED" });
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...getSessionCookieOptions(ctx.req),
+        maxAge: LOCAL_SESSION_MS
+      });
       clearAuthRateLimit(ctx.req, "register");
       return { user };
     }),
     login: publicProcedure.input(z2.object({ email: localEmail, password: localPassword })).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "login");
       const user = await getUserByEmail(input.email);
-      if (!user || !await verifyPassword(input.password, user.passwordHash)) {
-        throw new TRPCError4({ code: "UNAUTHORIZED", message: "INVALID_CREDENTIALS" });
+      if (user && !user.passwordHash && user.loginMethod !== "email_password") {
+        throw new TRPCError4({
+          code: "UNAUTHORIZED",
+          message: "OAUTH_ACCOUNT_USE_OAUTH"
+        });
       }
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      if (!user || !await verifyPassword(input.password, user.passwordHash)) {
+        throw new TRPCError4({
+          code: "UNAUTHORIZED",
+          message: "INVALID_CREDENTIALS"
+        });
+      }
+      const token = await sdk.createSessionToken(user.openId, {
+        name: user.name || "",
+        expiresInMs: LOCAL_SESSION_MS
+      });
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...getSessionCookieOptions(ctx.req),
+        maxAge: LOCAL_SESSION_MS
+      });
       clearAuthRateLimit(ctx.req, "login");
       return { user };
     }),
-    activateExistingAdmin: publicProcedure.input(z2.object({
-      email: localEmail,
-      password: localPassword,
-      bootstrapSecret: z2.string().min(12).max(200)
-    })).mutation(async ({ input, ctx }) => {
+    activateExistingAdmin: publicProcedure.input(
+      z2.object({
+        email: localEmail,
+        password: localPassword,
+        bootstrapSecret: z2.string().min(12).max(200)
+      })
+    ).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "admin-activation");
       if (!isValidBootstrapSecret(input.bootstrapSecret)) {
-        throw new TRPCError4({ code: "FORBIDDEN", message: "INVALID_BOOTSTRAP_SECRET" });
+        throw new TRPCError4({
+          code: "FORBIDDEN",
+          message: "INVALID_BOOTSTRAP_SECRET"
+        });
       }
       const user = await getUserByEmail(input.email);
       if (!user || user.role !== "admin") {
-        throw new TRPCError4({ code: "FORBIDDEN", message: "ADMIN_ACCOUNT_NOT_FOUND" });
+        throw new TRPCError4({
+          code: "FORBIDDEN",
+          message: "ADMIN_ACCOUNT_NOT_FOUND"
+        });
       }
-      if (user.passwordHash) throw new TRPCError4({ code: "CONFLICT", message: "ADMIN_ALREADY_ACTIVATED" });
+      if (user.passwordHash)
+        throw new TRPCError4({
+          code: "CONFLICT",
+          message: "ADMIN_ALREADY_ACTIVATED"
+        });
       await setLocalPassword(user.id, await hashPassword(input.password));
-      const token = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: LOCAL_SESSION_MS });
-      ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: LOCAL_SESSION_MS });
+      const token = await sdk.createSessionToken(user.openId, {
+        name: user.name || "",
+        expiresInMs: LOCAL_SESSION_MS
+      });
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...getSessionCookieOptions(ctx.req),
+        maxAge: LOCAL_SESSION_MS
+      });
       clearAuthRateLimit(ctx.req, "admin-activation");
-      return { user: { ...user, passwordHash: null, loginMethod: "email_password" } };
+      return {
+        user: { ...user, passwordHash: null, loginMethod: "email_password" }
+      };
     })
   }),
   safetyTrips: router({
-    create: publicProcedure.input(z2.object({
-      travelerName: z2.string().trim().min(2).max(MAX_NAME),
-      travelerEmail: z2.string().trim().email().max(320),
-      emergencyName: z2.string().trim().max(MAX_NAME).optional(),
-      emergencyPhone: z2.string().trim().max(50).optional(),
-      route: z2.string().trim().min(2).max(500),
-      departureAt: z2.coerce.date(),
-      expectedArrivalAt: z2.coerce.date(),
-      locationConsent: z2.boolean().default(false),
-      consentAccepted: z2.literal(true)
-    }).refine((input) => input.expectedArrivalAt > input.departureAt, {
-      message: "Expected arrival must be after departure",
-      path: ["expectedArrivalAt"]
-    })).mutation(async ({ input }) => {
+    create: publicProcedure.input(
+      z2.object({
+        travelerName: z2.string().trim().min(2).max(MAX_NAME),
+        travelerEmail: z2.string().trim().email().max(320),
+        emergencyName: z2.string().trim().max(MAX_NAME).optional(),
+        emergencyPhone: z2.string().trim().max(50).optional(),
+        route: z2.string().trim().min(2).max(500),
+        departureAt: z2.coerce.date(),
+        expectedArrivalAt: z2.coerce.date(),
+        locationConsent: z2.boolean().default(false),
+        consentAccepted: z2.literal(true)
+      }).refine((input) => input.expectedArrivalAt > input.departureAt, {
+        message: "Expected arrival must be after departure",
+        path: ["expectedArrivalAt"]
+      })
+    ).mutation(async ({ input }) => {
       const now = /* @__PURE__ */ new Date();
       if (input.expectedArrivalAt.getTime() - now.getTime() > 7 * 24 * 60 * 60 * 1e3) {
-        throw new TRPCError4({ code: "BAD_REQUEST", message: "Trip duration cannot exceed 7 days" });
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "Trip duration cannot exceed 7 days"
+        });
       }
       const publicToken = randomBytes3(36).toString("base64url");
       const trip = await createSafetyTrip({
@@ -1562,16 +1700,26 @@ var appRouter = router({
     }),
     get: publicProcedure.input(z2.object({ token: z2.string().min(32).max(96) })).query(async ({ input }) => {
       const trip = await getSafetyTripByToken(input.token);
-      if (!trip) throw new TRPCError4({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      if (!trip)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "SAFETY_TRIP_NOT_FOUND"
+        });
       return trip;
     }),
-    checkIn: publicProcedure.input(z2.object({
-      token: z2.string().min(32).max(96),
-      latitude: z2.number().min(-90).max(90).optional(),
-      longitude: z2.number().min(-180).max(180).optional()
-    })).mutation(async ({ input }) => {
+    checkIn: publicProcedure.input(
+      z2.object({
+        token: z2.string().min(32).max(96),
+        latitude: z2.number().min(-90).max(90).optional(),
+        longitude: z2.number().min(-180).max(180).optional()
+      })
+    ).mutation(async ({ input }) => {
       const trip = await getSafetyTripByToken(input.token);
-      if (!trip) throw new TRPCError4({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
+      if (!trip)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "SAFETY_TRIP_NOT_FOUND"
+        });
       if (trip.status === "safe" || trip.status === "closed") return trip;
       const now = /* @__PURE__ */ new Date();
       return updateSafetyTrip(input.token, {
@@ -1586,8 +1734,15 @@ var appRouter = router({
     }),
     markSafe: publicProcedure.input(z2.object({ token: z2.string().min(32).max(96) })).mutation(async ({ input }) => {
       const trip = await getSafetyTripByToken(input.token);
-      if (!trip) throw new TRPCError4({ code: "NOT_FOUND", message: "SAFETY_TRIP_NOT_FOUND" });
-      return updateSafetyTrip(input.token, { status: "safe", lastCheckInAt: /* @__PURE__ */ new Date() });
+      if (!trip)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "SAFETY_TRIP_NOT_FOUND"
+        });
+      return updateSafetyTrip(input.token, {
+        status: "safe",
+        lastCheckInAt: /* @__PURE__ */ new Date()
+      });
     }),
     adminList: adminProcedure2.query(async () => listSafetyTrips())
   }),
@@ -1620,55 +1775,66 @@ var appRouter = router({
       carsListCache.set(mapped);
       return mapped;
     }),
-    create: ownerProcedure.input(z2.object({
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      typeAr: z2.string().max(MAX_NAME),
-      typeEn: z2.string().max(MAX_NAME),
-      typeFr: z2.string().max(MAX_NAME),
-      typeBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      seats: z2.string().max(MAX_SHORT).default("5 \u0645\u0642\u0627\u0639\u062F"),
-      fuel: z2.string().max(MAX_SHORT).default("\u062F\u064A\u0632\u0644"),
-      price: z2.string().max(MAX_SHORT),
-      phone: z2.string().max(MAX_SHORT).optional(),
-      whatsapp: whatsappInput,
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
-      await createCar({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
+    create: ownerProcedure.input(
+      z2.object({
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        typeAr: z2.string().max(MAX_NAME),
+        typeEn: z2.string().max(MAX_NAME),
+        typeFr: z2.string().max(MAX_NAME),
+        typeBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        seats: z2.string().max(MAX_SHORT).default("5 \u0645\u0642\u0627\u0639\u062F"),
+        fuel: z2.string().max(MAX_SHORT).default("\u062F\u064A\u0632\u0644"),
+        price: z2.string().max(MAX_SHORT),
+        phone: z2.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
+      await createCar({
+        ...input,
+        ownerId: ctx.user.id,
+        isActive: ctx.user.role === "admin"
+      });
       invalidateCache("cars");
       return { success: true };
     }),
-    update: ownerProcedure.input(z2.object({
-      id: z2.number().int().positive(),
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      typeAr: z2.string().max(MAX_NAME),
-      typeEn: z2.string().max(MAX_NAME),
-      typeFr: z2.string().max(MAX_NAME),
-      typeBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      seats: z2.string().max(MAX_SHORT),
-      fuel: z2.string().max(MAX_SHORT),
-      price: z2.string().max(MAX_SHORT),
-      phone: z2.string().max(MAX_SHORT).optional(),
-      whatsapp: whatsappInput,
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
+    update: ownerProcedure.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        typeAr: z2.string().max(MAX_NAME),
+        typeEn: z2.string().max(MAX_NAME),
+        typeFr: z2.string().max(MAX_NAME),
+        typeBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        seats: z2.string().max(MAX_SHORT),
+        fuel: z2.string().max(MAX_SHORT),
+        price: z2.string().max(MAX_SHORT),
+        phone: z2.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       const car = await getCarById(id);
       await requireOwnership({ user: ctx.user }, car, "car");
-      await updateCar(id, { ...data, isActive: ctx.user.role === "admin" });
+      await updateCar(id, {
+        ...data,
+        isActive: ctx.user.role === "admin"
+      });
       invalidateCache("cars");
       return { success: true };
     }),
@@ -1711,72 +1877,99 @@ var appRouter = router({
       hotelsListCache.set(mapped);
       return mapped;
     }),
-    create: ownerProcedure.input(z2.object({
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      locationAr: z2.string().max(MAX_NAME).optional(),
-      locationEn: z2.string().max(MAX_NAME).optional(),
-      locationFr: z2.string().max(MAX_NAME).optional(),
-      locationBer: z2.string().max(MAX_NAME).optional(),
-      rating: z2.string().max(10).default("4.5"),
-      priceAr: z2.string().max(MAX_SHORT),
-      priceEn: z2.string().max(MAX_SHORT),
-      priceFr: z2.string().max(MAX_SHORT),
-      priceBer: z2.string().max(MAX_SHORT),
-      whatsapp: whatsappInput,
-      amenities: z2.any().optional(),
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
-      await createHotel({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
+    create: ownerProcedure.input(
+      z2.object({
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        locationAr: z2.string().max(MAX_NAME).optional(),
+        locationEn: z2.string().max(MAX_NAME).optional(),
+        locationFr: z2.string().max(MAX_NAME).optional(),
+        locationBer: z2.string().max(MAX_NAME).optional(),
+        rating: z2.string().max(10).default("4.5"),
+        priceAr: z2.string().max(MAX_SHORT),
+        priceEn: z2.string().max(MAX_SHORT),
+        priceFr: z2.string().max(MAX_SHORT),
+        priceBer: z2.string().max(MAX_SHORT),
+        whatsapp: whatsappInput,
+        amenities: z2.any().optional(),
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
+      await createHotel({
+        ...input,
+        ownerId: ctx.user.id,
+        isActive: ctx.user.role === "admin"
+      });
       invalidateCache("hotels");
       return { success: true };
     }),
-    update: ownerProcedure.input(z2.object({
-      id: z2.number().int().positive(),
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      locationAr: z2.string().max(MAX_NAME).optional(),
-      locationEn: z2.string().max(MAX_NAME).optional(),
-      locationFr: z2.string().max(MAX_NAME).optional(),
-      locationBer: z2.string().max(MAX_NAME).optional(),
-      rating: z2.string().max(10),
-      priceAr: z2.string().max(MAX_SHORT),
-      priceEn: z2.string().max(MAX_SHORT),
-      priceFr: z2.string().max(MAX_SHORT),
-      priceBer: z2.string().max(MAX_SHORT),
-      whatsapp: whatsappInput,
-      amenities: z2.any().optional(),
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
+    update: ownerProcedure.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        locationAr: z2.string().max(MAX_NAME).optional(),
+        locationEn: z2.string().max(MAX_NAME).optional(),
+        locationFr: z2.string().max(MAX_NAME).optional(),
+        locationBer: z2.string().max(MAX_NAME).optional(),
+        rating: z2.string().max(10),
+        priceAr: z2.string().max(MAX_SHORT),
+        priceEn: z2.string().max(MAX_SHORT),
+        priceFr: z2.string().max(MAX_SHORT),
+        priceBer: z2.string().max(MAX_SHORT),
+        whatsapp: whatsappInput,
+        amenities: z2.any().optional(),
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       const hotel = await getHotelById(id);
-      await requireOwnership({ user: ctx.user }, hotel, "hotel");
-      await updateHotel(id, { ...data, isActive: ctx.user.role === "admin" });
+      await requireOwnership(
+        { user: ctx.user },
+        hotel,
+        "hotel"
+      );
+      await updateHotel(id, {
+        ...data,
+        isActive: ctx.user.role === "admin"
+      });
       invalidateCache("hotels");
       return { success: true };
     }),
-    updateContact: ownerProcedure.input(z2.object({ id: z2.number().int().positive(), whatsapp: whatsappInput })).mutation(async ({ input, ctx }) => {
+    updateContact: ownerProcedure.input(
+      z2.object({ id: z2.number().int().positive(), whatsapp: whatsappInput })
+    ).mutation(async ({ input, ctx }) => {
       const hotel = await getHotelById(input.id);
-      await requireOwnership({ user: ctx.user }, hotel, "hotel");
-      await updateHotel(input.id, { whatsapp: input.whatsapp || null });
+      await requireOwnership(
+        { user: ctx.user },
+        hotel,
+        "hotel"
+      );
+      await updateHotel(input.id, {
+        whatsapp: input.whatsapp || null
+      });
       invalidateCache("hotels");
       return { success: true };
     }),
     delete: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
       const hotel = await getHotelById(input.id);
-      await requireOwnership({ user: ctx.user }, hotel, "hotel");
+      await requireOwnership(
+        { user: ctx.user },
+        hotel,
+        "hotel"
+      );
       await deleteHotel(input.id);
       invalidateCache("hotels");
       return { success: true };
@@ -1786,82 +1979,113 @@ var appRouter = router({
     list: publicProcedure.query(async () => {
       return getAllRestaurants();
     }),
-    create: ownerProcedure.input(z2.object({
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      locationAr: z2.string().max(MAX_NAME).optional(),
-      locationEn: z2.string().max(MAX_NAME).optional(),
-      locationFr: z2.string().max(MAX_NAME).optional(),
-      locationBer: z2.string().max(MAX_NAME).optional(),
-      cuisineAr: z2.string().max(MAX_SHORT).optional(),
-      cuisineEn: z2.string().max(MAX_SHORT).optional(),
-      cuisineFr: z2.string().max(MAX_SHORT).optional(),
-      cuisineBer: z2.string().max(MAX_SHORT).optional(),
-      rating: z2.string().max(10).default("4.5"),
-      hours: z2.string().max(MAX_SHORT).default("9:00 - 23:00"),
-      phone: z2.string().max(MAX_SHORT).optional(),
-      whatsapp: whatsappInput,
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
-      const { id } = await createRestaurant({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
+    create: ownerProcedure.input(
+      z2.object({
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        locationAr: z2.string().max(MAX_NAME).optional(),
+        locationEn: z2.string().max(MAX_NAME).optional(),
+        locationFr: z2.string().max(MAX_NAME).optional(),
+        locationBer: z2.string().max(MAX_NAME).optional(),
+        cuisineAr: z2.string().max(MAX_SHORT).optional(),
+        cuisineEn: z2.string().max(MAX_SHORT).optional(),
+        cuisineFr: z2.string().max(MAX_SHORT).optional(),
+        cuisineBer: z2.string().max(MAX_SHORT).optional(),
+        rating: z2.string().max(10).default("4.5"),
+        hours: z2.string().max(MAX_SHORT).default("9:00 - 23:00"),
+        phone: z2.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
+      const { id } = await createRestaurant({
+        ...input,
+        ownerId: ctx.user.id,
+        isActive: ctx.user.role === "admin"
+      });
       return { success: true, id };
     }),
-    update: ownerProcedure.input(z2.object({
-      id: z2.number().int().positive(),
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      locationAr: z2.string().max(MAX_NAME).optional(),
-      locationEn: z2.string().max(MAX_NAME).optional(),
-      locationFr: z2.string().max(MAX_NAME).optional(),
-      locationBer: z2.string().max(MAX_NAME).optional(),
-      cuisineAr: z2.string().max(MAX_SHORT).optional(),
-      cuisineEn: z2.string().max(MAX_SHORT).optional(),
-      cuisineFr: z2.string().max(MAX_SHORT).optional(),
-      cuisineBer: z2.string().max(MAX_SHORT).optional(),
-      rating: z2.string().max(10),
-      hours: z2.string().max(MAX_SHORT),
-      phone: z2.string().max(MAX_SHORT).optional(),
-      whatsapp: whatsappInput,
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
+    update: ownerProcedure.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        locationAr: z2.string().max(MAX_NAME).optional(),
+        locationEn: z2.string().max(MAX_NAME).optional(),
+        locationFr: z2.string().max(MAX_NAME).optional(),
+        locationBer: z2.string().max(MAX_NAME).optional(),
+        cuisineAr: z2.string().max(MAX_SHORT).optional(),
+        cuisineEn: z2.string().max(MAX_SHORT).optional(),
+        cuisineFr: z2.string().max(MAX_SHORT).optional(),
+        cuisineBer: z2.string().max(MAX_SHORT).optional(),
+        rating: z2.string().max(10),
+        hours: z2.string().max(MAX_SHORT),
+        phone: z2.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       const restaurant = await getRestaurantById(id);
-      await requireOwnership({ user: ctx.user }, restaurant, "restaurant");
-      await updateRestaurant(id, { ...data, isActive: ctx.user.role === "admin" });
+      await requireOwnership(
+        { user: ctx.user },
+        restaurant,
+        "restaurant"
+      );
+      await updateRestaurant(id, {
+        ...data,
+        isActive: ctx.user.role === "admin"
+      });
       return { success: true };
     }),
     delete: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
       const restaurant = await getRestaurantById(input.id);
-      await requireOwnership({ user: ctx.user }, restaurant, "restaurant");
+      await requireOwnership(
+        { user: ctx.user },
+        restaurant,
+        "restaurant"
+      );
       await deleteRestaurant(input.id);
       return { success: true };
     }),
-    uploadImage: ownerProcedure.input(z2.object({
-      id: z2.number().int().positive(),
-      base64: z2.string().max(55e5),
-      fileName: z2.string().max(255).optional()
-    })).mutation(async ({ input, ctx }) => {
+    uploadImage: ownerProcedure.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        base64: z2.string().max(55e5),
+        fileName: z2.string().max(255).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const restaurant = await getRestaurantById(input.id);
-      await requireOwnership({ user: ctx.user }, restaurant, "restaurant");
+      await requireOwnership(
+        { user: ctx.user },
+        restaurant,
+        "restaurant"
+      );
       const ext = (extractExt(input.fileName || "image.png") || "png").toLowerCase();
       if (!ALLOWED_IMAGE_EXTS.has(ext)) {
-        throw new TRPCError4({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "Unsupported image format (use JPG, PNG or WEBP)"
+        });
       }
       const bytes = base64ToBuffer(input.base64);
       if (bytes.length > MAX_IMAGE_BYTES) {
-        throw new TRPCError4({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "Image too large (max 4MB)"
+        });
       }
       const { url } = await storagePut(
         `restaurants/${ctx.user.id}/${safeName(input.fileName || "image")}.${ext}`,
@@ -1874,7 +2098,11 @@ var appRouter = router({
     }),
     removeImage: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
       const restaurant = await getRestaurantById(input.id);
-      await requireOwnership({ user: ctx.user }, restaurant, "restaurant");
+      await requireOwnership(
+        { user: ctx.user },
+        restaurant,
+        "restaurant"
+      );
       await updateRestaurant(input.id, { image: null });
       invalidateCache("restaurants");
       return { success: true };
@@ -1884,52 +2112,63 @@ var appRouter = router({
     list: publicProcedure.query(async () => {
       return getAllCafes();
     }),
-    create: ownerProcedure.input(z2.object({
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      locationAr: z2.string().max(MAX_NAME).optional(),
-      locationEn: z2.string().max(MAX_NAME).optional(),
-      locationFr: z2.string().max(MAX_NAME).optional(),
-      locationBer: z2.string().max(MAX_NAME).optional(),
-      rating: z2.string().max(10).default("4.5"),
-      hours: z2.string().max(MAX_SHORT).default("8:00 - 24:00"),
-      phone: z2.string().max(MAX_SHORT).optional(),
-      whatsapp: whatsappInput,
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
-      const { id } = await createCafe({ ...input, ownerId: ctx.user.id, isActive: ctx.user.role === "admin" });
+    create: ownerProcedure.input(
+      z2.object({
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        locationAr: z2.string().max(MAX_NAME).optional(),
+        locationEn: z2.string().max(MAX_NAME).optional(),
+        locationFr: z2.string().max(MAX_NAME).optional(),
+        locationBer: z2.string().max(MAX_NAME).optional(),
+        rating: z2.string().max(10).default("4.5"),
+        hours: z2.string().max(MAX_SHORT).default("8:00 - 24:00"),
+        phone: z2.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
+      const { id } = await createCafe({
+        ...input,
+        ownerId: ctx.user.id,
+        isActive: ctx.user.role === "admin"
+      });
       return { success: true, id };
     }),
-    update: ownerProcedure.input(z2.object({
-      id: z2.number().int().positive(),
-      nameAr: z2.string().max(MAX_NAME),
-      nameEn: z2.string().max(MAX_NAME),
-      nameFr: z2.string().max(MAX_NAME),
-      nameBer: z2.string().max(MAX_NAME),
-      descriptionAr: z2.string().max(MAX_TEXT).optional(),
-      descriptionEn: z2.string().max(MAX_TEXT).optional(),
-      descriptionFr: z2.string().max(MAX_TEXT).optional(),
-      descriptionBer: z2.string().max(MAX_TEXT).optional(),
-      locationAr: z2.string().max(MAX_NAME).optional(),
-      locationEn: z2.string().max(MAX_NAME).optional(),
-      locationFr: z2.string().max(MAX_NAME).optional(),
-      locationBer: z2.string().max(MAX_NAME).optional(),
-      rating: z2.string().max(10),
-      hours: z2.string().max(MAX_SHORT),
-      phone: z2.string().max(MAX_SHORT).optional(),
-      whatsapp: whatsappInput,
-      image: z2.string().max(2e3).optional()
-    })).mutation(async ({ input, ctx }) => {
+    update: ownerProcedure.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        nameAr: z2.string().max(MAX_NAME),
+        nameEn: z2.string().max(MAX_NAME),
+        nameFr: z2.string().max(MAX_NAME),
+        nameBer: z2.string().max(MAX_NAME),
+        descriptionAr: z2.string().max(MAX_TEXT).optional(),
+        descriptionEn: z2.string().max(MAX_TEXT).optional(),
+        descriptionFr: z2.string().max(MAX_TEXT).optional(),
+        descriptionBer: z2.string().max(MAX_TEXT).optional(),
+        locationAr: z2.string().max(MAX_NAME).optional(),
+        locationEn: z2.string().max(MAX_NAME).optional(),
+        locationFr: z2.string().max(MAX_NAME).optional(),
+        locationBer: z2.string().max(MAX_NAME).optional(),
+        rating: z2.string().max(10),
+        hours: z2.string().max(MAX_SHORT),
+        phone: z2.string().max(MAX_SHORT).optional(),
+        whatsapp: whatsappInput,
+        image: z2.string().max(2e3).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       const cafe = await getCafeById(id);
       await requireOwnership({ user: ctx.user }, cafe, "cafe");
-      await updateCafe(id, { ...data, isActive: ctx.user.role === "admin" });
+      await updateCafe(id, {
+        ...data,
+        isActive: ctx.user.role === "admin"
+      });
       return { success: true };
     }),
     delete: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
@@ -1938,20 +2177,28 @@ var appRouter = router({
       await deleteCafe(input.id);
       return { success: true };
     }),
-    uploadImage: ownerProcedure.input(z2.object({
-      id: z2.number().int().positive(),
-      base64: z2.string().max(55e5),
-      fileName: z2.string().max(255).optional()
-    })).mutation(async ({ input, ctx }) => {
+    uploadImage: ownerProcedure.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        base64: z2.string().max(55e5),
+        fileName: z2.string().max(255).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const cafe = await getCafeById(input.id);
       await requireOwnership({ user: ctx.user }, cafe, "cafe");
       const ext = (extractExt(input.fileName || "image.png") || "png").toLowerCase();
       if (!ALLOWED_IMAGE_EXTS.has(ext)) {
-        throw new TRPCError4({ code: "BAD_REQUEST", message: "Unsupported image format (use JPG, PNG or WEBP)" });
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "Unsupported image format (use JPG, PNG or WEBP)"
+        });
       }
       const bytes = base64ToBuffer(input.base64);
       if (bytes.length > MAX_IMAGE_BYTES) {
-        throw new TRPCError4({ code: "BAD_REQUEST", message: "Image too large (max 4MB)" });
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "Image too large (max 4MB)"
+        });
       }
       const { url } = await storagePut(
         `cafes/${ctx.user.id}/${safeName(input.fileName || "image")}.${ext}`,
@@ -1971,37 +2218,50 @@ var appRouter = router({
     })
   }),
   bookings: router({
-    create: publicProcedure.input(z2.object({
-      type: z2.enum(["hotel", "car"]),
-      guestUserId: z2.number().int().positive().optional(),
-      itemName: z2.string().min(1).max(MAX_NAME),
-      guestName: z2.string().min(2).max(MAX_NAME),
-      guestEmail: z2.string().email().max(320),
-      guestPhone: z2.string().max(MAX_SHORT).optional(),
-      checkIn: z2.string(),
-      checkOut: z2.string(),
-      pickUpTime: z2.string().max(10).optional(),
-      dropOffTime: z2.string().max(10).optional(),
-      guests: z2.number().int().min(1).max(50).default(1),
-      notes: z2.string().max(MAX_TEXT).optional(),
-      totalPrice: z2.string().max(MAX_SHORT).optional(),
-      itemId: z2.number().int().positive()
-    }).refine((d) => {
-      const a = new Date(d.checkIn);
-      const b = new Date(d.checkOut);
-      return !isNaN(a.getTime()) && !isNaN(b.getTime()) && b.getTime() >= a.getTime();
-    }, { message: "checkOut must be after checkIn" })).mutation(async ({ input, ctx }) => {
+    create: publicProcedure.input(
+      z2.object({
+        type: z2.enum(["hotel", "car"]),
+        guestUserId: z2.number().int().positive().optional(),
+        itemName: z2.string().min(1).max(MAX_NAME),
+        guestName: z2.string().min(2).max(MAX_NAME),
+        guestEmail: z2.string().email().max(320),
+        guestPhone: z2.string().max(MAX_SHORT).optional(),
+        checkIn: z2.string(),
+        checkOut: z2.string(),
+        pickUpTime: z2.string().max(10).optional(),
+        dropOffTime: z2.string().max(10).optional(),
+        guests: z2.number().int().min(1).max(50).default(1),
+        notes: z2.string().max(MAX_TEXT).optional(),
+        totalPrice: z2.string().max(MAX_SHORT).optional(),
+        itemId: z2.number().int().positive()
+      }).refine(
+        (d) => {
+          const a = new Date(d.checkIn);
+          const b = new Date(d.checkOut);
+          return !isNaN(a.getTime()) && !isNaN(b.getTime()) && b.getTime() >= a.getTime();
+        },
+        { message: "checkOut must be after checkIn" }
+      )
+    ).mutation(async ({ input, ctx }) => {
       const guestUserId = ctx.user ? ctx.user.id : null;
       let ownerId = 1;
       let itemId = 0;
       if (input.type === "car") {
         const car = await getCarById(input.itemId);
-        if (!car) throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+        if (!car)
+          throw new TRPCError4({
+            code: "NOT_FOUND",
+            message: "ITEM_NOT_FOUND"
+          });
         ownerId = car.ownerId;
         itemId = car.id;
       } else {
         const hotel = await getHotelById(input.itemId);
-        if (!hotel) throw new TRPCError4({ code: "NOT_FOUND", message: "ITEM_NOT_FOUND" });
+        if (!hotel)
+          throw new TRPCError4({
+            code: "NOT_FOUND",
+            message: "ITEM_NOT_FOUND"
+          });
         ownerId = hotel.ownerId;
         itemId = hotel.id;
       }
@@ -2012,7 +2272,10 @@ var appRouter = router({
         endsAt: new Date(input.checkOut)
       });
       if (conflict) {
-        throw new TRPCError4({ code: "CONFLICT", message: "BOOKING_DATES_UNAVAILABLE" });
+        throw new TRPCError4({
+          code: "CONFLICT",
+          message: "BOOKING_DATES_UNAVAILABLE"
+        });
       }
       await createBooking({
         type: input.type,
@@ -2034,7 +2297,10 @@ var appRouter = router({
         itemId,
         guestUserId
       });
-      return { success: true, message: "Booking request submitted successfully" };
+      return {
+        success: true,
+        message: "Booking request submitted successfully"
+      };
     }),
     // Only admins can list all bookings (customer PII protection)
     list: adminProcedure2.query(async () => {
@@ -2048,7 +2314,10 @@ var appRouter = router({
     }),
     // Confirm a booking and mark it paid: admin OR the listing's owner
     confirm: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
-      const booking = await requireBookingAccess({ user: ctx.user }, input.id);
+      const booking = await requireBookingAccess(
+        { user: ctx.user },
+        input.id
+      );
       if (booking.status === "confirmed") return { success: true };
       const conflict = await findBookingAvailabilityConflict({
         type: booking.type,
@@ -2058,9 +2327,27 @@ var appRouter = router({
         excludeBookingId: booking.id
       });
       if (conflict) {
-        throw new TRPCError4({ code: "CONFLICT", message: "BOOKING_DATES_UNAVAILABLE" });
+        throw new TRPCError4({
+          code: "CONFLICT",
+          message: "BOOKING_DATES_UNAVAILABLE"
+        });
       }
       await confirmBooking(input.id);
+      return { success: true };
+    }),
+    complete: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
+      const booking = await requireBookingAccess(
+        { user: ctx.user },
+        input.id
+      );
+      if (booking.status === "completed") return { success: true };
+      if (booking.status !== "confirmed") {
+        throw new TRPCError4({
+          code: "BAD_REQUEST",
+          message: "BOOKING_MUST_BE_CONFIRMED"
+        });
+      }
+      await completeBooking(input.id);
       return { success: true };
     }),
     // Guest dashboard: logged-in guest sees ONLY their own bookings
@@ -2070,9 +2357,16 @@ var appRouter = router({
     // Cancel a booking: guest may cancel only their own bookings
     cancel: protectedProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
       const booking = await getBookingById(input.id);
-      if (!booking) throw new TRPCError4({ code: "NOT_FOUND", message: "Booking not found" });
+      if (!booking)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "Booking not found"
+        });
       if (booking.guestUserId !== ctx.user.id) {
-        throw new TRPCError4({ code: "FORBIDDEN", message: "You can only cancel your own booking" });
+        throw new TRPCError4({
+          code: "FORBIDDEN",
+          message: "You can only cancel your own booking"
+        });
       }
       await cancelBooking(input.id);
       return { success: true };
@@ -2094,11 +2388,17 @@ var appRouter = router({
     myBlocks: ownerProcedure.query(async ({ ctx }) => {
       return listAvailabilityBlocksForOwner(ctx.user.id);
     }),
-    createBlock: ownerProcedure.input(availabilityDateRange.safeExtend({
-      reason: z2.string().trim().max(240).optional()
-    })).mutation(async ({ input, ctx }) => {
+    createBlock: ownerProcedure.input(
+      availabilityDateRange.safeExtend({
+        reason: z2.string().trim().max(240).optional()
+      })
+    ).mutation(async ({ input, ctx }) => {
       const listing = input.type === "car" ? await getCarById(input.itemId) : await getHotelById(input.itemId);
-      await requireOwnership({ user: ctx.user }, listing, input.type);
+      await requireOwnership(
+        { user: ctx.user },
+        listing,
+        input.type
+      );
       await createAvailabilityBlock({
         type: input.type,
         itemId: input.itemId,
@@ -2111,7 +2411,11 @@ var appRouter = router({
     }),
     removeBlock: ownerProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(async ({ input, ctx }) => {
       const block = await getAvailabilityBlockById(input.id);
-      if (!block) throw new TRPCError4({ code: "NOT_FOUND", message: "AVAILABILITY_BLOCK_NOT_FOUND" });
+      if (!block)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "AVAILABILITY_BLOCK_NOT_FOUND"
+        });
       if (ctx.user.role !== "admin" && block.ownerId !== ctx.user.id) {
         throw new TRPCError4({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
       }
@@ -2138,24 +2442,54 @@ var appRouter = router({
         ...pending.cafes.map((item) => toSafeItem("cafe", item))
       ];
     }),
-    approve: adminProcedure2.input(z2.object({ type: z2.enum(["car", "hotel", "restaurant", "cafe"]), id: z2.number().int().positive() })).mutation(async ({ input }) => {
+    approve: adminProcedure2.input(
+      z2.object({
+        type: z2.enum(["car", "hotel", "restaurant", "cafe"]),
+        id: z2.number().int().positive()
+      })
+    ).mutation(async ({ input }) => {
       const item = input.type === "car" ? await getCarById(input.id) : input.type === "hotel" ? await getHotelById(input.id) : input.type === "restaurant" ? await getRestaurantById(input.id) : await getCafeById(input.id);
-      if (!item) throw new TRPCError4({ code: "NOT_FOUND", message: "LISTING_NOT_FOUND" });
-      if (input.type === "car") await updateCar(input.id, { isActive: true });
-      if (input.type === "hotel") await updateHotel(input.id, { isActive: true });
-      if (input.type === "restaurant") await updateRestaurant(input.id, { isActive: true });
-      if (input.type === "cafe") await updateCafe(input.id, { isActive: true });
-      invalidateCache(input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes");
+      if (!item)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "LISTING_NOT_FOUND"
+        });
+      if (input.type === "car")
+        await updateCar(input.id, { isActive: true });
+      if (input.type === "hotel")
+        await updateHotel(input.id, { isActive: true });
+      if (input.type === "restaurant")
+        await updateRestaurant(input.id, { isActive: true });
+      if (input.type === "cafe")
+        await updateCafe(input.id, { isActive: true });
+      invalidateCache(
+        input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes"
+      );
       return { success: true };
     }),
-    hide: adminProcedure2.input(z2.object({ type: z2.enum(["car", "hotel", "restaurant", "cafe"]), id: z2.number().int().positive() })).mutation(async ({ input }) => {
+    hide: adminProcedure2.input(
+      z2.object({
+        type: z2.enum(["car", "hotel", "restaurant", "cafe"]),
+        id: z2.number().int().positive()
+      })
+    ).mutation(async ({ input }) => {
       const item = input.type === "car" ? await getCarById(input.id) : input.type === "hotel" ? await getHotelById(input.id) : input.type === "restaurant" ? await getRestaurantById(input.id) : await getCafeById(input.id);
-      if (!item) throw new TRPCError4({ code: "NOT_FOUND", message: "LISTING_NOT_FOUND" });
-      if (input.type === "car") await updateCar(input.id, { isActive: false });
-      if (input.type === "hotel") await updateHotel(input.id, { isActive: false });
-      if (input.type === "restaurant") await updateRestaurant(input.id, { isActive: false });
-      if (input.type === "cafe") await updateCafe(input.id, { isActive: false });
-      invalidateCache(input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes");
+      if (!item)
+        throw new TRPCError4({
+          code: "NOT_FOUND",
+          message: "LISTING_NOT_FOUND"
+        });
+      if (input.type === "car")
+        await updateCar(input.id, { isActive: false });
+      if (input.type === "hotel")
+        await updateHotel(input.id, { isActive: false });
+      if (input.type === "restaurant")
+        await updateRestaurant(input.id, { isActive: false });
+      if (input.type === "cafe")
+        await updateCafe(input.id, { isActive: false });
+      invalidateCache(
+        input.type === "car" ? "cars" : input.type === "hotel" ? "hotels" : input.type === "restaurant" ? "restaurants" : "cafes"
+      );
       return { success: true };
     })
   }),
@@ -2163,16 +2497,36 @@ var appRouter = router({
     list: publicProcedure.query(async () => {
       return [];
     }),
-    add: publicProcedure.input(z2.object({ itemType: z2.enum(["car", "hotel"]), itemId: z2.number().int().positive() })).mutation(async ({ input }) => {
+    add: publicProcedure.input(
+      z2.object({
+        itemType: z2.enum(["car", "hotel"]),
+        itemId: z2.number().int().positive()
+      })
+    ).mutation(async ({ input }) => {
       return { success: true };
     }),
-    remove: publicProcedure.input(z2.object({ itemType: z2.enum(["car", "hotel"]), itemId: z2.number().int().positive() })).mutation(async ({ input }) => {
+    remove: publicProcedure.input(
+      z2.object({
+        itemType: z2.enum(["car", "hotel"]),
+        itemId: z2.number().int().positive()
+      })
+    ).mutation(async ({ input }) => {
       return { success: true };
     })
   }),
   // Owner-scoped dashboard: each owner sees ONLY their own listings and bookings.
   // Admins see everything (full listing), other users see nothing of their own.
   dashboard: router({
+    metrics: ownerProcedure.query(async ({ ctx }) => {
+      const rows = ctx.user.role === "admin" ? await getAllBookings() : await getMyBookings(ctx.user.id);
+      return {
+        total: rows.length,
+        pending: rows.filter((row) => row.status === "pending").length,
+        confirmed: rows.filter((row) => row.status === "confirmed").length,
+        completed: rows.filter((row) => row.status === "completed").length,
+        cancelled: rows.filter((row) => row.status === "cancelled").length
+      };
+    }),
     myCars: ownerProcedure.query(async ({ ctx }) => {
       if (ctx.user.role === "admin") return getAllCars();
       return getMyCars(ctx.user.id);
