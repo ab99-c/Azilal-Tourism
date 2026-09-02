@@ -59,6 +59,11 @@ export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       const connectionUrl = new URL(process.env.DATABASE_URL);
+      const requiresTls =
+        connectionUrl.searchParams.has("ssl") ||
+        connectionUrl.searchParams.has("sslaccept") ||
+        connectionUrl.searchParams.has("tls") ||
+        connectionUrl.hostname.endsWith("tidbcloud.com");
       _pool = createPool({
         host: connectionUrl.hostname,
         port: connectionUrl.port ? Number(connectionUrl.port) : 3306,
@@ -73,7 +78,7 @@ export async function getDb() {
         connectTimeout: 10000,
         enableKeepAlive: true,
         keepAliveInitialDelay: 0,
-        ...(connectionUrl.searchParams.has("ssl") ? { ssl: { rejectUnauthorized: false } } : {}),
+        ...(requiresTls ? { ssl: { rejectUnauthorized: false } } : {}),
       });
       _db = drizzle(_pool);
     } catch (error) {

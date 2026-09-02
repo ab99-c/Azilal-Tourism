@@ -71,5 +71,6 @@ describe("independent email/password authentication", () => {
     expect(productionBundle).toContain('providerType: mysqlEnum');
     expect(productionBundle).toContain('providerType: input.providerType ?? "tourist"');
     expect(productionBundle).toContain("OAUTH_ACCOUNT_USE_OAUTH");
+    expect(productionBundle).toContain("searchParams.has(\"sslaccept\")");
   });
 });
