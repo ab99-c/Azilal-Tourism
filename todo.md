@@ -824,8 +824,10 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] اختيار وإنشاء TiDB Cloud Serverless متوافق مع MySQL وVercel
 - [ ] ربط `DATABASE_URL` الجديد ببيئة Production في Vercel
 - [ ] تطبيق مخطط ADRAR والتحقق من جداول users والحجوزات
-- [ ] اختبار signup/login على Vercel ومزامنة الإصدار النهائي
+- [x] اختبار signup/login على Vercel ومزامنة الإصدار النهائي
 - [x] دعم صيغة TLS الخاصة بـTiDB (`sslaccept=strict`) في اتصال MySQL قبل اختبار Vercel
-- [ ] إنشاء schema مستقل باسم `adrar` داخل TiDB بدل قاعدة النظام `sys`
-- [ ] تحديث `DATABASE_URL` في Vercel ليتصل بـ`/adrar` ثم نشر النسخة الجديدة
-- [ ] تسجيل رمز MySQL ورقم الخطأ بشكل آمن لتحديد سبب فشل اتصال TiDB في Production
+- [x] إنشاء schema مستقل باسم `adrar` داخل TiDB بدل قاعدة النظام `sys`
+- [x] تحديث `DATABASE_URL` في Vercel ليتصل بـ`/adrar` ثم نشر النسخة الجديدة
+- [x] تسجيل رمز MySQL ورقم الخطأ بشكل آمن لتحديد سبب فشل اتصال TiDB في Production
+
+- [x] إنشاء جدول users الناقص في قاعدة TiDB `adrar` بعد ظهور خطأ ER_NO_SUCH_TABLE في Vercel
