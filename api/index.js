@@ -1453,6 +1453,17 @@ var whatsappInput = z2.string().trim().max(50).refine(
   },
   { message: "Enter a valid WhatsApp number" }
 ).optional();
+function safeDatabaseErrorMeta(error) {
+  const root = error;
+  const cause = root?.cause;
+  const source = cause && (cause.code || cause.errno || cause.sqlState) ? cause : root;
+  return {
+    name: typeof source?.name === "string" ? source.name : void 0,
+    code: typeof source?.code === "string" ? source.code : void 0,
+    errno: typeof source?.errno === "number" ? source.errno : void 0,
+    sqlState: typeof source?.sqlState === "string" ? source.sqlState : void 0
+  };
+}
 var appRouter = router({
   system: systemRouter,
   auth: router({
@@ -1561,11 +1572,9 @@ var appRouter = router({
         existing = await getUserByEmail(input.email);
       } catch (error) {
         const reason = classifyDatabaseError(error);
-        const dbError = error;
         console.error("[Auth] Registration lookup failed", {
           reason,
-          code: dbError.code,
-          errno: dbError.errno
+          ...safeDatabaseErrorMeta(error)
         });
         throw new TRPCError4({
           code: "INTERNAL_SERVER_ERROR",
@@ -1624,11 +1633,9 @@ var appRouter = router({
         user = await getUserByEmail(input.email);
       } catch (error) {
         const reason = classifyDatabaseError(error);
-        const dbError = error;
         console.error("[Auth] Login lookup failed", {
           reason,
-          code: dbError.code,
-          errno: dbError.errno
+          ...safeDatabaseErrorMeta(error)
         });
         throw new TRPCError4({
           code: "INTERNAL_SERVER_ERROR",

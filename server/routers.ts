@@ -193,6 +193,29 @@ const whatsappInput = z
   )
   .optional();
 
+function safeDatabaseErrorMeta(error: unknown) {
+  const root = error as {
+    name?: unknown;
+    code?: unknown;
+    errno?: unknown;
+    sqlState?: unknown;
+    cause?: unknown;
+  };
+  const cause = root?.cause as {
+    name?: unknown;
+    code?: unknown;
+    errno?: unknown;
+    sqlState?: unknown;
+  } | undefined;
+  const source = cause && (cause.code || cause.errno || cause.sqlState) ? cause : root;
+  return {
+    name: typeof source?.name === "string" ? source.name : undefined,
+    code: typeof source?.code === "string" ? source.code : undefined,
+    errno: typeof source?.errno === "number" ? source.errno : undefined,
+    sqlState: typeof source?.sqlState === "string" ? source.sqlState : undefined,
+  };
+}
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -311,11 +334,9 @@ export const appRouter = router({
           existing = await getUserByEmail(input.email);
         } catch (error) {
           const reason = classifyDatabaseError(error);
-          const dbError = error as { code?: string; errno?: number };
           console.error("[Auth] Registration lookup failed", {
             reason,
-            code: dbError.code,
-            errno: dbError.errno,
+            ...safeDatabaseErrorMeta(error),
           });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -376,11 +397,9 @@ export const appRouter = router({
           user = await getUserByEmail(input.email);
         } catch (error) {
           const reason = classifyDatabaseError(error);
-          const dbError = error as { code?: string; errno?: number };
           console.error("[Auth] Login lookup failed", {
             reason,
-            code: dbError.code,
-            errno: dbError.errno,
+            ...safeDatabaseErrorMeta(error),
           });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
