@@ -790,3 +790,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Improve validation and explainable multilingual signup errors without exposing secrets
 - [x] Add regression coverage and verify mobile/desktop rendering, TypeScript, and production build
 - [x] Save a checkpoint after the signup flow is verified
+
+## Delivery: signup-error fix
+- [ ] Verify the saved signup-error fix and GitHub branch state
+- [ ] Push the signup-error fix to GitHub main
+- [ ] Confirm the matching deployment is live on Vercel
+- [ ] Save a delivery checkpoint after verification
