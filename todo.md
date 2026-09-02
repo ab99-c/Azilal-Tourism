@@ -818,12 +818,12 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 ## User report: production local auth failure diagnosis
 - [x] تصنيف آمن لأخطاء قاعدة البيانات في التسجيل والدخول على Vercel دون كشف الأسرار
 - [x] رسالة واجهة متعددة اللغات عند تعذر إعداد خدمة المصادقة
-- [ ] اختبار auth وبناء الإنتاج ومزامنة GitHub وVercel
+- [x] اختبار auth وبناء الإنتاج ومزامنة GitHub وVercel
 
 ## User selected: new database for Vercel
 - [x] اختيار وإنشاء TiDB Cloud Serverless متوافق مع MySQL وVercel
-- [ ] ربط `DATABASE_URL` الجديد ببيئة Production في Vercel
-- [ ] تطبيق مخطط ADRAR والتحقق من جداول users والحجوزات
+- [x] ربط `DATABASE_URL` الجديد ببيئة Production في Vercel
+- [x] تطبيق مخطط ADRAR والتحقق من جداول users والحجوزات
 - [x] اختبار signup/login على Vercel ومزامنة الإصدار النهائي
 - [x] دعم صيغة TLS الخاصة بـTiDB (`sslaccept=strict`) في اتصال MySQL قبل اختبار Vercel
 - [x] إنشاء schema مستقل باسم `adrar` داخل TiDB بدل قاعدة النظام `sys`
