@@ -821,8 +821,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [ ] اختبار auth وبناء الإنتاج ومزامنة GitHub وVercel
 
 ## User selected: new database for Vercel
-- [ ] اختيار وإنشاء TiDB Cloud Serverless متوافق مع MySQL وVercel
+- [x] اختيار وإنشاء TiDB Cloud Serverless متوافق مع MySQL وVercel
 - [ ] ربط `DATABASE_URL` الجديد ببيئة Production في Vercel
 - [ ] تطبيق مخطط ADRAR والتحقق من جداول users والحجوزات
 - [ ] اختبار signup/login على Vercel ومزامنة الإصدار النهائي
-- [ ] دعم صيغة TLS الخاصة بـTiDB (`sslaccept=strict`) في اتصال MySQL قبل اختبار Vercel
+- [x] دعم صيغة TLS الخاصة بـTiDB (`sslaccept=strict`) في اتصال MySQL قبل اختبار Vercel
+- [ ] إنشاء schema مستقل باسم `adrar` داخل TiDB بدل قاعدة النظام `sys`
+- [ ] تحديث `DATABASE_URL` في Vercel ليتصل بـ`/adrar` ثم نشر النسخة الجديدة
+- [ ] تسجيل رمز MySQL ورقم الخطأ بشكل آمن لتحديد سبب فشل اتصال TiDB في Production

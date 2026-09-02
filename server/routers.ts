@@ -311,7 +311,12 @@ export const appRouter = router({
           existing = await getUserByEmail(input.email);
         } catch (error) {
           const reason = classifyDatabaseError(error);
-          console.error("[Auth] Registration lookup failed", { reason });
+          const dbError = error as { code?: string; errno?: number };
+          console.error("[Auth] Registration lookup failed", {
+            reason,
+            code: dbError.code,
+            errno: dbError.errno,
+          });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "AUTH_SERVICE_UNAVAILABLE",
@@ -371,7 +376,12 @@ export const appRouter = router({
           user = await getUserByEmail(input.email);
         } catch (error) {
           const reason = classifyDatabaseError(error);
-          console.error("[Auth] Login lookup failed", { reason });
+          const dbError = error as { code?: string; errno?: number };
+          console.error("[Auth] Login lookup failed", {
+            reason,
+            code: dbError.code,
+            errno: dbError.errno,
+          });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "AUTH_SERVICE_UNAVAILABLE",
