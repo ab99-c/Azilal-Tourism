@@ -43,4 +43,13 @@ describe("independent email/password authentication", () => {
     expect(fs.existsSync("api/server.ts")).toBe(false);
     expect(fs.readFileSync("server/vercel-api.ts", "utf8")).not.toContain("registerOAuthRoutes");
   });
+
+  it("normalizes duplicate signup failures to a safe conflict", () => {
+    const router = fs.readFileSync("server/routers.ts", "utf8");
+    const authDialog = fs.readFileSync("client/src/components/LocalAuthDialog.tsx", "utf8");
+    expect(router).toContain('code: "CONFLICT"');
+    expect(router).toContain('message: "EMAIL_ALREADY_REGISTERED"');
+    expect(authDialog).toContain("c.accountExists");
+    expect(authDialog).toContain("c.registerError");
+  });
 });

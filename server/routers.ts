@@ -311,13 +311,31 @@ export const appRouter = router({
             code: "CONFLICT",
             message: "EMAIL_ALREADY_REGISTERED",
           });
-        const user = await createLocalUser({
-          openId: `local_${randomBytes(24).toString("base64url")}`,
-          name: input.name,
-          email: input.email,
-          passwordHash: await hashPassword(input.password),
-          providerType: input.providerType,
-        });
+        let user;
+        try {
+          user = await createLocalUser({
+            openId: `local_${randomBytes(24).toString("base64url")}`,
+            name: input.name,
+            email: input.email,
+            passwordHash: await hashPassword(input.password),
+            providerType: input.providerType,
+          });
+        } catch (error) {
+          const message = String(error instanceof Error ? error.message : error);
+          if (/duplicate|unique|already exists/i.test(message)) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "EMAIL_ALREADY_REGISTERED",
+            });
+          }
+          console.error("[Auth] Local account creation failed", {
+            code: "ACCOUNT_CREATION_FAILED",
+          });
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "ACCOUNT_CREATION_FAILED",
+          });
+        }
         if (!user)
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",

@@ -796,3 +796,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Push the signup-error fix to GitHub main
 - [x] Confirm the matching deployment is live on Vercel
 - [x] Save a delivery checkpoint after verification
+
+## Bug fix: signup still fails after message clarification
+- [x] Inspect production logs and verify the live users/providerType schema
+- [x] Fix the underlying registration failure without changing existing accounts
+- [x] Add a regression test for successful/new and duplicate signup behavior
+- [x] Verify the live signup flow on mobile and desktop, then save and sync a checkpoint
