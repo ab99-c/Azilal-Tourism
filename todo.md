@@ -814,3 +814,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add clear multilingual guidance for existing OAuth accounts and local-account failures
 - [x] Add regression tests and verify responsive UI, TypeScript, and production build
 - [x] Save a checkpoint after the login/signup guidance is verified
+
+## User report: production local auth failure diagnosis
+- [x] تصنيف آمن لأخطاء قاعدة البيانات في التسجيل والدخول على Vercel دون كشف الأسرار
+- [x] رسالة واجهة متعددة اللغات عند تعذر إعداد خدمة المصادقة
+- [ ] اختبار auth وبناء الإنتاج ومزامنة GitHub وVercel

@@ -83,6 +83,7 @@ const labels = {
     invalid: "البريد الإلكتروني أو كلمة السر أو رمز الإعداد غير صحيح.",
     oauthAccount: "هذا الحساب مرتبط بتسجيل خارجي. استعمل زر تسجيل Google أو طريقة الدخول الأصلية.",
     registerError: "تعذر إنشاء الحساب حالياً. تحقق من البيانات وحاول مرة أخرى.",
+    authServiceUnavailable: "خدمة الحسابات غير متاحة مؤقتاً. تحقّق من إعداد الخادم وحاول لاحقاً.",
     formIncomplete: "يرجى إكمال الحقول المطلوبة والتحقق من الرمز وكلمة السر.",
     passwordChanged: "تم تغيير كلمة السر بنجاح. يمكنك تسجيل الدخول الآن.",
     confirmPassword: "تأكيد كلمة السر الجديدة",
@@ -133,6 +134,7 @@ const labels = {
     invalid: "The email or password is incorrect.",
     oauthAccount: "This account uses an external sign-in method. Use Google sign-in or the original provider.",
     registerError: "The account could not be created right now. Check your details and try again.",
+    authServiceUnavailable: "The account service is temporarily unavailable. Check the server configuration and try again later.",
     formIncomplete:
       "Please complete the required fields and check the token and password.",
     passwordChanged: "Password changed successfully. You can sign in now.",
@@ -185,6 +187,7 @@ const labels = {
     invalid: "E-mail ou mot de passe incorrect.",
     oauthAccount: "Ce compte utilise une connexion externe. Utilisez Google ou le fournisseur d’origine.",
     registerError: "Le compte n’a pas pu être créé. Vérifiez vos informations et réessayez.",
+    authServiceUnavailable: "Le service des comptes est temporairement indisponible. Vérifiez la configuration du serveur puis réessayez.",
     formIncomplete:
       "Veuillez remplir les champs requis et vérifier le jeton et le mot de passe.",
     passwordChanged:
@@ -237,6 +240,7 @@ const labels = {
     invalid: "ⵓⵔ ⵉⵙⵖⵓⴷⴰ",
     oauthAccount: "ⴰⵎⵉⴷⴰⵏ-ⴰ ⵉⵙⵙⵎⵔⵙ ⵜⵉⵏⵎⵍ ⵏ ⵜⵎⵙⵙⵉⵔⵜ. ⵙⵙⵎⵔⵙ Google ⵏⵉⵖ ⵜⵉⵏⵎⵍ ⵜⴰⵎⵣⵡⴰⵔⵓⵜ.",
     registerError: "ⵓⵔ ⵉⵣⵎⵔ ⵓⵎⵉⴷⴰⵏ ⴰⴷ ⵉⵜⵜⵓⵙⵏⵓⵍⴼⵓ. ⵙⵙⵏ ⵉⵎⵙⵙⴰⵡⵏ ⴷ ⵙⵙⵏ ⵜⵉⴽⵍⵉⵏ.",
+    authServiceUnavailable: "ⵜⴰⵏⴽⴰⵔⵜ ⵏ ⵉⵎⵉⴷⴰⵏ ⵓⵔ ⵜⵙⵙⵓⵔⴼ ⵉⵎⵉⵔ. ⵙⵙⵏ ⵜⴰⵙⵏⴰ ⵏ ⵓⵙⵇⵇⵉⵎ ⴷ ⵔⵔ ⵙ ⵎⴰⵏⵉ.",
     formIncomplete: "ⵙⵙⵎⵔⵙ ⵉⵙⵏ ⵉⵎⵣⵣⵉⵣⵏ ⴷ ⴰⵎⵣⵔⵓⵢ ⴷ ⵜⴰⵡⴰⵍⵜ.",
     passwordChanged: "ⵜⴱⴷⴷⵍ ⵜⴰⵡⴰⵍⵜ",
     confirmPassword: "ⵙⵙⵏ ⵜⴰⵡⴰⵍⵜ ⵜⴰⵎⴰⵢⵏⵓⵜ",
@@ -355,6 +359,10 @@ export default function LocalAuthDialog() {
   const login = trpc.auth.login.useMutation({
     onSuccess: ({ user }) => finish(user),
     onError: err => {
+      if (err.message.includes("AUTH_SERVICE_UNAVAILABLE")) {
+        showError(c.authServiceUnavailable);
+        return;
+      }
       showError(
         err.message.includes("OAUTH_ACCOUNT_USE_OAUTH") ? c.oauthAccount : c.invalid
       );
@@ -369,6 +377,10 @@ export default function LocalAuthDialog() {
         err.data?.code === "CONFLICT"
       ) {
         showError(c.accountExists);
+        return;
+      }
+      if (message.includes("AUTH_SERVICE_UNAVAILABLE")) {
+        showError(c.authServiceUnavailable);
         return;
       }
       if (message.includes("ACCOUNT_CREATION_FAILED")) {

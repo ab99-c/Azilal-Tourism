@@ -8,6 +8,20 @@ import { ENV } from './_core/env';
 let _db: ReturnType<typeof drizzle> | null = null;
 let _pool: Pool | null = null;
 
+export function classifyDatabaseError(error: unknown): "database_not_configured" | "database_schema_mismatch" | "database_connection_failed" | "database_query_failed" {
+  if (!process.env.DATABASE_URL) return "database_not_configured";
+  const candidate = error as { code?: string; errno?: number; message?: string };
+  const code = candidate?.code ?? "";
+  const message = candidate?.message ?? "";
+  if (/unknown column|doesn't exist|does not exist|schema|table .*not found/i.test(message) || [1054, 1146].includes(Number(candidate?.errno))) {
+    return "database_schema_mismatch";
+  }
+  if (["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "ER_ACCESS_DENIED_ERROR", "PROTOCOL_CONNECTION_LOST"].includes(code) || /connection|connect|timeout|access denied/i.test(message)) {
+    return "database_connection_failed";
+  }
+  return "database_query_failed";
+}
+
 function isTransientDatabaseError(error: unknown) {
   const candidate = error as { code?: string; message?: string };
   const code = candidate?.code ?? "";
@@ -133,8 +147,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
+    throw new Error("DATABASE_NOT_CONFIGURED");
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
@@ -144,7 +157,7 @@ export async function getUserByOpenId(openId: string) {
 
 export async function getUserByEmail(email: string) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) throw new Error("DATABASE_NOT_CONFIGURED");
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return result[0];
 }

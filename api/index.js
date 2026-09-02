@@ -320,6 +320,19 @@ var safetyTrips = mysqlTable("safety_trips", {
 // server/db.ts
 var _db = null;
 var _pool = null;
+function classifyDatabaseError(error) {
+  if (!process.env.DATABASE_URL) return "database_not_configured";
+  const candidate = error;
+  const code = candidate?.code ?? "";
+  const message = candidate?.message ?? "";
+  if (/unknown column|doesn't exist|does not exist|schema|table .*not found/i.test(message) || [1054, 1146].includes(Number(candidate?.errno))) {
+    return "database_schema_mismatch";
+  }
+  if (["ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "ER_ACCESS_DENIED_ERROR", "PROTOCOL_CONNECTION_LOST"].includes(code) || /connection|connect|timeout|access denied/i.test(message)) {
+    return "database_connection_failed";
+  }
+  return "database_query_failed";
+}
 function isTransientDatabaseError(error) {
   const candidate = error;
   const code = candidate?.code ?? "";
@@ -426,15 +439,14 @@ async function upsertUser(user) {
 async function getUserByOpenId(openId) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return void 0;
+    throw new Error("DATABASE_NOT_CONFIGURED");
   }
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
   return result.length > 0 ? result[0] : void 0;
 }
 async function getUserByEmail(email) {
   const db = await getDb();
-  if (!db) return void 0;
+  if (!db) throw new Error("DATABASE_NOT_CONFIGURED");
   const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return result[0];
 }
@@ -1543,7 +1555,17 @@ var appRouter = router({
       })
     ).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "register");
-      const existing = await getUserByEmail(input.email);
+      let existing;
+      try {
+        existing = await getUserByEmail(input.email);
+      } catch (error) {
+        const reason = classifyDatabaseError(error);
+        console.error("[Auth] Registration lookup failed", { reason });
+        throw new TRPCError4({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "AUTH_SERVICE_UNAVAILABLE"
+        });
+      }
       if (existing)
         throw new TRPCError4({
           code: "CONFLICT",
@@ -1566,12 +1588,11 @@ var appRouter = router({
             message: "EMAIL_ALREADY_REGISTERED"
           });
         }
-        console.error("[Auth] Local account creation failed", {
-          code: "ACCOUNT_CREATION_FAILED"
-        });
+        const reason = classifyDatabaseError(error);
+        console.error("[Auth] Local account creation failed", { reason });
         throw new TRPCError4({
           code: "INTERNAL_SERVER_ERROR",
-          message: "ACCOUNT_CREATION_FAILED"
+          message: "AUTH_SERVICE_UNAVAILABLE"
         });
       }
       if (!user)
@@ -1592,7 +1613,17 @@ var appRouter = router({
     }),
     login: publicProcedure.input(z2.object({ email: localEmail, password: localPassword })).mutation(async ({ input, ctx }) => {
       assertAuthRateLimit(ctx.req, "login");
-      const user = await getUserByEmail(input.email);
+      let user;
+      try {
+        user = await getUserByEmail(input.email);
+      } catch (error) {
+        const reason = classifyDatabaseError(error);
+        console.error("[Auth] Login lookup failed", { reason });
+        throw new TRPCError4({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "AUTH_SERVICE_UNAVAILABLE"
+        });
+      }
       if (user && !user.passwordHash && user.loginMethod !== "email_password") {
         throw new TRPCError4({
           code: "UNAUTHORIZED",

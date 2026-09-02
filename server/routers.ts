@@ -43,6 +43,7 @@ import {
   removeFavorite,
   getUserByOpenId,
   getUserByEmail,
+  classifyDatabaseError,
   getUserById,
   createLocalUser,
   setLocalPassword,
@@ -305,7 +306,17 @@ export const appRouter = router({
       )
       .mutation(async ({ input, ctx }) => {
         assertAuthRateLimit(ctx.req, "register");
-        const existing = await getUserByEmail(input.email);
+        let existing;
+        try {
+          existing = await getUserByEmail(input.email);
+        } catch (error) {
+          const reason = classifyDatabaseError(error);
+          console.error("[Auth] Registration lookup failed", { reason });
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "AUTH_SERVICE_UNAVAILABLE",
+          });
+        }
         if (existing)
           throw new TRPCError({
             code: "CONFLICT",
@@ -328,12 +339,11 @@ export const appRouter = router({
               message: "EMAIL_ALREADY_REGISTERED",
             });
           }
-          console.error("[Auth] Local account creation failed", {
-            code: "ACCOUNT_CREATION_FAILED",
-          });
+          const reason = classifyDatabaseError(error);
+          console.error("[Auth] Local account creation failed", { reason });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "ACCOUNT_CREATION_FAILED",
+            message: "AUTH_SERVICE_UNAVAILABLE",
           });
         }
         if (!user)
@@ -356,7 +366,17 @@ export const appRouter = router({
       .input(z.object({ email: localEmail, password: localPassword }))
       .mutation(async ({ input, ctx }) => {
         assertAuthRateLimit(ctx.req, "login");
-        const user = await getUserByEmail(input.email);
+        let user;
+        try {
+          user = await getUserByEmail(input.email);
+        } catch (error) {
+          const reason = classifyDatabaseError(error);
+          console.error("[Auth] Login lookup failed", { reason });
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "AUTH_SERVICE_UNAVAILABLE",
+          });
+        }
         if (user && !user.passwordHash && user.loginMethod !== "email_password") {
           throw new TRPCError({
             code: "UNAUTHORIZED",

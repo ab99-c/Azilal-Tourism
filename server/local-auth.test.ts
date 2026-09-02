@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import { hashPassword, isValidBootstrapSecret, verifyPassword } from "./localAuth";
+import { classifyDatabaseError } from "./db";
 
 describe("independent email/password authentication", () => {
   it("hashes passwords without retaining the original value and verifies only the right password", async () => {
@@ -51,6 +52,18 @@ describe("independent email/password authentication", () => {
     expect(router).toContain('message: "EMAIL_ALREADY_REGISTERED"');
     expect(authDialog).toContain("c.accountExists");
     expect(authDialog).toContain("c.registerError");
+    expect(authDialog).toContain("AUTH_SERVICE_UNAVAILABLE");
+    expect(authDialog).toContain("c.authServiceUnavailable");
+  });
+
+  it("classifies infrastructure failures without exposing credentials", () => {
+    const previous = process.env.DATABASE_URL;
+    process.env.DATABASE_URL = "mysql://configured.example/db";
+    expect(classifyDatabaseError({ code: "ER_BAD_FIELD_ERROR", errno: 1054, message: "Unknown column 'providerType'" })).toBe("database_schema_mismatch");
+    expect(classifyDatabaseError({ code: "ECONNREFUSED", message: "connect failed" })).toBe("database_connection_failed");
+    process.env.DATABASE_URL = "";
+    expect(classifyDatabaseError(new Error("anything"))).toBe("database_not_configured");
+    process.env.DATABASE_URL = previous;
   });
 
   it("keeps the production bundle aligned with the current auth schema and OAuth guidance", () => {
