@@ -804,7 +804,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Verify the live signup flow on mobile and desktop, then save and sync a checkpoint
 
 ## Delivery: latest signup fix sync
-- [ ] Verify the latest signup-fix commit and GitHub branch state
-- [ ] Push the latest signup fix to GitHub main
-- [ ] Confirm the matching Vercel deployment is live
-- [ ] Save a delivery checkpoint after verification
+- [x] Verify the latest signup-fix commit and GitHub branch state
+- [x] Push the latest signup fix to GitHub main
+- [x] Confirm the matching Vercel deployment is live
+- [x] Save a delivery checkpoint after verification
