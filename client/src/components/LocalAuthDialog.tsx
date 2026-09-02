@@ -81,6 +81,7 @@ const labels = {
     accountExists:
       "هذا البريد مسجل مسبقاً. سجّل الدخول أو فعّل حساب الإدارة القديم.",
     invalid: "البريد الإلكتروني أو كلمة السر أو رمز الإعداد غير صحيح.",
+    oauthAccount: "هذا الحساب مرتبط بتسجيل خارجي. استعمل زر تسجيل Google أو طريقة الدخول الأصلية.",
     registerError: "تعذر إنشاء الحساب حالياً. تحقق من البيانات وحاول مرة أخرى.",
     formIncomplete: "يرجى إكمال الحقول المطلوبة والتحقق من الرمز وكلمة السر.",
     passwordChanged: "تم تغيير كلمة السر بنجاح. يمكنك تسجيل الدخول الآن.",
@@ -130,6 +131,7 @@ const labels = {
     accountExists:
       "This email already has an account. Sign in or activate the existing administrator account.",
     invalid: "The email or password is incorrect.",
+    oauthAccount: "This account uses an external sign-in method. Use Google sign-in or the original provider.",
     registerError: "The account could not be created right now. Check your details and try again.",
     formIncomplete:
       "Please complete the required fields and check the token and password.",
@@ -181,6 +183,7 @@ const labels = {
     accountExists:
       "Cet e-mail possède déjà un compte. Connectez-vous ou activez le compte administrateur.",
     invalid: "E-mail ou mot de passe incorrect.",
+    oauthAccount: "Ce compte utilise une connexion externe. Utilisez Google ou le fournisseur d’origine.",
     registerError: "Le compte n’a pas pu être créé. Vérifiez vos informations et réessayez.",
     formIncomplete:
       "Veuillez remplir les champs requis et vérifier le jeton et le mot de passe.",
@@ -232,6 +235,7 @@ const labels = {
     passwordWeak: "ⵙⵙⵏ ⵜⴰⵡⴰⵍⵜ ⵜⵣⵎⵔ ⵙ ⵉⵙⴽⴽⵉⵍⵏ ⴷ ⵉⵎⵏⵣⴰⵢⵏ ⴷ ⵉⵎⵣⵣⵉⵣⵏ",
     accountExists: "ⵉⵍⴰ ⴰⵎⵉⴷⴰⵏ",
     invalid: "ⵓⵔ ⵉⵙⵖⵓⴷⴰ",
+    oauthAccount: "ⴰⵎⵉⴷⴰⵏ-ⴰ ⵉⵙⵙⵎⵔⵙ ⵜⵉⵏⵎⵍ ⵏ ⵜⵎⵙⵙⵉⵔⵜ. ⵙⵙⵎⵔⵙ Google ⵏⵉⵖ ⵜⵉⵏⵎⵍ ⵜⴰⵎⵣⵡⴰⵔⵓⵜ.",
     registerError: "ⵓⵔ ⵉⵣⵎⵔ ⵓⵎⵉⴷⴰⵏ ⴰⴷ ⵉⵜⵜⵓⵙⵏⵓⵍⴼⵓ. ⵙⵙⵏ ⵉⵎⵙⵙⴰⵡⵏ ⴷ ⵙⵙⵏ ⵜⵉⴽⵍⵉⵏ.",
     formIncomplete: "ⵙⵙⵎⵔⵙ ⵉⵙⵏ ⵉⵎⵣⵣⵉⵣⵏ ⴷ ⴰⵎⵣⵔⵓⵢ ⴷ ⵜⴰⵡⴰⵍⵜ.",
     passwordChanged: "ⵜⴱⴷⴷⵍ ⵜⴰⵡⴰⵍⵜ",
@@ -350,7 +354,11 @@ export default function LocalAuthDialog() {
   };
   const login = trpc.auth.login.useMutation({
     onSuccess: ({ user }) => finish(user),
-    onError: () => showError(c.invalid),
+    onError: err => {
+      showError(
+        err.message.includes("OAUTH_ACCOUNT_USE_OAUTH") ? c.oauthAccount : c.invalid
+      );
+    },
   });
   const register = trpc.auth.register.useMutation({
     onSuccess: ({ user }) => finish(user, c.verifyPending),

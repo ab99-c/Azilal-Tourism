@@ -808,3 +808,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Push the latest signup fix to GitHub main
 - [x] Confirm the matching Vercel deployment is live
 - [x] Save a delivery checkpoint after verification
+
+## Bug fix: local login versus OAuth account confusion
+- [x] Verify local-password and OAuth account states in signup and login flows
+- [x] Add clear multilingual guidance for existing OAuth accounts and local-account failures
+- [x] Add regression tests and verify responsive UI, TypeScript, and production build
+- [x] Save a checkpoint after the login/signup guidance is verified

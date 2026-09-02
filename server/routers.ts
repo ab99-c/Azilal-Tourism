@@ -357,6 +357,12 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         assertAuthRateLimit(ctx.req, "login");
         const user = await getUserByEmail(input.email);
+        if (user && !user.passwordHash && user.loginMethod !== "email_password") {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "OAUTH_ACCOUNT_USE_OAUTH",
+          });
+        }
         if (
           !user ||
           !(await verifyPassword(input.password, user.passwordHash))
