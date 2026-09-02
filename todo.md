@@ -792,7 +792,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Save a checkpoint after the signup flow is verified
 
 ## Delivery: signup-error fix
-- [ ] Verify the saved signup-error fix and GitHub branch state
-- [ ] Push the signup-error fix to GitHub main
-- [ ] Confirm the matching deployment is live on Vercel
-- [ ] Save a delivery checkpoint after verification
+- [x] Verify the saved signup-error fix and GitHub branch state
+- [x] Push the signup-error fix to GitHub main
+- [x] Confirm the matching deployment is live on Vercel
+- [x] Save a delivery checkpoint after verification
