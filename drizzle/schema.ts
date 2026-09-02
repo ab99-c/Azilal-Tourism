@@ -99,7 +99,7 @@ export const bookings = mysqlTable("bookings", {
   totalPrice: varchar("totalPrice", { length: 100 }),
   paymentMethod: mysqlEnum("paymentMethod", ["pay_on_arrival"]).default("pay_on_arrival").notNull(),
   paymentStatus: mysqlEnum("paymentStatus", ["unpaid", "paid"]).default("unpaid").notNull(),
-  status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed"]).default("pending").notNull(),
   itemId: int("itemId").default(0).notNull(),
   ownerId: int("ownerId").default(1).notNull(),
   // Logged-in guest who made this booking (NULL for anonymous guests).

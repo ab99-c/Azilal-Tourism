@@ -508,6 +508,12 @@ export async function confirmBooking(id: number) {
   return db.update(bookings).set({ status: 'confirmed', paymentStatus: 'paid' } as any).where(eq(bookings.id, id));
 }
 
+export async function completeBooking(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(bookings).set({ status: 'completed' } as any).where(eq(bookings.id, id));
+}
+
 // ===== GUEST-SCOPED QUERIES (guest dashboard) =====
 export async function getGuestBookings(guestUserId: number) {
   const db = await getDb();

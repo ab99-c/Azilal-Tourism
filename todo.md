@@ -766,21 +766,21 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 
 ## Attachment implementation request
 - [x] Read the newly attached pasted content and extract its actionable requirements
-- [ ] Apply the requested changes to ADRAR without unrelated changes
-- [ ] Run tests, TypeScript, production build, and responsive verification
-- [ ] Save and sync the completed attachment-based update
+- [x] Apply the requested changes to ADRAR without unrelated changes
+- [x] Run tests, TypeScript, production build, and responsive verification
+- [x] Save and sync the completed attachment-based update
 
 ## TourismTech roadmap extracted from brief
-- [ ] Keep existing multilingual discovery, map, Safety Trip, offline, owner dashboards, availability, and pay-on-arrival flows stable
-- [ ] Strengthen partner onboarding and role-aware access before adding new provider types
-- [ ] Formalize booking lifecycle and provider ownership without destructive backfills
-- [ ] Add operational KPIs and event tracking for owners, leads, bookings, GMV, and conversion
-- [ ] Prepare payment, reviews, notifications, AI assistant, and national geography as separate gated integrations
-- [ ] Maintain verified-content policy: no invented ratings, reviews, testimonials, listings, or customer data
+- [x] Keep existing multilingual discovery, map, Safety Trip, offline, owner dashboards, availability, and pay-on-arrival flows stable
+- [x] Strengthen partner onboarding and role-aware access before adding new provider types
+- [x] Formalize booking lifecycle and provider ownership without destructive backfills
+- [x] Add operational KPIs and event tracking for owners, leads, bookings, GMV, and conversion
+- [x] Prepare payment, reviews, notifications, AI assistant, and national geography as separate gated integrations
+- [x] Maintain verified-content policy: no invented ratings, reviews, testimonials, listings, or customer data
 
 ## Phase 1: partner onboarding and booking lifecycle
-- [ ] Add a safe provider-type/account-intent contract without breaking existing users
-- [ ] Build a unified partner onboarding path for hotel, restaurant, activity, guide, and transport providers
-- [ ] Formalize booking status transitions and owner-visible operational metrics
-- [ ] Add regression coverage, run TypeScript/build, and verify mobile UX
-- [ ] Save and sync the completed phase to GitHub and Vercel
+- [x] Add a safe provider-type/account-intent contract without breaking existing users
+- [x] Build a unified partner onboarding path for hotel, restaurant, activity, guide, and transport providers
+- [x] Formalize booking status transitions and owner-visible operational metrics
+- [x] Add regression coverage, run TypeScript/build, and verify mobile UX
+- [x] Save and sync the completed phase to GitHub and Vercel

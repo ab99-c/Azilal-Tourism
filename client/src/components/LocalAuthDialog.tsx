@@ -246,10 +246,38 @@ const labels = {
 } as const;
 
 const providerOptions = {
-  ar: { tourist: "سائح", hotel_owner: "مالك فندق أو دار ضيافة", restaurant_owner: "مالك مطعم أو مقهى", activity_provider: "منظم أنشطة", guide: "مرشد سياحي", transport_provider: "مقدم نقل أو كراء سيارات" },
-  en: { tourist: "Tourist", hotel_owner: "Hotel or guesthouse owner", restaurant_owner: "Restaurant or café owner", activity_provider: "Activity provider", guide: "Tour guide", transport_provider: "Transport or car-rental provider" },
-  fr: { tourist: "Touriste", hotel_owner: "Propriétaire d'hôtel ou maison d'hôtes", restaurant_owner: "Propriétaire de restaurant ou café", activity_provider: "Prestataire d'activités", guide: "Guide touristique", transport_provider: "Prestataire de transport ou location" },
-  ber: { tourist: "ⵉⵎⵔⵣⵣⴰ", hotel_owner: "ⴰⵎⵙⵡⵉⵔ ⵏ ⵓⵙⵏⵙⵓ", restaurant_owner: "ⴰⵎⵙⵡⵉⵔ ⵏ ⵓⵎⵙⵙⵉ", activity_provider: "ⴰⵎⵙⵙⴽⵜ ⵏ ⵉⵎⵙⵙⴽⵜⵏ", guide: "ⴰⵎⵙⵙⵏ", transport_provider: "ⴰⵎⵙⵙⵓⵔ ⵏ ⵓⵙⵉⵡⵍ" },
+  ar: {
+    tourist: "سائح",
+    hotel_owner: "مالك فندق أو دار ضيافة",
+    restaurant_owner: "مالك مطعم أو مقهى",
+    activity_provider: "منظم أنشطة",
+    guide: "مرشد سياحي",
+    transport_provider: "مقدم نقل أو كراء سيارات",
+  },
+  en: {
+    tourist: "Tourist",
+    hotel_owner: "Hotel or guesthouse owner",
+    restaurant_owner: "Restaurant or café owner",
+    activity_provider: "Activity provider",
+    guide: "Tour guide",
+    transport_provider: "Transport or car-rental provider",
+  },
+  fr: {
+    tourist: "Touriste",
+    hotel_owner: "Propriétaire d'hôtel ou maison d'hôtes",
+    restaurant_owner: "Propriétaire de restaurant ou café",
+    activity_provider: "Prestataire d'activités",
+    guide: "Guide touristique",
+    transport_provider: "Prestataire de transport ou location",
+  },
+  ber: {
+    tourist: "ⵉⵎⵔⵣⵣⴰ",
+    hotel_owner: "ⴰⵎⵙⵡⵉⵔ ⵏ ⵓⵙⵏⵙⵓ",
+    restaurant_owner: "ⴰⵎⵙⵡⵉⵔ ⵏ ⵓⵎⵙⵙⵉ",
+    activity_provider: "ⴰⵎⵙⵙⴽⵜ ⵏ ⵉⵎⵙⵙⴽⵜⵏ",
+    guide: "ⴰⵎⵙⵙⵏ",
+    transport_provider: "ⴰⵎⵙⵙⵓⵔ ⵏ ⵓⵙⵉⵡⵍ",
+  },
 } as const;
 
 export function openLocalAuth() {
@@ -435,6 +463,28 @@ export default function LocalAuthDialog() {
                 onChange={e => setName(e.target.value)}
                 className="rounded-xl border border-[#cfddd2] px-3 py-2.5 font-normal outline-none focus:ring-2 focus:ring-[#2c8b62]"
               />
+            </label>
+          )}
+          {mode === "register" && (
+            <label className="grid gap-1.5 text-sm font-bold text-[#315443]">
+              {c.providerType}
+              <select
+                value={providerType}
+                onChange={e =>
+                  setProviderType(e.target.value as typeof providerType)
+                }
+                className="rounded-xl border border-[#cfddd2] bg-white px-3 py-2.5 font-normal outline-none focus:ring-2 focus:ring-[#2c8b62]"
+              >
+                {(
+                  Object.keys(providerOptions[lang]) as Array<
+                    keyof (typeof providerOptions)[typeof lang]
+                  >
+                ).map(option => (
+                  <option key={option} value={option}>
+                    {providerOptions[lang][option]}
+                  </option>
+                ))}
+              </select>
             </label>
           )}
           {["login", "register", "activate", "reset-request"].includes(
