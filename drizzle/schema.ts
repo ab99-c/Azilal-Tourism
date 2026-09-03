@@ -24,6 +24,28 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
+ * Contact messages submitted from the public contact widget.
+ * A visitor may be anonymous; userId is attached when a session is available.
+ */
+export const contactMessages = mysqlTable("contact_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  senderName: varchar("senderName", { length: 120 }),
+  senderEmail: varchar("senderEmail", { length: 320 }),
+  message: text("message").notNull(),
+  status: mysqlEnum("status", ["unread", "read", "replied"]).default("unread").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (t) => ({
+  statusIdx: index("idx_contact_messages_status").on(t.status),
+  createdAtIdx: index("idx_contact_messages_created_at").on(t.createdAt),
+  userIdx: index("idx_contact_messages_user").on(t.userId),
+}));
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type InsertContactMessage = typeof contactMessages.$inferInsert;
+
+/**
  * Single-use, hashed email-auth tokens. The raw token is never persisted.
  * Dispatch is intentionally handled separately and remains disabled until a
  * verified sender is configured.

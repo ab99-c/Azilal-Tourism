@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import { TRPCError } from "@trpc/server";
 
-type AuthAction = "register" | "login" | "admin-activation" | "password-reset";
+type AuthAction = "register" | "login" | "admin-activation" | "password-reset" | "contact-message";
 type Bucket = { count: number; resetAt: number };
 
 const WINDOW_MS = 15 * 60 * 1000;
@@ -10,6 +10,7 @@ const MAX_ATTEMPTS: Record<AuthAction, number> = {
   login: 10,
   "admin-activation": 3,
   "password-reset": 5,
+  "contact-message": 5,
 };
 const buckets = new Map<string, Bucket>();
 

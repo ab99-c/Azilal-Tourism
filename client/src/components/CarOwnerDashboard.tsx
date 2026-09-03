@@ -38,6 +38,7 @@ import WhatsAppButton from "./WhatsAppButton";
 import { getCustomerWhatsAppMessage } from "@/lib/whatsapp";
 import AvailabilityManager from "./AvailabilityManager";
 import ListingReviewPanel from "./ListingReviewPanel";
+import ContactMessagesPanel from "./ContactMessagesPanel";
 
 type Lang = "ar" | "en" | "fr" | "ber";
 
@@ -64,6 +65,10 @@ export default function CarOwnerDashboard() {
   const { data: bookingsData } = trpc.dashboard.myBookings.useQuery(undefined, {
     retry: false,
   });
+  const contactMessagesQuery = trpc.contact.adminList.useQuery(undefined, {
+    enabled: user?.role === "admin",
+    retry: false,
+  });
   const { data: bookingMetrics } = trpc.dashboard.metrics.useQuery(undefined, {
     retry: false,
   });
@@ -82,6 +87,7 @@ export default function CarOwnerDashboard() {
     | "bookings"
     | "availability"
     | "review"
+    | "messages"
   >("cars");
   const [bookingTypeFilter, setBookingTypeFilter] = useState<
     "all" | "hotel" | "car" | "restaurant" | "cafe"
@@ -744,6 +750,7 @@ export default function CarOwnerDashboard() {
       }),
   });
   const utils = trpc.useUtils();
+  const updateContactStatusMutation = trpc.contact.updateStatus.useMutation();
   const refetchBookings = () => {
     utils.dashboard.myBookings.invalidate();
     utils.dashboard.myCars.invalidate();
@@ -1221,6 +1228,21 @@ export default function CarOwnerDashboard() {
             </button>
             {isAdmin && (
               <button
+                onClick={() => setActiveTab("messages")}
+                className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "messages" ? "bg-[#c8a951] text-[#1b5e3f]" : "text-white/70 hover:text-white"}`}
+              >
+                <MessageCircle className="w-4 h-4 inline me-1.5" />
+                {lang === "ar"
+                  ? "رسائل التواصل"
+                  : lang === "fr"
+                    ? "Messages"
+                    : lang === "ber"
+                      ? "ⵜⵉⵏⴰⵡⵉⵏ"
+                      : "Contact messages"}
+              </button>
+            )}
+            {isAdmin && (
+              <button
                 onClick={() => setActiveTab("review")}
                 className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "review" ? "bg-[#c8a951] text-[#1b5e3f]" : "text-white/70 hover:text-white"}`}
               >
@@ -1535,6 +1557,19 @@ export default function CarOwnerDashboard() {
               bookings={bookingsData || []}
             />
           </motion.div>
+        )}
+
+        {activeTab === "messages" && isAdmin && (
+          <ContactMessagesPanel
+            messages={contactMessagesQuery.data || []}
+            isLoading={contactMessagesQuery.isLoading}
+            onStatusChange={async (id, status) => {
+              await updateContactStatusMutation.mutateAsync({ id, status });
+              await contactMessagesQuery.refetch();
+            }}
+            isUpdating={updateContactStatusMutation.isPending}
+            lang={lang}
+          />
         )}
 
         {activeTab === "review" && isAdmin && (

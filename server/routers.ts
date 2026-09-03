@@ -64,6 +64,9 @@ import {
   getSafetyTripByToken,
   updateSafetyTrip,
   listSafetyTrips,
+  createContactMessage,
+  listContactMessages,
+  updateContactMessageStatus,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
 import { storagePut } from "./storage";
@@ -218,6 +221,52 @@ function safeDatabaseErrorMeta(error: unknown) {
 
 export const appRouter = router({
   system: systemRouter,
+  contact: router({
+    send: publicProcedure
+      .input(
+        z.object({
+          name: z.string().trim().max(120).optional(),
+          email: z.string().trim().email().max(320).optional(),
+          message: z.string().trim().min(1).max(MAX_TEXT),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        assertAuthRateLimit(ctx.req, "contact-message");
+        try {
+          const result = await createContactMessage({
+            userId: ctx.user?.id ?? null,
+            senderName: ctx.user?.name?.trim() || input.name?.trim() || null,
+            senderEmail: ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null,
+            message: input.message.trim(),
+            status: "unread",
+          });
+          clearAuthRateLimit(ctx.req, "contact-message");
+          return { accepted: true, id: result.id } as const;
+        } catch (error) {
+          console.error("[Contact] Message persistence failed", {
+            reason: classifyDatabaseError(error),
+            ...safeDatabaseErrorMeta(error),
+          });
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "CONTACT_SERVICE_UNAVAILABLE",
+          });
+        }
+      }),
+    adminList: adminProcedure.query(async () => listContactMessages()),
+    updateStatus: adminProcedure
+      .input(
+        z.object({
+          id: z.number().int().positive(),
+          status: z.enum(["unread", "read", "replied"]),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await updateContactMessageStatus(input.id, input.status);
+        return { success: true } as const;
+      }),
+  }),
+
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

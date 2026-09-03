@@ -2,7 +2,7 @@ import { eq, desc, and, isNull, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
 import { createPool, type Pool } from "mysql2";
-import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, availabilityBlocks, emailAuthTokens, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip, type AvailabilityBlock, type InsertAvailabilityBlock } from "../drizzle/schema";
+import { InsertUser, users, cars, hotels, restaurants, cafes, bookings, favorites, safetyTrips, availabilityBlocks, emailAuthTokens, contactMessages, type Car, type Hotel, type Restaurant, type Cafe, type Booking, type SafetyTrip, type InsertSafetyTrip, type AvailabilityBlock, type InsertAvailabilityBlock, type ContactMessage, type InsertContactMessage } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -261,6 +261,25 @@ export async function getMyBookings(ownerId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(bookings).where(eq(bookings.ownerId, ownerId)).orderBy(desc(bookings.createdAt)).limit(200);
+}
+
+export async function createContactMessage(input: InsertContactMessage) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const result = await db.insert(contactMessages).values(input);
+  return { id: Number(result[0].insertId) };
+}
+
+export async function listContactMessages() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt)).limit(200);
+}
+
+export async function updateContactMessageStatus(id: number, status: ContactMessage["status"]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.update(contactMessages).set({ status }).where(eq(contactMessages.id, id));
 }
 
 export async function getBookingById(id: number) {

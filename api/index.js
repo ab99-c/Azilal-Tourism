@@ -113,6 +113,20 @@ var users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()
 });
+var contactMessages = mysqlTable("contact_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  senderName: varchar("senderName", { length: 120 }),
+  senderEmail: varchar("senderEmail", { length: 320 }),
+  message: text("message").notNull(),
+  status: mysqlEnum("status", ["unread", "read", "replied"]).default("unread").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
+}, (t2) => ({
+  statusIdx: index("idx_contact_messages_status").on(t2.status),
+  createdAtIdx: index("idx_contact_messages_created_at").on(t2.createdAt),
+  userIdx: index("idx_contact_messages_user").on(t2.userId)
+}));
 var emailAuthTokens = mysqlTable("email_auth_tokens", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -533,6 +547,22 @@ async function getMyBookings(ownerId) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(bookings).where(eq(bookings.ownerId, ownerId)).orderBy(desc(bookings.createdAt)).limit(200);
+}
+async function createContactMessage(input) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const result = await db.insert(contactMessages).values(input);
+  return { id: Number(result[0].insertId) };
+}
+async function listContactMessages() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt)).limit(200);
+}
+async function updateContactMessageStatus(id, status) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.update(contactMessages).set({ status }).where(eq(contactMessages.id, id));
 }
 async function getBookingById(id) {
   const db = await getDb();
@@ -1346,7 +1376,8 @@ var MAX_ATTEMPTS = {
   register: 5,
   login: 10,
   "admin-activation": 3,
-  "password-reset": 5
+  "password-reset": 5,
+  "contact-message": 5
 };
 var buckets = /* @__PURE__ */ new Map();
 function getClientAddress(req) {
@@ -1466,6 +1497,47 @@ function safeDatabaseErrorMeta(error) {
 }
 var appRouter = router({
   system: systemRouter,
+  contact: router({
+    send: publicProcedure.input(
+      z2.object({
+        name: z2.string().trim().max(120).optional(),
+        email: z2.string().trim().email().max(320).optional(),
+        message: z2.string().trim().min(1).max(MAX_TEXT)
+      })
+    ).mutation(async ({ input, ctx }) => {
+      assertAuthRateLimit(ctx.req, "contact-message");
+      try {
+        const result = await createContactMessage({
+          userId: ctx.user?.id ?? null,
+          senderName: ctx.user?.name?.trim() || input.name?.trim() || null,
+          senderEmail: ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null,
+          message: input.message.trim(),
+          status: "unread"
+        });
+        clearAuthRateLimit(ctx.req, "contact-message");
+        return { accepted: true, id: result.id };
+      } catch (error) {
+        console.error("[Contact] Message persistence failed", {
+          reason: classifyDatabaseError(error),
+          ...safeDatabaseErrorMeta(error)
+        });
+        throw new TRPCError4({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "CONTACT_SERVICE_UNAVAILABLE"
+        });
+      }
+    }),
+    adminList: adminProcedure2.query(async () => listContactMessages()),
+    updateStatus: adminProcedure2.input(
+      z2.object({
+        id: z2.number().int().positive(),
+        status: z2.enum(["unread", "read", "replied"])
+      })
+    ).mutation(async ({ input }) => {
+      await updateContactMessageStatus(input.id, input.status);
+      return { success: true };
+    })
+  }),
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

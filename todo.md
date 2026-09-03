@@ -837,3 +837,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إزالة invalidate المرئي بعد setData في مسار نجاح LocalAuthDialog
 - [x] إضافة اختبار انحدار لمسار useAuth redirectOnUnauthenticated
 - [x] التحقق من dashboard والبناء والنشر
+
+## User request: real contact messages in ChatWidget
+- [x] إضافة جدول `contact_messages` مع migration غير هدّامة
+- [x] إضافة إجراء tRPC لحفظ رسائل الزوار والتحقق من المدخلات
+- [x] تحديث ChatWidget بحالة إرسال واستلام صادقة وإزالة الرد الوهمي
+- [x] إضافة قائمة إدارية للرسائل الواردة
+- [x] إبقاء WhatsApp معطلاً مؤقتاً إلى حين توفير الرقم الحقيقي
+- [x] اختبار الميزة والبناء ثم مزامنة GitHub وVercel
