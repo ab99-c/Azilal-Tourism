@@ -462,6 +462,16 @@ export const appRouter = router({
         clearAuthRateLimit(ctx.req, "register");
         return { user };
       }),
+    setLocalPassword: adminProcedure
+      .input(z.object({ password: localPassword }))
+      .mutation(async ({ input, ctx }) => {
+        const user = await getUserByOpenId(ctx.user.openId);
+        if (!user) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "USER_NOT_FOUND" });
+        }
+        await setLocalPassword(user.id, await hashPassword(input.password));
+        return { success: true } as const;
+      }),
     login: publicProcedure
       .input(z.object({ email: localEmail, password: localPassword }))
       .mutation(async ({ input, ctx }) => {

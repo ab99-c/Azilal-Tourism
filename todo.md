@@ -865,3 +865,13 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] ربط وصول رسالة جديدة بإشعار إداري آمن
 - [x] إرسال رد المدير إلى بريد الزائر مع حفظ الرد في contact_messages
 - [x] التحقق من إعدادات Resend والبناء والاختبارات ثم مزامنة GitHub وVercel
+
+## User request: promote admin email account
+- [ ] التحقق من وجود `adrar6705@gmail.com` في جدول users
+- [ ] تعيين role=admin للحساب الموجود فقط مع التحقق بعد التحديث
+- [ ] إعادة التحقق من اختبار الدخول إلى /admin وتحديث سجل المهمة
+
+## User request: enable admin password login
+- [x] التحقق من loginMethod ووجود كلمة مرور للحساب الإداري الحالي
+- [x] تحديد طريقة آمنة لإنشاء أو تفعيل كلمة مرور بدون كشفها في المحادثة
+- [x] اختبار دخول /admin وتوثيق الخطوات للمستخدم
