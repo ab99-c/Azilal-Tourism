@@ -867,9 +867,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] التحقق من إعدادات Resend والبناء والاختبارات ثم مزامنة GitHub وVercel
 
 ## User request: promote admin email account
-- [ ] التحقق من وجود `adrar6705@gmail.com` في جدول users
-- [ ] تعيين role=admin للحساب الموجود فقط مع التحقق بعد التحديث
-- [ ] إعادة التحقق من اختبار الدخول إلى /admin وتحديث سجل المهمة
+- [x] التحقق من عدم وجود `adrar6705@gmail.com` في جدول users وتوثيق النتيجة
+- [x] عدم تنفيذ role=admin لأن الحساب غير موجود؛ يلزم تسجيله أولاً قبل الترقية
+- [x] شرح مسار الدخول الإداري الحالي ومسار التسجيل المطلوب للحساب الجديد
 
 ## User request: enable admin password login
 - [x] التحقق من loginMethod ووجود كلمة مرور للحساب الإداري الحالي
