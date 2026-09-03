@@ -351,8 +351,10 @@ export default function LocalAuthDialog() {
     setError(message);
   };
   const finish = (user: any, message = "") => {
+    // setData already contains the authoritative user returned by auth.
+    // Avoid an immediate invalidate/refetch that can briefly clear the cache
+    // while useAuth is deciding whether to reopen the auth dialog.
     utils.auth.me.setData(undefined, user);
-    void utils.auth.me.invalidate();
     if (message) showSuccess(message);
     else setOpen(false);
   };

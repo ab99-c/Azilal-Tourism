@@ -831,3 +831,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] تسجيل رمز MySQL ورقم الخطأ بشكل آمن لتحديد سبب فشل اتصال TiDB في Production
 
 - [x] إنشاء جدول users الناقص في قاعدة TiDB `adrar` بعد ظهور خطأ ER_NO_SUCH_TABLE في Vercel
+
+## User report: login modal reopens after successful login
+- [x] منع refetch الانتقالي من إعادة فتح نافذة المصادقة بعد نجاح login
+- [x] إزالة invalidate المرئي بعد setData في مسار نجاح LocalAuthDialog
+- [x] إضافة اختبار انحدار لمسار useAuth redirectOnUnauthenticated
+- [x] التحقق من dashboard والبناء والنشر
