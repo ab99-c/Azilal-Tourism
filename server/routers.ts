@@ -67,6 +67,7 @@ import {
   createContactMessage,
   listContactMessages,
   updateContactMessageStatus,
+  replyContactMessage,
 } from "./db";
 import { cached, invalidateCache } from "./cache";
 import { storagePut } from "./storage";
@@ -238,7 +239,7 @@ export const appRouter = router({
             senderName: ctx.user?.name?.trim() || input.name?.trim() || null,
             senderEmail: ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null,
             message: input.message.trim(),
-            status: "unread",
+            status: "new",
           });
           clearAuthRateLimit(ctx.req, "contact-message");
           return { accepted: true, id: result.id } as const;
@@ -253,16 +254,26 @@ export const appRouter = router({
           });
         }
       }),
+    list: adminProcedure.query(async () => listContactMessages()),
     adminList: adminProcedure.query(async () => listContactMessages()),
     updateStatus: adminProcedure
       .input(
         z.object({
           id: z.number().int().positive(),
-          status: z.enum(["unread", "read", "replied"]),
+          status: z.enum(["new", "replied"]),
         })
       )
       .mutation(async ({ input }) => {
         await updateContactMessageStatus(input.id, input.status);
+        return { success: true } as const;
+      }),
+    reply: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        reply: z.string().trim().min(1).max(MAX_TEXT),
+      }))
+      .mutation(async ({ input }) => {
+        await replyContactMessage(input.id, input.reply);
         return { success: true } as const;
       }),
   }),

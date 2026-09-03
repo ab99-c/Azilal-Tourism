@@ -845,3 +845,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إضافة قائمة إدارية للرسائل الواردة
 - [x] إبقاء WhatsApp معطلاً مؤقتاً إلى حين توفير الرقم الحقيقي
 - [x] اختبار الميزة والبناء ثم مزامنة GitHub وVercel
+
+## User request: standalone admin panel and contact management
+- [x] إضافة مسار مستقل `/admin` بدون عناصر واجهة الموقع العامة
+- [x] حماية صفحة الإدارة بحسب role=admin قبل تحميل بيانات الإدارة
+- [x] توسيع contact_messages بالرد والحالة وتواريخ الرد عند الحاجة
+- [x] إضافة contact.list وcontact.reply للمدير وربطها بالواجهة
+- [x] إضافة أقسام overview/messages/listings/bookings داخل AdminPage
+- [x] اختبار الصلاحيات والتدفق المتجاوب ثم مزامنة GitHub وVercel

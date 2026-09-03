@@ -33,7 +33,9 @@ export const contactMessages = mysqlTable("contact_messages", {
   senderName: varchar("senderName", { length: 120 }),
   senderEmail: varchar("senderEmail", { length: 320 }),
   message: text("message").notNull(),
-  status: mysqlEnum("status", ["unread", "read", "replied"]).default("unread").notNull(),
+  status: mysqlEnum("status", ["new", "replied"]).default("new").notNull(),
+  reply: text("reply"),
+  repliedAt: timestamp("repliedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, (t) => ({

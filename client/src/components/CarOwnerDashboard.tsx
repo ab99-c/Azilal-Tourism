@@ -751,6 +751,7 @@ export default function CarOwnerDashboard() {
   });
   const utils = trpc.useUtils();
   const updateContactStatusMutation = trpc.contact.updateStatus.useMutation();
+  const replyContactMessageMutation = trpc.contact.reply.useMutation();
   const refetchBookings = () => {
     utils.dashboard.myBookings.invalidate();
     utils.dashboard.myCars.invalidate();
@@ -1567,7 +1568,11 @@ export default function CarOwnerDashboard() {
               await updateContactStatusMutation.mutateAsync({ id, status });
               await contactMessagesQuery.refetch();
             }}
-            isUpdating={updateContactStatusMutation.isPending}
+            onReply={async (id, reply) => {
+              await replyContactMessageMutation.mutateAsync({ id, reply });
+              await contactMessagesQuery.refetch();
+            }}
+            isUpdating={updateContactStatusMutation.isPending || replyContactMessageMutation.isPending}
             lang={lang}
           />
         )}

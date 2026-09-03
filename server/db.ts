@@ -282,6 +282,16 @@ export async function updateContactMessageStatus(id: number, status: ContactMess
   return db.update(contactMessages).set({ status }).where(eq(contactMessages.id, id));
 }
 
+export async function replyContactMessage(id: number, reply: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  return db.update(contactMessages).set({
+    reply,
+    status: "replied",
+    repliedAt: new Date(),
+  }).where(eq(contactMessages.id, id));
+}
+
 export async function getBookingById(id: number) {
   const db = await getDb();
   if (!db) return undefined;

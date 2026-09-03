@@ -24,6 +24,7 @@ import LocalAuthDialog from './components/LocalAuthDialog';
 import UnifiedDiscoverySearch from './components/UnifiedDiscoverySearch';
 import EarlyAccessSection from './components/EarlyAccessSection';
 import VisitorPlanningPage from './pages/VisitorPlanningPage';
+import AdminPage from './pages/AdminPage';
 import LocalProductsPage from './pages/LocalProductsPage';
 import DetailPage from './pages/DetailPage';
 import ListingDetailPage from './pages/ListingDetailPage';
@@ -43,6 +44,21 @@ function App() {
   const isLocalProductsPage = currentPath === '/products';
   const isDetailPage = currentPath === '/details';
   const isListingDetailPage = currentPath === '/listing-details';
+  const isAdminPage = currentPath === '/admin';
+
+  if (isAdminPage) {
+    return (
+      <ErrorBoundary fallbackRender={({ error }) => <CrashFallback message={error?.message} />}>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <LocalAuthDialog />
+            <AdminPage />
+          </TooltipProvider>
+        </LanguageProvider>
+      </ErrorBoundary>
+    );
+  }
 
   if (isSafetyTripPage || isVisitorPlanningPage || isLocalProductsPage || isDetailPage || isListingDetailPage) {
     return (
