@@ -29,13 +29,28 @@ describe("real contact message flow contract", () => {
     expect(widget).not.toContain("212600000000");
   });
 
-  it("exposes admin-only list and status procedures", () => {
+  it("exposes admin-only list, status, and reply procedures", () => {
     const router = read("server/routers.ts");
     const dashboard = read("client/src/components/CarOwnerDashboard.tsx");
+    const adminPage = read("client/src/pages/AdminPage.tsx");
 
+    expect(router).toContain("list: adminProcedure");
     expect(router).toContain("adminList: adminProcedure");
     expect(router).toContain("updateStatus: adminProcedure");
+    expect(router).toContain("reply: adminProcedure");
+    expect(router).toContain("replyContactMessage");
     expect(dashboard).toContain("trpc.contact.adminList.useQuery");
+    expect(adminPage).toContain("trpc.contact.adminList.useQuery");
+    expect(adminPage).toContain("trpc.contact.reply.useMutation");
     expect(dashboard).toContain("ContactMessagesPanel");
+  });
+
+  it("collects a replyable visitor email and sends it with the message", () => {
+    const widget = read("client/src/components/ChatWidget.tsx");
+
+    expect(widget).toContain('type="email"');
+    expect(widget).toContain("required");
+    expect(widget).toContain("email: email.trim()");
+    expect(widget).toContain("name: name.trim() || undefined");
   });
 });

@@ -853,3 +853,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إضافة contact.list وcontact.reply للمدير وربطها بالواجهة
 - [x] إضافة أقسام overview/messages/listings/bookings داخل AdminPage
 - [x] اختبار الصلاحيات والتدفق المتجاوب ثم مزامنة GitHub وVercel
+
+## User request: persistent visitor communication database
+- [x] تثبيت حفظ رسائل الزوار وتفاصيل التواصل في قاعدة TiDB الحالية بدلاً من الاعتماد على البريد فقط
+- [x] مراجعة contact_messages وإضافة أي حقول لازمة لسجل التواصل والردود
+- [x] التحقق من واجهة الإرسال ولوحة الإدارة والصلاحيات واختبار التدفق الكامل
+- [x] بناء النسخة ومزامنتها مع GitHub وVercel بعد نجاح الاختبارات
