@@ -39,6 +39,8 @@ describe("real contact message flow contract", () => {
     expect(router).toContain("updateStatus: adminProcedure");
     expect(router).toContain("reply: adminProcedure");
     expect(router).toContain("replyContactMessage");
+    expect(router).toContain("notifyContactAdmin");
+    expect(router).toContain("sendContactReply");
     expect(dashboard).toContain("trpc.contact.adminList.useQuery");
     expect(adminPage).toContain("trpc.contact.adminList.useQuery");
     expect(adminPage).toContain("trpc.contact.reply.useMutation");

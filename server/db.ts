@@ -276,6 +276,13 @@ export async function listContactMessages() {
   return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt)).limit(200);
 }
 
+export async function getContactMessageById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [message] = await db.select().from(contactMessages).where(eq(contactMessages.id, id)).limit(1);
+  return message;
+}
+
 export async function updateContactMessageStatus(id: number, status: ContactMessage["status"]) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");

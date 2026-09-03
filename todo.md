@@ -859,3 +859,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] مراجعة contact_messages وإضافة أي حقول لازمة لسجل التواصل والردود
 - [x] التحقق من واجهة الإرسال ولوحة الإدارة والصلاحيات واختبار التدفق الكامل
 - [x] بناء النسخة ومزامنتها مع GitHub وVercel بعد نجاح الاختبارات
+
+## User request: admin email notifications and replies
+- [x] إضافة `adrar6705@gmail.com` كعنوان إشعارات المدير دون وضعه في الواجهة العامة
+- [x] ربط وصول رسالة جديدة بإشعار إداري آمن
+- [x] إرسال رد المدير إلى بريد الزائر مع حفظ الرد في contact_messages
+- [x] التحقق من إعدادات Resend والبناء والاختبارات ثم مزامنة GitHub وVercel

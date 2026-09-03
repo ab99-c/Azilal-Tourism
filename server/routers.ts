@@ -65,6 +65,7 @@ import {
   updateSafetyTrip,
   listSafetyTrips,
   createContactMessage,
+  getContactMessageById,
   listContactMessages,
   updateContactMessageStatus,
   replyContactMessage,
@@ -78,6 +79,7 @@ import {
   verifyPassword,
 } from "./localAuth";
 import { assertAuthRateLimit, clearAuthRateLimit } from "./authRateLimit";
+import { notifyContactAdmin, sendContactReply } from "./contactEmail";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -234,13 +236,17 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         assertAuthRateLimit(ctx.req, "contact-message");
         try {
+          const senderName = ctx.user?.name?.trim() || input.name?.trim() || null;
+          const senderEmail = ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null;
+          const message = input.message.trim();
           const result = await createContactMessage({
             userId: ctx.user?.id ?? null,
-            senderName: ctx.user?.name?.trim() || input.name?.trim() || null,
-            senderEmail: ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null,
-            message: input.message.trim(),
+            senderName,
+            senderEmail,
+            message,
             status: "new",
           });
+          void notifyContactAdmin({ senderName, senderEmail, message });
           clearAuthRateLimit(ctx.req, "contact-message");
           return { accepted: true, id: result.id } as const;
         } catch (error) {
@@ -273,8 +279,16 @@ export const appRouter = router({
         reply: z.string().trim().min(1).max(MAX_TEXT),
       }))
       .mutation(async ({ input }) => {
+        const message = await getContactMessageById(input.id);
         await replyContactMessage(input.id, input.reply);
-        return { success: true } as const;
+        const emailSent = message?.senderEmail
+          ? await sendContactReply({
+              to: message.senderEmail,
+              senderName: message.senderName,
+              reply: input.reply,
+            })
+          : false;
+        return { success: true, emailSent } as const;
       }),
   }),
 
