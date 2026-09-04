@@ -905,3 +905,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] التحقق من الاختبارات وحالة Git الحالية
 - [x] رفع آخر commit إلى GitHub والتأكد من Vercel
 - [x] توثيق رابط النسخة المنشورة وحالتها
+
+## User report: activation still rejected in Vercel
+- [x] فحص وجود AUTH_BOOTSTRAP_SECRET في Production دون كشف القيمة
+- [x] التحقق من سبب رفض التفعيل رغم البريد الإداري الصحيح
+- [x] اختبار الإصلاح وإعادة النشر بعد التأكد من الإعدادات

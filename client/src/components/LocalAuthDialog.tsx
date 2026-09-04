@@ -84,6 +84,7 @@ const labels = {
     invalidBootstrapSecret: "رمز إعداد الإدارة غير صحيح. استعمل AUTH_BOOTSTRAP_SECRET الموجود في Vercel.",
     adminAccountNotFound: "هذا البريد ليس حساب إدارة في قاعدة بيانات Vercel.",
     adminAlreadyActivated: "تم تفعيل حساب الإدارة من قبل. استعمل تسجيل الدخول بالبريد.",
+    authRateLimited: "تم إيقاف محاولات التفعيل مؤقتاً بسبب كثرة المحاولات. انتظر 15 دقيقة ثم أعد المحاولة.",
     oauthAccount: "هذا الحساب مرتبط بتسجيل خارجي. استعمل زر تسجيل Google أو طريقة الدخول الأصلية.",
     registerError: "تعذر إنشاء الحساب حالياً. تحقق من البيانات وحاول مرة أخرى.",
     authServiceUnavailable: "خدمة الحسابات غير متاحة مؤقتاً. تحقّق من إعداد الخادم وحاول لاحقاً.",
@@ -138,6 +139,7 @@ const labels = {
     invalidBootstrapSecret: "The administrator setup secret is incorrect. Use the AUTH_BOOTSTRAP_SECRET configured in Vercel.",
     adminAccountNotFound: "This email is not an administrator account in the Vercel database.",
     adminAlreadyActivated: "This administrator account is already activated. Use email sign-in.",
+    authRateLimited: "Activation attempts are temporarily blocked after several tries. Wait 15 minutes and try again.",
     oauthAccount: "This account uses an external sign-in method. Use Google sign-in or the original provider.",
     registerError: "The account could not be created right now. Check your details and try again.",
     authServiceUnavailable: "The account service is temporarily unavailable. Check the server configuration and try again later.",
@@ -194,6 +196,7 @@ const labels = {
     invalidBootstrapSecret: "Le code d’activation administrateur est incorrect. Utilisez AUTH_BOOTSTRAP_SECRET dans Vercel.",
     adminAccountNotFound: "Cet e-mail n’est pas un compte administrateur dans la base Vercel.",
     adminAlreadyActivated: "Ce compte administrateur est déjà activé. Utilisez la connexion par e-mail.",
+    authRateLimited: "Les tentatives d’activation sont temporairement bloquées. Attendez 15 minutes puis réessayez.",
     oauthAccount: "Ce compte utilise une connexion externe. Utilisez Google ou le fournisseur d’origine.",
     registerError: "Le compte n’a pas pu être créé. Vérifiez vos informations et réessayez.",
     authServiceUnavailable: "Le service des comptes est temporairement indisponible. Vérifiez la configuration du serveur puis réessayez.",
@@ -250,6 +253,7 @@ const labels = {
     invalidBootstrapSecret: "ⴰⵎⵣⵔⵓⵢ ⵏ ⵓⵏⴱⴷⴰⴷ ⵓⵔ ⵉⵙⵖⵓⴷⴰ.",
     adminAccountNotFound: "ⵓⵔ ⵉⵍⵉ ⵓⵎⵉⴷⴰⵏ ⵏ ⵓⵏⴱⴷⴰⴷ.",
     adminAlreadyActivated: "ⵉⵜⵜⵓⵙⵙⵏ ⵓⵎⵉⴷⴰⵏ ⵏ ⵓⵏⴱⴷⴰⴷ. ⵙⵙⵎⵔⵙ ⴽⵛⵎ ⵙ ⵉⵎⵉⵍ.",
+    authRateLimited: "ⵜⵜⵓⵙⵙⵏ ⵜⵉⵏⵎⵍⵉⵏ ⵏ ⵓⵙⵏⵓⵍⴼⵓ. ⵔⵊⵓ 15 ⵏ ⵜⵙⵔⵉⵔⵉⵏ.",
     oauthAccount: "ⴰⵎⵉⴷⴰⵏ-ⴰ ⵉⵙⵙⵎⵔⵙ ⵜⵉⵏⵎⵍ ⵏ ⵜⵎⵙⵙⵉⵔⵜ. ⵙⵙⵎⵔⵙ Google ⵏⵉⵖ ⵜⵉⵏⵎⵍ ⵜⴰⵎⵣⵡⴰⵔⵓⵜ.",
     registerError: "ⵓⵔ ⵉⵣⵎⵔ ⵓⵎⵉⴷⴰⵏ ⴰⴷ ⵉⵜⵜⵓⵙⵏⵓⵍⴼⵓ. ⵙⵙⵏ ⵉⵎⵙⵙⴰⵡⵏ ⴷ ⵙⵙⵏ ⵜⵉⴽⵍⵉⵏ.",
     authServiceUnavailable: "ⵜⴰⵏⴽⴰⵔⵜ ⵏ ⵉⵎⵉⴷⴰⵏ ⵓⵔ ⵜⵙⵙⵓⵔⴼ ⵉⵎⵉⵔ. ⵙⵙⵏ ⵜⴰⵙⵏⴰ ⵏ ⵓⵙⵇⵇⵉⵎ ⴷ ⵔⵔ ⵙ ⵎⴰⵏⵉ.",
@@ -418,6 +422,8 @@ export default function LocalAuthDialog() {
         showError(c.adminAccountNotFound);
       } else if (message.includes("ADMIN_ALREADY_ACTIVATED")) {
         showError(c.adminAlreadyActivated);
+      } else if (message.includes("AUTH_RATE_LIMITED") || err.data?.code === "TOO_MANY_REQUESTS") {
+        showError(c.authRateLimited);
       } else {
         showError(c.invalid);
       }
