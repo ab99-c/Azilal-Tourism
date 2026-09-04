@@ -895,3 +895,13 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] تشخيص تطابق AUTH_BOOTSTRAP_SECRET بين بيئة التطبيق وVercel
 - [x] طلب رمز إعداد جديد بشكل سري إذا لزم الأمر وتثبيته في Production
 - [x] اختبار تفعيل الحساب والبناء ثم نشر الإصلاح
+
+## User request: reset missing admin setup code
+- [x] طلب رمز AUTH_BOOTSTRAP_SECRET جديد عبر بطاقة سرية
+- [x] التحقق من الرمز الجديد باختبار endpoint غير مغير للبيانات
+- [x] تأكيد خطوات استعمال الرمز داخل /admin
+
+## User request: sync latest admin activation changes
+- [x] التحقق من الاختبارات وحالة Git الحالية
+- [x] رفع آخر commit إلى GitHub والتأكد من Vercel
+- [x] توثيق رابط النسخة المنشورة وحالتها
