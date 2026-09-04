@@ -875,3 +875,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] التحقق من loginMethod ووجود كلمة مرور للحساب الإداري الحالي
 - [x] تحديد طريقة آمنة لإنشاء أو تفعيل كلمة مرور بدون كشفها في المحادثة
 - [x] اختبار دخول /admin وتوثيق الخطوات للمستخدم
+
+## User report: admin login path missing on Vercel
+- [x] إضافة زر دخول Google واضح داخل صفحة /admin للحساب الإداري الموجود
+- [x] منع توجيه المدير إلى نموذج التسجيل العام أو رسالة رمز الإعداد المضللة
+- [x] اختبار مسار /admin على الهاتف ثم بناء ونشر الإصلاح

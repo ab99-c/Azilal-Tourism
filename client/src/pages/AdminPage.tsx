@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { BarChart3, Building2, Car, ChevronLeft, ClipboardList, LayoutDashboard, LockKeyhole, LogOut, Mail, MessageSquare, RefreshCw, ShieldCheck, Utensils } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
 import { openLocalAuth } from "@/components/LocalAuthDialog";
 import ContactMessagesPanel from "@/components/ContactMessagesPanel";
 import AdminPasswordSetup from "@/components/AdminPasswordSetup";
@@ -44,7 +45,7 @@ export default function AdminPage() {
   }
 
   if (!user) {
-    return <main className="min-h-screen bg-[#09251a] p-6 text-white" dir="rtl"><div className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center"><section className="w-full rounded-3xl border border-white/10 bg-white/10 p-8 text-center shadow-2xl"><LockKeyhole className="mx-auto mb-4 h-12 w-12 text-[#d5b85a]" /><h1 className="text-2xl font-bold">دخول لوحة الإدارة</h1><p className="mt-3 text-white/70">يجب تسجيل الدخول أولاً للوصول إلى لوحة الإدارة.</p><Button className="mt-6 bg-[#d5b85a] text-[#09251a] hover:bg-[#ead37c]" onClick={openLocalAuth}>تسجيل الدخول</Button></section></div></main>;
+    return <main className="min-h-screen bg-[#09251a] p-6 text-white" dir="rtl"><div className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center"><section className="w-full rounded-3xl border border-white/10 bg-white/10 p-8 text-center shadow-2xl"><LockKeyhole className="mx-auto mb-4 h-12 w-12 text-[#d5b85a]" /><h1 className="text-2xl font-bold">دخول لوحة الإدارة</h1><p className="mt-3 text-white/70">يجب تسجيل الدخول أولاً للوصول إلى لوحة الإدارة.</p><div className="mt-6 grid gap-3 sm:grid-cols-2"><Button className="bg-[#d5b85a] text-[#09251a] hover:bg-[#ead37c]" onClick={startLogin}>الدخول عبر Google</Button><Button variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10" onClick={openLocalAuth}>الدخول بالبريد</Button></div></section></div></main>;
   }
 
   if (!isAdmin) {
