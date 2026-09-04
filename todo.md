@@ -890,3 +890,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] مراجعة مسار activate-admin ورمز الإعداد في المصادقة المحلية
 - [x] إزالة زر OAuth من شاشة /admin واستبداله بمسار Vercel محلي واضح
 - [x] اختبار الدخول الإداري محلياً والبناء ثم رفع GitHub وVercel
+
+## User report: Vercel admin activation code rejected
+- [x] تشخيص تطابق AUTH_BOOTSTRAP_SECRET بين بيئة التطبيق وVercel
+- [x] طلب رمز إعداد جديد بشكل سري إذا لزم الأمر وتثبيته في Production
+- [x] اختبار تفعيل الحساب والبناء ثم نشر الإصلاح
