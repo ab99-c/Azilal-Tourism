@@ -292,8 +292,10 @@ const providerOptions = {
   },
 } as const;
 
-export function openLocalAuth() {
-  window.dispatchEvent(new Event("adrar:open-auth"));
+export type LocalAuthOpenMode = "login" | "activate";
+
+export function openLocalAuth(mode: LocalAuthOpenMode = "login") {
+  window.dispatchEvent(new CustomEvent("adrar:open-auth", { detail: { mode } }));
 }
 
 export default function LocalAuthDialog() {
@@ -334,7 +336,9 @@ export default function LocalAuthDialog() {
     "error"
   );
   useEffect(() => {
-    const show = () => {
+    const show = (event?: Event) => {
+      const mode = (event as CustomEvent<{ mode?: LocalAuthOpenMode }> | undefined)?.detail?.mode;
+      if (mode) setMode(mode);
       setError("");
       setOpen(true);
     };

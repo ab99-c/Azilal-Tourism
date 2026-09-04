@@ -885,3 +885,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] التحقق من ظهور دخول Google وإعداد كلمة مرور الإدارة على الحاسوب
 - [x] تشغيل الاختبار والبناء ثم رفع آخر commit إلى GitHub
 - [x] التأكد من جاهزية deployment في Vercel وتوثيق النتيجة
+
+## User report: admin login must be independent on Vercel
+- [x] مراجعة مسار activate-admin ورمز الإعداد في المصادقة المحلية
+- [x] إزالة زر OAuth من شاشة /admin واستبداله بمسار Vercel محلي واضح
+- [x] اختبار الدخول الإداري محلياً والبناء ثم رفع GitHub وVercel

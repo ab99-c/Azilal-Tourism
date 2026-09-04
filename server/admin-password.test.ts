@@ -17,8 +17,8 @@ describe("admin local password setup contract", () => {
     const page = read("client/src/pages/AdminPage.tsx");
     const component = read("client/src/components/AdminPasswordSetup.tsx");
     expect(page).toContain("AdminPasswordSetup");
-    expect(page).toContain("startLogin");
-    expect(page).toContain("الدخول عبر Google");
+    expect(page).toContain("openLocalAuth(\"activate\")");
+    expect(page).toContain("تفعيل الإدارة في Vercel");
     expect(page).toContain("الدخول بالبريد");
     expect(component).toContain("trpc.auth.setLocalPassword.useMutation");
     expect(component).toContain("كلمة مرور جديدة");

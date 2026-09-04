@@ -123,7 +123,7 @@ export default function GuestDashboard() {
                 : 'Sign in to view and manage your bookings here'}
             </p>
             <button
-              onClick={openLocalAuth}
+              onClick={() => openLocalAuth("login")}
               className="bg-white text-[#1b5e3f] px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition-all active:scale-[0.97] hover:shadow-lg"
             >
               {t('nav.login')}
