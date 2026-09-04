@@ -880,3 +880,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إضافة زر دخول Google واضح داخل صفحة /admin للحساب الإداري الموجود
 - [x] منع توجيه المدير إلى نموذج التسجيل العام أو رسالة رمز الإعداد المضللة
 - [x] اختبار مسار /admin على الهاتف ثم بناء ونشر الإصلاح
+
+## User request: verify desktop admin access and sync
+- [ ] التحقق من ظهور دخول Google وإعداد كلمة مرور الإدارة على الحاسوب
+- [ ] تشغيل الاختبار والبناء ثم رفع آخر commit إلى GitHub
+- [ ] التأكد من جاهزية deployment في Vercel وتوثيق النتيجة
