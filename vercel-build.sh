@@ -5,12 +5,12 @@ echo "Building client with Vite..."
 npx vite build
 
 # Keep the production database schema in sync before the API bundle is deployed.
-# This fixes missing-table errors on fresh/older Vercel database deployments.
+# TiDB Serverless is reached through the TLS-enabled Drizzle config.
 if [ -n "${DATABASE_URL:-}" ]; then
-  echo "Applying Drizzle migrations..."
-  npx drizzle-kit migrate
+  echo "Synchronizing Drizzle schema..."
+  npx drizzle-kit push --force
 else
-  echo "DATABASE_URL is not configured; skipping database migrations."
+  echo "DATABASE_URL is not configured; skipping database schema sync."
 fi
 
 echo "Bundling Vercel API handler..."
