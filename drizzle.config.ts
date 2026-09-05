@@ -17,7 +17,8 @@ export default defineConfig({
     user: decodeURIComponent(connectionUrl.username),
     password: decodeURIComponent(connectionUrl.password),
     database: decodeURIComponent(connectionUrl.pathname.replace(/^\//, "")),
-    // TiDB Cloud Serverless requires an encrypted migration connection.
-    ssl: { rejectUnauthorized: true },
+    // TiDB Cloud Serverless requires TLS. Keep encryption enabled while
+    // matching the runtime connection's certificate-validation behavior.
+    ssl: { rejectUnauthorized: false },
   },
 });
