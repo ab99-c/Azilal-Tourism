@@ -1,17 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 
-const rawConnectionString = process.env.DATABASE_URL;
-if (!rawConnectionString) {
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
   throw new Error("DATABASE_URL is required to run drizzle commands");
-}
-
-// TiDB Cloud requires TLS. `sslaccept` is not a mysql2/Drizzle Kit option,
-// so normalize provider URLs before Drizzle Kit opens its migration connection.
-const connectionUrl = new URL(rawConnectionString);
-const isTiDBCloud = connectionUrl.hostname.endsWith("tidbcloud.com");
-if (isTiDBCloud) {
-  connectionUrl.searchParams.delete("sslaccept");
-  connectionUrl.searchParams.set("ssl", "{'rejectUnauthorized':true}");
 }
 
 export default defineConfig({
@@ -19,6 +10,8 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "mysql",
   dbCredentials: {
-    url: connectionUrl.toString(),
+    url: connectionString,
+    // TiDB Serverless requires TLS for migration connections.
+    ssl: { rejectUnauthorized: true },
   },
 });
