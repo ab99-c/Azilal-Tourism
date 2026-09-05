@@ -6,15 +6,18 @@ if (!rawConnectionString) {
 }
 
 const connectionUrl = new URL(rawConnectionString);
-connectionUrl.searchParams.delete("sslaccept");
 
 export default defineConfig({
   schema: "./drizzle/schema.ts",
   out: "./drizzle",
   dialect: "mysql",
   dbCredentials: {
-    url: connectionUrl.toString(),
-    // TiDB Serverless requires TLS for migration connections.
+    host: connectionUrl.hostname,
+    port: Number(connectionUrl.port || 4000),
+    user: decodeURIComponent(connectionUrl.username),
+    password: decodeURIComponent(connectionUrl.password),
+    database: decodeURIComponent(connectionUrl.pathname.replace(/^\//, "")),
+    // TiDB Cloud Serverless requires an encrypted migration connection.
     ssl: { rejectUnauthorized: true },
   },
 });
