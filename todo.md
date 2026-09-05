@@ -910,3 +910,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] فحص وجود AUTH_BOOTSTRAP_SECRET في Production دون كشف القيمة
 - [x] التحقق من سبب رفض التفعيل رغم البريد الإداري الصحيح
 - [x] اختبار الإصلاح وإعادة النشر بعد التأكد من الإعدادات
+
+## User report: chatbot button not working
+- [x] تحديد سبب تعطل زر chatbot من الكود وسجلات المتصفح
+- [x] إصلاح فتح chatbot وإرسال الرسائل دون كسر قناة contact
+- [x] اختبار chatbot على الهاتف والحاسوب ثم نشر الإصلاح
