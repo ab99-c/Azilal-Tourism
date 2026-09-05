@@ -11,7 +11,7 @@ const connectionUrl = new URL(rawConnectionString);
 const isTiDBCloud = connectionUrl.hostname.endsWith("tidbcloud.com");
 if (isTiDBCloud) {
   connectionUrl.searchParams.delete("sslaccept");
-  connectionUrl.searchParams.set("ssl", "true");
+  connectionUrl.searchParams.set("ssl", "{'rejectUnauthorized':true}");
 }
 
 export default defineConfig({
