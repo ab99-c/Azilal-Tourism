@@ -1,15 +1,24 @@
 import { defineConfig } from "drizzle-kit";
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
+const rawConnectionString = process.env.DATABASE_URL;
+if (!rawConnectionString) {
   throw new Error("DATABASE_URL is required to run drizzle commands");
 }
+
+const connectionUrl = new URL(rawConnectionString);
 
 export default defineConfig({
   schema: "./drizzle/schema.ts",
   out: "./drizzle",
   dialect: "mysql",
   dbCredentials: {
-    url: connectionString,
+    host: connectionUrl.hostname,
+    port: Number(connectionUrl.port || 4000),
+    user: decodeURIComponent(connectionUrl.username),
+    password: decodeURIComponent(connectionUrl.password),
+    database: decodeURIComponent(connectionUrl.pathname.replace(/^\//, "")),
+    // TiDB Cloud Serverless requires TLS. Keep encryption enabled while
+    // matching the runtime connection's certificate-validation behavior.
+    ssl: { rejectUnauthorized: false },
   },
 });
