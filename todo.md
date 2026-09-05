@@ -915,3 +915,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] تحديد سبب تعطل زر chatbot من الكود وسجلات المتصفح
 - [x] إصلاح فتح chatbot وإرسال الرسائل دون كسر قناة contact
 - [x] اختبار chatbot على الهاتف والحاسوب ثم نشر الإصلاح
+
+## User request: publish chatbot fix
+- [x] التحقق من commit إصلاح chatbot والاختبارات
+- [x] رفع الإصلاح إلى GitHub main
+- [x] التأكد من deployment الجاهز في Vercel
