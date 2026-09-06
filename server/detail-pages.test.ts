@@ -32,8 +32,8 @@ describe('trustworthy destination detail pages', () => {
     expect(listingDetail).toContain('trpc.cars.list.useQuery');
     expect(listingDetail).toContain('trpc.restaurants.list.useQuery');
     expect(listingDetail).toContain('trpc.cafes.list.useQuery');
-    expect(booking).toContain("'booking.cancellation'");
-    expect(booking).toContain('سياسة الإلغاء تختلف حسب المالك');
+    expect(booking).toContain('"booking.cancellation"');
+    expect(booking).toContain('سياسة الإلغاء تختلف حسب المالك. تواصل مع الجهة مباشرة');
   });
 
   it('opens search results at the matching listing detail page', () => {

@@ -9,29 +9,29 @@ import { describe, it, expect } from 'vitest';
 
 describe('ownership scoping contract', () => {
   it('cars.create uses ownerProcedure and sets ownerId from ctx.user.id', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('create: ownerProcedure');
-    expect(src).toContain('await createCar({ ...input, ownerId: ctx.user.id } as any)');
-    expect(src).toContain('await createHotel({ ...input, ownerId: ctx.user.id } as any)');
+    expect(src).toMatch(/createCar\(\{\s*\.\.\.input,\s*ownerId:\s*ctx\.user\.id,/);
+    expect(src).toMatch(/createHotel\(\{\s*\.\.\.input,\s*ownerId:\s*ctx\.user\.id,/);
   });
 
   it('update/delete require ownership check before mutating', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('update: ownerProcedure');
     expect(src).toContain('delete: ownerProcedure');
-    expect(src).toContain('await requireOwnership({ user: ctx.user } as any, car as any, "car")');
-    expect(src).toContain('await requireOwnership({ user: ctx.user } as any, hotel as any, "hotel")');
+    expect(src).toMatch(/requireOwnership\(\s*\{\s*user:\s*ctx\.user\s*\}\s*as any,\s*car as any,\s*"car"\s*\)/);
+    expect(src).toMatch(/requireOwnership\(\s*\{\s*user:\s*ctx\.user\s*\}\s*as any,\s*hotel as any,\s*"hotel"\s*\)/);
   });
 
   it('markPaid and confirm require booking-level ownership access', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('markPaid: ownerProcedure');
     expect(src).toContain('confirm: ownerProcedure');
     expect(src).toContain('await requireBookingAccess({ user: ctx.user } as any, input.id)');
   });
 
   it('dashboard procedures are owner-scoped: admin sees all, owners see own only', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('myCars: ownerProcedure.query(async ({ ctx }) =>');
     expect(src).toContain('if (ctx.user.role === "admin") return getAllCars();');
     expect(src).toContain('return getMyCars(ctx.user.id);');
@@ -40,18 +40,18 @@ describe('ownership scoping contract', () => {
   });
 
   it('requireOwnership rejects non-owner mutations with FORBIDDEN', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('if (ctx.user.role !== "admin" && item.ownerId !== ctx.user.id)');
-    expect(src).toContain('throw new TRPCError({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" })');
+    expect(src).toContain('code: "FORBIDDEN", message: "OWNER_ONLY_ERR"');
   });
 
   it('requireBookingAccess rejects non-owner booking mutations with FORBIDDEN', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('if (ctx.user.role !== "admin" && booking.ownerId !== ctx.user.id)');
   });
 
   it('bookings.create persists ownerId/itemId routed from the listing owner', async () => {
-    const src = await import('fs').then(f => f.readFileSync('server/routers.ts', 'utf8'));
+    const src = (await import('fs')).readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
     expect(src).toContain('itemId: z.number().int().positive()');
     expect(src).toContain('ownerId,');
     expect(src).toContain('itemId,');

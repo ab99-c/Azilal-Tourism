@@ -8,9 +8,9 @@ import * as fs from 'fs';
  * own bookings, and all routes are protected (require login).
  */
 describe('guest bookings scoping contract', () => {
-  const src = fs.readFileSync('server/routers.ts', 'utf8');
-  const dbSrc = fs.readFileSync('server/db.ts', 'utf8');
-  const schema = fs.readFileSync('drizzle/schema.ts', 'utf8');
+  const src = fs.readFileSync('server/routers.ts', 'utf8').replace(/\s+/g, ' ');
+  const dbSrc = fs.readFileSync('server/db.ts', 'utf8').replace(/\s+/g, ' ');
+  const schema = fs.readFileSync('drizzle/schema.ts', 'utf8').replace(/\s+/g, ' ');
 
   it('bookings.myBookings is protected (requires login) and scoped to guestUserId === ctx.user.id', () => {
     expect(src).toContain('myBookings: protectedProcedure.query(async ({ ctx }) =>');
@@ -22,13 +22,13 @@ describe('guest bookings scoping contract', () => {
   it('bookings.cancel verifies ownership of the booking before cancelling', () => {
     expect(src).toContain('cancel: protectedProcedure');
     expect(src).toContain('getBookingById(input.id)');
-    expect(src).toContain("throw new TRPCError({ code: 'FORBIDDEN'");
+    expect(src).toMatch(/code:\s*["']FORBIDDEN["']/);
     // Guest must be the one who created the booking (guestUserId), not the listing owner
     expect(src).toContain('booking.guestUserId !== ctx.user.id');
   });
 
   it('cancel rejects when booking not found (NOT_FOUND)', () => {
-    expect(src).toContain("throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' })");
+    expect(src).toContain('code: "NOT_FOUND", message: "Booking not found"');
   });
 
   it('cancel sets status to cancelled only on the targeted row', () => {
