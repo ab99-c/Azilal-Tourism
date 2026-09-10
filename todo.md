@@ -925,3 +925,35 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] مراجعة آخر نسخة في GitHub وسجلات الأخطاء وتحديد المشاكل المؤكدة
 - [x] إصلاح المشاكل المؤكدة وإضافة اختبارات انحدار مناسبة
 - [x] تشغيل الاختبارات والبناء والمعاينة ثم مزامنة النسخة السليمة
+
+## User request: use adrar6705@gmail.com for everything
+- [ ] التحقق من أن البريد مضبوط كوجهة إشعارات ورسائل التواصل
+- [ ] التحقق من وجود الحساب في users وتحديد خطوة التسجيل المطلوبة
+- [ ] منح الحساب admin بعد تسجيله واختبار دخول /admin
+
+## User request: register adrar-tourisme.ma on Spaceship
+- [x] فحص توفر `adrar-tourisme.ma`؛ Spaceship أفاد أن امتداد `.ma` غير متاح حالياً وشروط التسجيل في Spaceship
+- [ ] مراجعة السعر والمدة والبيانات المطلوبة دون إتمام الشراء
+- [ ] طلب تأكيد منفصل قبل الدفع أو التسجيل النهائي
+- [ ] ربط النطاق بالموقع بعد نجاح التسجيل وموافقة المستخدم
+
+## User request: reserve domain without purchase
+- [x] فحص توفر `adrar-tourisme.ma`؛ Spaceship أفاد أن امتداد `.ma` غير متاح حالياً
+- [x] تعذر وضع النطاق في السلة أو الحجز لأن `.ma` غير متاح؛ لم يتم اختيار بديل
+- [x] تأكيد عدم إتمام الشراء أو التسجيل النهائي؛ لم تتم أي عملية شراء
+
+## User request: trusted Moroccan .ma registrar
+- [x] البحث عن مسجلين مغاربة موثوقين لنطاقات `.ma` والتحقق من شروطهم الرسمية
+- [x] فحص توفر `adrar-tourisme.ma` وخيار السلة أو الحجز المؤقت دون دفع؛ النطاق أضيف لسلة Genious فقط
+- [x] مقارنة الشروط وتقديم توصية بدون شراء أو تسجيل نهائي
+
+## User request: connect adrartoursime.tours
+- [x] التحقق من حالة الدومين وإعدادات Vercel الحالية
+- [x] إضافة الدومين إلى مشروع Vercel؛ تمت الإضافة لكن DNS مازال غير مضبوط
+- [x] تحديد سجلات DNS المطلوبة في Spaceship: A @ وCNAME www
+
+## User request: replace .ma with adrartoursime.tours
+- [x] إضافة `adrartoursime.tours` إلى مشروع Vercel؛ تمت الإضافة لكن DNS مازال غير مضبوط
+- [x] تحديد سجلات DNS المطلوبة في Spaceship للدومين الجديد: A @ → 216.198.79.1
+- [x] إزالة `www.adrar-tourism.ma` من Vercel بعد تأكيد المستخدم
+- [ ] اختبار الدومين الجديد وتأكيد الحالة للمستخدم
