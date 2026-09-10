@@ -927,15 +927,15 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] تشغيل الاختبارات والبناء والمعاينة ثم مزامنة النسخة السليمة
 
 ## User request: use adrar6705@gmail.com for everything
-- [ ] التحقق من أن البريد مضبوط كوجهة إشعارات ورسائل التواصل
-- [ ] التحقق من وجود الحساب في users وتحديد خطوة التسجيل المطلوبة
-- [ ] منح الحساب admin بعد تسجيله واختبار دخول /admin
+- [x] التحقق من أن البريد مضبوط كوجهة إشعارات ورسائل التواصل
+- [x] التحقق من عدم وجود الحساب في users وتحديد أن التسجيل مطلوب أولاً
+- [x] تأجيل منح admin لأن الحساب لم يُسجّل؛ حساب الإدارة الحالي يعمل بحساب آخر
 
 ## User request: register adrar-tourisme.ma on Spaceship
 - [x] فحص توفر `adrar-tourisme.ma`؛ Spaceship أفاد أن امتداد `.ma` غير متاح حالياً وشروط التسجيل في Spaceship
-- [ ] مراجعة السعر والمدة والبيانات المطلوبة دون إتمام الشراء
-- [ ] طلب تأكيد منفصل قبل الدفع أو التسجيل النهائي
-- [ ] ربط النطاق بالموقع بعد نجاح التسجيل وموافقة المستخدم
+- [x] مراجعة السعر والمدة والبيانات المطلوبة للنطاق السابق
+- [x] لم يتم شراء النطاق السابق من طرف الوكيل؛ المستخدم أكد لاحقاً أنه اشترى نطاقاً آخر
+- [x] إضافة النطاق الجديد إلى Vercel بعد تسجيله وبموافقة المستخدم؛ DNS/SSL كانا قيد الانتشار
 
 ## User request: reserve domain without purchase
 - [x] فحص توفر `adrar-tourisme.ma`؛ Spaceship أفاد أن امتداد `.ma` غير متاح حالياً
@@ -956,4 +956,4 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إضافة `adrartoursime.tours` إلى مشروع Vercel؛ تمت الإضافة لكن DNS مازال غير مضبوط
 - [x] تحديد سجلات DNS المطلوبة في Spaceship للدومين الجديد: A @ → 216.198.79.1
 - [x] إزالة `www.adrar-tourism.ma` من Vercel بعد تأكيد المستخدم
-- [ ] اختبار الدومين الجديد وتأكيد الحالة للمستخدم
+- [x] اختبار DNS الجديد: A وCNAME صحيحان، وHTTPS مازال ينتظر إصدار شهادة Vercel
