@@ -171,8 +171,8 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* My Bookings (authenticated guests only) */}
-          {isAuthenticated ? (
+          {/* Authentication actions: wait for the session before showing login */}
+          {authLoading ? null : isAuthenticated ? (
             <button
               onClick={() => scrollToSection('guest-dashboard')}
               className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -276,7 +276,7 @@ export default function Navbar() {
               ))}
               {/* Guest / auth actions on mobile */}
               <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-                {isAuthenticated ? (
+                {authLoading ? null : isAuthenticated ? (
                   <button
                     onClick={() => {
                       scrollToSection('guest-dashboard');

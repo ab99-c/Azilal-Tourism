@@ -957,3 +957,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] تحديد سجلات DNS المطلوبة في Spaceship للدومين الجديد: A @ → 216.198.79.1
 - [x] إزالة `www.adrar-tourism.ma` من Vercel بعد تأكيد المستخدم
 - [x] اختبار DNS الجديد: A وCNAME صحيحان، وHTTPS مازال ينتظر إصدار شهادة Vercel
+
+## User report: hide login button after authentication
+- [x] فحص Navbar وحالة المستخدم على الهاتف والحاسوب
+- [x] إخفاء زر تسجيل الدخول بعد نجاح المصادقة وإظهار حالة الحساب أو الخروج
+- [x] اختبار العرض المتجاوب والبناء ثم نشر الإصلاح
