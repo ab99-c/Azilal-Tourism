@@ -962,3 +962,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] فحص Navbar وحالة المستخدم على الهاتف والحاسوب
 - [x] إخفاء زر تسجيل الدخول بعد نجاح المصادقة وإظهار حالة الحساب أو الخروج
 - [x] اختبار العرض المتجاوب والبناء ثم نشر الإصلاح
+
+## User request: publish login visibility fix
+- [x] التحقق من النسخة والاختبارات الأخيرة
+- [x] رفع الإصلاح إلى GitHub main
+- [x] التأكد من deployment الجاهز في Vercel
