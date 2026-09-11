@@ -967,3 +967,8 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] التحقق من النسخة والاختبارات الأخيرة
 - [x] رفع الإصلاح إلى GitHub main
 - [x] التأكد من deployment الجاهز في Vercel
+
+## User report: adrartoursime.tours still not visible
+- [x] فحص DNS وHTTPS للدومين الجديد؛ apex يعيد 308 وwww يعرض 200 من Vercel
+- [x] مراجعة حالة الدومين داخل Vercel وأي تعارض في النطاق الرئيسي
+- [x] إصلاح الإعداد وتأكيد الرابط؛ DNS وHTTPS يعملان حالياً
