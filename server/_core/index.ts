@@ -82,6 +82,15 @@ async function startServer() {
     createExpressMiddleware({
       router: appRouter,
       createContext,
+      onError({ path, error, type }) {
+        // Never log inputs, cookies, tokens, or database connection details.
+        console.error("[tRPC] request failed", {
+          path: path ?? "unknown",
+          type,
+          code: error.code ?? "UNKNOWN",
+          message: error.message,
+        });
+      },
     })
   );
   // development mode uses Vite, production mode uses static files

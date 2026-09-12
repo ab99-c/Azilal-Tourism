@@ -972,3 +972,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] فحص DNS وHTTPS للدومين الجديد؛ apex يعيد 308 وwww يعرض 200 من Vercel
 - [x] مراجعة حالة الدومين داخل Vercel وأي تعارض في النطاق الرئيسي
 - [x] إصلاح الإعداد وتأكيد الرابط؛ DNS وHTTPS يعملان حالياً
+
+## User approval: publish API diagnostics for 500 errors
+- [ ] مراجعة تسجيل الأخطاء والتأكد من عدم كشف الأسرار
+- [ ] تشغيل الاختبار والبناء ورفع التعديل إلى GitHub وVercel
+- [ ] قراءة Vercel Logs وتحديد سبب خطأ API 500 ثم إصلاحه
+- [ ] اختبار الشات والتسجيل بعد الإصلاح
