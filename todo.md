@@ -974,7 +974,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] إصلاح الإعداد وتأكيد الرابط؛ DNS وHTTPS يعملان حالياً
 
 ## User approval: publish API diagnostics for 500 errors
-- [ ] مراجعة تسجيل الأخطاء والتأكد من عدم كشف الأسرار
-- [ ] تشغيل الاختبار والبناء ورفع التعديل إلى GitHub وVercel
-- [ ] قراءة Vercel Logs وتحديد سبب خطأ API 500 ثم إصلاحه
-- [ ] اختبار الشات والتسجيل بعد الإصلاح
+- [x] مراجعة تسجيل الأخطاء والتأكد من عدم كشف الأسرار
+- [x] تشغيل الاختبار والبناء ورفع التعديل إلى GitHub وVercel
+- [x] قراءة Vercel Logs وتحديد سبب خطأ API 500 ثم إصلاحه؛ السبب كان جدول contact_messages مفقوداً
+- [x] التحقق من وجود جدول contact_messages وأعمدته في TiDB؛ اختبار الشات المباشر بقي دون إنشاء رسالة تجريبية
