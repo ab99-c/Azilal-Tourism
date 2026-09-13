@@ -5,6 +5,7 @@ import { createContext } from "./_core/context";
 import { appRouter } from "./routers";
 import { escalateInactiveSafetyTrips } from "./safetyTrips";
 import { databaseHealthHandler } from "./databaseHealth";
+import { assertApiRateLimit } from "./authRateLimit";
 
 const allowedOrigins = new Set([
   "https://azilal-tourism.vercel.app",
@@ -44,6 +45,19 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 registerStorageProxy(app);
 app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
 app.post("/api/scheduled/db-health", databaseHealthHandler);
+app.use("/api/trpc", (req, res, next) => {
+  try {
+    assertApiRateLimit(req);
+    next();
+  } catch (error) {
+    if (error instanceof Error && error.message === "API_RATE_LIMITED") {
+      res.setHeader("Retry-After", "60");
+      res.status(429).json({ error: "Too many API requests. Please try again later." });
+      return;
+    }
+    next(error);
+  }
+});
 app.use(
   "/api/trpc",
   createExpressMiddleware({

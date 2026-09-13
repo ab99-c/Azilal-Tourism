@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage, type Lang } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Menu, X, MessageCircle, CalendarCheck, LogIn, Smartphone } from 'lucide-react';
+import { Globe, Menu, X, MessageCircle, LogIn, LogOut, Smartphone } from 'lucide-react';
 import { getDeferredPrompt, installApp } from '@/lib/pwa';
 import { scrollToSection } from '@/lib/scroll';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { trpc } from '@/lib/trpc';
-import LoginChoiceDialog from '@/components/LoginChoiceDialog';
 import { openLocalAuth } from '@/components/LocalAuthDialog';
 
 const langNames: Record<Lang, string> = {
@@ -18,10 +16,9 @@ const langNames: Record<Lang, string> = {
 
 export default function Navbar() {
   const { lang, setLang, t } = useLanguage();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [showChoice, setShowChoice] = useState(false);
   const [installReady, setInstallReady] = useState(!!getDeferredPrompt());
   const [installed, setInstalled] = useState(false);
 
@@ -44,27 +41,6 @@ export default function Navbar() {
       window.removeEventListener('appinstalled', onInstalled);
     };
   }, []);
-
-  // Show the two-choice dialog only after a real login transition. Do not treat
-  // the first authenticated session read on page load as a new login.
-  const prevAuth = useRef(false);
-  const authHasResolved = useRef(false);
-  useEffect(() => {
-    if (authLoading) return;
-    if (!authHasResolved.current) {
-      authHasResolved.current = true;
-      prevAuth.current = isAuthenticated;
-      return;
-    }
-    if (isAuthenticated && !prevAuth.current) {
-      const alreadyShown = sessionStorage.getItem('adrar_choice_done');
-      if (!alreadyShown) {
-        sessionStorage.setItem('adrar_choice_done', '1');
-        setShowChoice(true);
-      }
-    }
-    prevAuth.current = isAuthenticated;
-  }, [authLoading, isAuthenticated]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -174,15 +150,15 @@ export default function Navbar() {
           {/* Authentication actions: wait for the session before showing login */}
           {authLoading ? null : isAuthenticated ? (
             <button
-              onClick={() => scrollToSection('guest-dashboard')}
+              onClick={() => void logout()}
               className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 scrolled
                   ? 'bg-[#1b5e3f]/10 text-[#1b5e3f] hover:bg-[#1b5e3f]/20'
                   : 'bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm'
               }`}
             >
-              <CalendarCheck className="w-4 h-4" />
-              {t('nav.myBookings')}
+              <LogOut className="w-4 h-4" />
+              {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Déconnexion' : lang === 'en' ? 'Log out' : 'ⴰⴼⴼⵓⵖ'}
             </button>
           ) : (
             <a
@@ -279,13 +255,13 @@ export default function Navbar() {
                 {authLoading ? null : isAuthenticated ? (
                   <button
                     onClick={() => {
-                      scrollToSection('guest-dashboard');
                       setMobileOpen(false);
+                      void logout();
                     }}
                     className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-[#1b5e3f] text-white hover:bg-[#0f3d28] transition-colors"
                   >
-                    <CalendarCheck className="w-3.5 h-3.5" />
-                    {t('nav.myBookings')}
+                    <LogOut className="w-3.5 h-3.5" />
+                    {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Déconnexion' : lang === 'en' ? 'Log out' : 'ⴰⴼⴼⵓⵖ'}
                   </button>
                 ) : (
                   <button
@@ -330,7 +306,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-      <LoginChoiceDialog open={showChoice} onClose={() => setShowChoice(false)} />
     </nav>
   );
 }

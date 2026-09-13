@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { escalateInactiveSafetyTrips } from "../safetyTrips";
 import { databaseHealthHandler } from "../databaseHealth";
+import { assertApiRateLimit } from "../authRateLimit";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -76,6 +77,20 @@ async function startServer() {
   registerOAuthRoutes(app);
   app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
   app.post("/api/scheduled/db-health", databaseHealthHandler);
+  // Lightweight per-IP protection for every tRPC procedure.
+  app.use("/api/trpc", (req, res, next) => {
+    try {
+      assertApiRateLimit(req);
+      next();
+    } catch (error) {
+      if (error instanceof Error && error.message === "API_RATE_LIMITED") {
+        res.setHeader("Retry-After", "60");
+        res.status(429).json({ error: "Too many API requests. Please try again later." });
+        return;
+      }
+      next(error);
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",

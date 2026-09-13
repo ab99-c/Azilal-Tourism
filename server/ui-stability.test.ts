@@ -14,10 +14,11 @@ describe('site stability guards', () => {
     expect(appSource).toContain('if (loading || !user) return null;');
   });
 
-  it('does not treat the first authenticated session read as a fresh login dialog trigger', () => {
-    expect(navbarSource).toContain('const authHasResolved = useRef(false);');
-    expect(navbarSource).toContain('if (!authHasResolved.current)');
-    expect(navbarSource).toContain('prevAuth.current = isAuthenticated;');
+  it('does not show auth actions while the session is still loading', () => {
+    expect(navbarSource).toContain('loading: authLoading');
+    expect(navbarSource).toContain('{authLoading ? null : isAuthenticated ? (');
+    expect(navbarSource).toContain('openLocalAuth();');
+    expect(navbarSource).toContain('void logout();');
   });
 
   it('keeps the mobile menu below the viewport instead of using an unresolved percentage', () => {

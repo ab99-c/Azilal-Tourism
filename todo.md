@@ -978,3 +978,29 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] تشغيل الاختبار والبناء ورفع التعديل إلى GitHub وVercel
 - [x] قراءة Vercel Logs وتحديد سبب خطأ API 500 ثم إصلاحه؛ السبب كان جدول contact_messages مفقوداً
 - [x] التحقق من وجود جدول contact_messages وأعمدته في TiDB؛ اختبار الشات المباشر بقي دون إنشاء رسالة تجريبية
+
+## User request: simplify post-login flow and navbar auth
+- [ ] عدم إظهار نافذة الاختيارات بعد التسجيل أو الدخول
+- [ ] إظهار زر تسجيل الخروج بدل تسجيل الدخول للمستخدم المصادق عليه
+- [ ] اختبار الهاتف والحاسوب ثم رفع التعديلات إلى GitHub وVercel
+
+## Audit et correction demandés — dépôt GitHub/Vercel
+- [ ] Corriger le conflit de peer dependencies pour que `npm install` fonctionne sans `--legacy-peer-deps`
+- [ ] Finaliser le diagnostic API 500 : logging sûr, cause racine, correction et retest chat/inscription
+- [ ] Vérifier Resend et le domaine expéditeur sans envoyer de message réel
+- [ ] Évaluer et renforcer le rate limiting WAF sur les routes `/api/trpc/*`
+- [ ] Revérifier DNS et HTTPS de `adrartoursime.tours`
+- [ ] Documenter/configurer les variables CI et stabiliser les tests dépendants de l’environnement
+- [ ] Exécuter `npm run check`, `npx vitest run` et `npm run build`, puis pousser `main` et vérifier Vercel
+
+
+## Final stabilization audit — September 2026
+
+- [x] Verify the global `/api/trpc/*` rate limiter is applied after security headers and preserves `429` responses with `Retry-After`.
+- [x] Run a Resend authentication-only check without sending an email; production key authenticated successfully after secure secret update.
+- [x] Add CI workflow for clean `npm ci`, TypeScript check, Vitest, and production build with documented secret names.
+- [x] Document CI/Vercel environment variables and Resend domain-validation requirements without storing secrets.
+- [x] Repair local dependency installation and restart the development server after the missing `tsx` runtime file was detected.
+- [x] Run clean npm installation, TypeScript check, full Vitest suite, and production build successfully.
+- [ ] Confirm `adrartoursime.tours` sender domain is marked verified in the Resend dashboard/API with a domain-capable key; do not activate production sending before confirmation.
+- [ ] Confirm GitHub Actions Secrets and Vercel Production environment values are populated by the project owner.

@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import type { Request } from "express";
-import { assertAuthRateLimit, clearAuthRateLimit, resetAuthRateLimitsForTests } from "./authRateLimit";
+import { assertApiRateLimit, assertAuthRateLimit, clearAuthRateLimit, resetAuthRateLimitsForTests } from "./authRateLimit";
 import { getSessionCookieOptions } from "./_core/cookies";
 
 const request = (ip = "203.0.113.7") => ({
@@ -25,6 +25,15 @@ describe("authentication rate limiting", () => {
     clearAuthRateLimit(req, "login");
     expect(() => assertAuthRateLimit(req, "login", 20)).not.toThrow();
     expect(() => assertAuthRateLimit(req, "login", 20 + 16 * 60 * 1000)).not.toThrow();
+  });
+
+  it("limits general tRPC traffic without sharing the authentication bucket", () => {
+    const req = request("203.0.113.8");
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      expect(() => assertApiRateLimit(req, attempt)).not.toThrow();
+    }
+    expect(() => assertApiRateLimit(req, 120)).toThrow("API_RATE_LIMITED");
+    expect(() => assertApiRateLimit(req, 60_001)).not.toThrow();
   });
 
   it("uses secure, httpOnly, same-site cookies in production", () => {

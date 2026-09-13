@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      RUN_EXTERNAL_TESTS: "0"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      AUTH_BOOTSTRAP_SECRET: ${{ secrets.AUTH_BOOTSTRAP_SECRET }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
+      - run: npx vitest run
+      - run: npm run build
