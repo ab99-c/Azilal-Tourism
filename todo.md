@@ -1004,3 +1004,11 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Run clean npm installation, TypeScript check, full Vitest suite, and production build successfully.
 - [ ] Confirm `adrartoursime.tours` sender domain is marked verified in the Resend dashboard/API with a domain-capable key; do not activate production sending before confirmation.
 - [ ] Confirm GitHub Actions Secrets and Vercel Production environment values are populated by the project owner.
+
+
+## User request: separate registration button in the Navbar
+
+- [x] Audit the current Navbar login trigger and existing local registration/auth mode.
+- [x] Add a clearly visible responsive `تسجيل` / Sign up action beside `تسجيل الدخول` without breaking login.
+- [x] Wire the registration action to the existing register flow or add the smallest compatible route/modal fallback.
+- [x] Add/update regression tests for both login and registration actions; verify desktop and mobile rendering.

@@ -11,5 +11,9 @@ describe("Navbar authentication visibility", () => {
 
     const guardedActions = "{authLoading ? null : isAuthenticated ? (";
     expect(source.split(guardedActions).length - 1).toBeGreaterThanOrEqual(2);
+    expect(source).toContain('openLocalAuth("login")');
+    expect(source).toContain('openLocalAuth("register")');
+    expect(source).toContain("t('nav.register')");
+    expect(source).toContain('UserPlus');
   });
 });

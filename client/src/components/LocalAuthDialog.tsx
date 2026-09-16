@@ -308,7 +308,7 @@ const providerOptions = {
   },
 } as const;
 
-export type LocalAuthOpenMode = "login" | "activate";
+export type LocalAuthOpenMode = "login" | "register" | "activate";
 
 export function openLocalAuth(mode: LocalAuthOpenMode = "login") {
   window.dispatchEvent(new CustomEvent("adrar:open-auth", { detail: { mode } }));

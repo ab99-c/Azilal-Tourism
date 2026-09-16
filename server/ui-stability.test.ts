@@ -17,7 +17,7 @@ describe('site stability guards', () => {
   it('does not show auth actions while the session is still loading', () => {
     expect(navbarSource).toContain('loading: authLoading');
     expect(navbarSource).toContain('{authLoading ? null : isAuthenticated ? (');
-    expect(navbarSource).toContain('openLocalAuth();');
+    expect(navbarSource).toContain('openLocalAuth("login")');
     expect(navbarSource).toContain('void logout();');
   });
 
