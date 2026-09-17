@@ -1012,3 +1012,15 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Add a clearly visible responsive `تسجيل` / Sign up action beside `تسجيل الدخول` without breaking login.
 - [x] Wire the registration action to the existing register flow or add the smallest compatible route/modal fallback.
 - [x] Add/update regression tests for both login and registration actions; verify desktop and mobile rendering.
+
+
+## AI chatbot: helps visitors + user-initiated admin handoff
+
+- [x] Add public `contact.ask` tRPC procedure backed by the server-side LLM helper.
+- [x] Build live knowledge context from current hotels, cars, restaurants, and cafes data; never expose the LLM key to the client.
+- [x] Make ChatWidget ask the AI by default with typing state, language-aware replies, and conversation history.
+- [x] Add an always-visible `contact admin` action and explicit human/admin intent detection only for user-requested handoff.
+- [x] Persist chatbot handoffs in `contact_messages` with `source=chatbot` and recent transcript context.
+- [x] Add rate limiting and regression tests for AI chat/admin handoff contracts.
+- [x] Add a source badge in the admin message panel to distinguish chatbot handoffs from the regular contact form.
+- [ ] Run TypeScript, full Vitest, production build, verify mobile/desktop manually, and push main/Vercel.

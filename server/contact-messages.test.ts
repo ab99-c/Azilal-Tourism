@@ -19,12 +19,16 @@ describe("real contact message flow contract", () => {
     expect(db).toContain("db.insert(contactMessages).values(input)");
   });
 
-  it("does not use the old fake reply or placeholder WhatsApp number", () => {
+  it("uses the AI assistant by default and offers explicit admin handoff", () => {
     const widget = read("client/src/components/ChatWidget.tsx");
 
-    expect(widget).toContain("trpc.contact.send.useMutation");
-    expect(widget).toContain("chat.received");
-    expect(widget).toContain("chat.sending");
+    const router = read("server/routers.ts");
+    expect(router).toContain("ask: publicProcedure");
+    expect(router).toContain('source: \"chatbot\"');
+    expect(widget).toContain("trpc.contact.ask.useMutation");
+    expect(widget).toContain("requestAdmin");
+    expect(widget).toContain("chat.contactAdmin");
+    expect(widget).toContain("chat.thinking");
     expect(widget).not.toContain("setTimeout");
     expect(widget).not.toContain("212600000000");
   });
@@ -51,8 +55,7 @@ describe("real contact message flow contract", () => {
     const widget = read("client/src/components/ChatWidget.tsx");
 
     expect(widget).toContain('type="email"');
-    expect(widget).toContain("required");
-    expect(widget).toContain("email: email.trim()");
+    expect(widget).toContain("email: email.trim() || undefined");
     expect(widget).toContain("name: name.trim() || undefined");
   });
 });

@@ -1,0 +1,1 @@
+ALTER TABLE `contact_messages` ADD `source` varchar(32) DEFAULT 'contact_form' NOT NULL;

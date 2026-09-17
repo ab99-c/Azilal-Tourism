@@ -14,6 +14,8 @@ describe("chat widget interaction contract", () => {
     expect(source).toContain('aria-expanded={open}');
     expect(source).toContain('aria-controls="adrar-chat-panel"');
     expect(source).toContain("setOpen((current) => !current)");
+    expect(source).toContain("trpc.contact.ask.useMutation");
+    expect(source).toContain("handleAsk(true)");
+    expect(source).toContain('t("chat.contactAdmin")');
   });
 });
-

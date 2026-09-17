@@ -32,6 +32,7 @@ export const contactMessages = mysqlTable("contact_messages", {
   userId: int("userId"),
   senderName: varchar("senderName", { length: 120 }),
   senderEmail: varchar("senderEmail", { length: 320 }),
+  source: varchar("source", { length: 32 }).default("contact_form").notNull(),
   message: text("message").notNull(),
   status: mysqlEnum("status", ["new", "replied"]).default("new").notNull(),
   reply: text("reply"),

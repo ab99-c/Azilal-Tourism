@@ -9,6 +9,7 @@ type ContactMessage = {
   userId: number | null;
   senderName: string | null;
   senderEmail: string | null;
+  source: string;
   message: string;
   status: ContactStatus;
   reply: string | null;
@@ -26,10 +27,10 @@ interface ContactMessagesPanelProps {
 }
 
 const copy = {
-  ar: { title: "رسائل التواصل الواردة", empty: "لا توجد رسائل واردة بعد.", loading: "جارٍ تحميل الرسائل...", anonymous: "زائر بدون اسم", noEmail: "لا يوجد بريد إلكتروني", new: "جديدة", replied: "تم الرد", reply: "الرد على الرسالة", placeholder: "اكتب الرد هنا...", send: "حفظ الرد", noReply: "لا يمكن إرسال رد: لا يوجد بريد إلكتروني.", saved: "تم حفظ الرد في النظام." },
-  en: { title: "Incoming contact messages", empty: "No contact messages yet.", loading: "Loading messages...", anonymous: "Anonymous visitor", noEmail: "No email provided", new: "New", replied: "Replied", reply: "Reply to this message", placeholder: "Write your reply...", send: "Save reply", noReply: "Cannot send a reply: no email provided.", saved: "Reply saved in the system." },
-  fr: { title: "Messages de contact reçus", empty: "Aucun message pour le moment.", loading: "Chargement des messages...", anonymous: "Visiteur anonyme", noEmail: "Aucun e-mail fourni", new: "Nouveau", replied: "Répondu", reply: "Répondre à ce message", placeholder: "Écrivez votre réponse...", send: "Enregistrer la réponse", noReply: "Réponse impossible : aucun e-mail fourni.", saved: "Réponse enregistrée dans le système." },
-  ber: { title: "ⵜⵉⵏⴰⵡⵉⵏ ⵏ ⵓⵎⵢⴰⵡⴰⴹ", empty: "ⵓⵍⴰ ⵢⴰⵜ ⵜⴰⵏⴰⵡⵜ.", loading: "ⴰⵔ ⵜⵜⵡⴰⵙⵙⵏ...", anonymous: "ⴰⵎⵙⵙⴰⵡⴰⴹ ⵓⵔ ⵉⵙⵎ", noEmail: "ⵓⵔ ⵉⵍⵍⵉ ⵉⵎⴰⵢⵍ", new: "ⵜⴰⵎⵣⵡⴰⵔⵓⵜ", replied: "ⵜⵜⵡⴰⵔⴰⵔ", reply: "ⵔⴰⵔ ⵉ ⵜⵏⴰⵡⵜ", placeholder: "ⴰⵔⵓ ⵜⴰⵔⴰⵔⴰ...", send: "ⵃⴱⵙ ⵜⴰⵔⴰⵔⴰ", noReply: "ⵓⵔ ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵣⵏⴷ ⵜⴰⵔⴰⵔⴰ: ⵓⵔ ⵉⵍⵍⵉ ⵉⵎⴰⵢⵍ.", saved: "ⵜⵜⵡⴰⵃⴱⵙ ⵜⴰⵔⴰⵔⴰ." },
+  ar: { title: "رسائل التواصل الواردة", empty: "لا توجد رسائل واردة بعد.", loading: "جارٍ تحميل الرسائل...", anonymous: "زائر بدون اسم", noEmail: "لا يوجد بريد إلكتروني", new: "جديدة", replied: "تم الرد", reply: "الرد على الرسالة", placeholder: "اكتب الرد هنا...", send: "حفظ الرد", noReply: "لا يمكن إرسال رد: لا يوجد بريد إلكتروني.", saved: "تم حفظ الرد في النظام.", chatbot: "من المساعد الذكي" },
+  en: { title: "Incoming contact messages", empty: "No contact messages yet.", loading: "Loading messages...", anonymous: "Anonymous visitor", noEmail: "No email provided", new: "New", replied: "Replied", reply: "Reply to this message", placeholder: "Write your reply...", send: "Save reply", noReply: "Cannot send a reply: no email provided.", saved: "Reply saved in the system.", chatbot: "From AI assistant" },
+  fr: { title: "Messages de contact reçus", empty: "Aucun message pour le moment.", loading: "Chargement des messages...", anonymous: "Visiteur anonyme", noEmail: "Aucun e-mail fourni", new: "Nouveau", replied: "Répondu", reply: "Répondre à ce message", placeholder: "Écrivez votre réponse...", send: "Enregistrer la réponse", noReply: "Réponse impossible : aucun e-mail fourni.", saved: "Réponse enregistrée dans le système.", chatbot: "Depuis l'assistant IA" },
+  ber: { title: "ⵜⵉⵏⴰⵡⵉⵏ ⵏ ⵓⵎⵢⴰⵡⴰⴹ", empty: "ⵓⵍⴰ ⵢⴰⵜ ⵜⴰⵏⴰⵡⵜ.", loading: "ⴰⵔ ⵜⵜⵡⴰⵙⵙⵏ...", anonymous: "ⴰⵎⵙⵙⴰⵡⴰⴹ ⵓⵔ ⵉⵙⵎ", noEmail: "ⵓⵔ ⵉⵍⵍⵉ ⵉⵎⴰⵢⵍ", new: "ⵜⴰⵎⵣⵡⴰⵔⵓⵜ", replied: "ⵜⵜⵡⴰⵔⴰⵔ", reply: "ⵔⴰⵔ ⵉ ⵜⵏⴰⵡⵜ", placeholder: "ⴰⵔⵓ ⵜⴰⵔⴰⵔⴰ...", send: "ⵃⴱⵙ ⵜⴰⵔⴰⵔⴰ", noReply: "ⵓⵔ ⵜⵣⵎⵔⴷ ⴰⴷ ⵜⵣⵏⴷ ⵜⴰⵔⴰⵔⴰ: ⵓⵔ ⵉⵍⵍⵉ ⵉⵎⴰⵢⵍ.", saved: "ⵜⵜⵡⴰⵃⴱⵙ ⵜⴰⵔⴰⵔⴰ.", chatbot: "ⵙⴳ ⵓⵎⵙⵙⵏ ⴰⵎⵙⵙⵏ" },
 } as const;
 
 export default function ContactMessagesPanel({ messages, isLoading, isUpdating, lang, onStatusChange, onReply }: ContactMessagesPanelProps) {
@@ -57,7 +58,7 @@ export default function ContactMessagesPanel({ messages, isLoading, isUpdating, 
             return (
               <article key={message.id} className={`rounded-xl border p-4 ${message.status === "new" ? "border-[#c8a951]/70 bg-[#0f3d28]" : "border-white/10 bg-[#0f3d28]/70"}`}>
                 <button type="button" className="w-full text-start" onClick={() => setOpenId(isOpen ? null : message.id)} aria-expanded={isOpen}>
-                  <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-bold">{message.senderName || labels.anonymous}</p><p className="flex items-center gap-1 text-xs text-white/60"><Mail className="h-3 w-3" />{message.senderEmail || labels.noEmail}</p></div><span className="inline-flex items-center gap-1 rounded-full bg-[#c8a951]/20 px-2.5 py-1 text-xs text-[#f0d77c]">{message.status === "new" ? labels.new : labels.replied}<ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} /></span></div>
+                  <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-bold">{message.senderName || labels.anonymous}</p><p className="flex items-center gap-1 text-xs text-white/60"><Mail className="h-3 w-3" />{message.senderEmail || labels.noEmail}</p>{message.source === "chatbot" && <span className="mt-1 inline-flex rounded-full bg-sky-300/15 px-2 py-0.5 text-[11px] text-sky-200">{labels.chatbot}</span>}</div><span className="inline-flex items-center gap-1 rounded-full bg-[#c8a951]/20 px-2.5 py-1 text-xs text-[#f0d77c]">{message.status === "new" ? labels.new : labels.replied}<ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} /></span></div>
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-white/90">{message.message}</p>
                 </button>
                 <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3"><time className="text-xs text-white/50" dateTime={date.toISOString()}>{date.toLocaleString()}</time>{message.status === "new" && <button type="button" disabled={isUpdating} onClick={() => void onStatusChange(message.id, "replied")} className="rounded-lg bg-white/10 px-3 py-1.5 text-xs hover:bg-white/20 disabled:opacity-50"><Check className="me-1 inline h-3 w-3" />{labels.replied}</button>}</div>

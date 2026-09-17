@@ -81,6 +81,7 @@ import {
 import { assertAuthRateLimit, clearAuthRateLimit } from "./authRateLimit";
 import { notifyContactAdmin, sendContactReply } from "./contactEmail";
 import { canManagePlatform } from "./permissions";
+import { invokeLLM } from "./_core/llm";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -149,6 +150,43 @@ async function requireBookingAccess(ctx: any, id: number) {
     throw new TRPCError({ code: "FORBIDDEN", message: "OWNER_ONLY_ERR" });
   }
   return booking;
+}
+
+const CHAT_LANGUAGES = ["ar", "en", "fr", "ber"] as const;
+type ChatLanguage = (typeof CHAT_LANGUAGES)[number];
+
+function explicitlyRequestsAdmin(message: string) {
+  const normalized = message.toLocaleLowerCase();
+  return /(نهضر|نهضر مع|الإدارة|الادارة|مسؤول|شي واحد|شخص|human|person|admin|responsable|quelqu'un|quelqu’un|ⵎⴷⴷⵏ)/i.test(normalized);
+}
+
+function chatHandoffText(language: ChatLanguage) {
+  if (language === "en") return "Your message has been sent to the ADRAR team. They will follow up with you soon.";
+  if (language === "fr") return "Votre message a été envoyé à l'équipe ADRAR. Elle vous répondra bientôt.";
+  if (language === "ber") return "ⵜⴰⵏⴰⵡⵜ ⵏⵏⴽ ⵜⵜⵡⴰⵣⵏ ⵙ ⵉⵎⵙⵙⵏ ⵏ ADRAR. ⴰⴷ ⴽ ⵔⵔⵏ ⵉⵎⴰⵍ.";
+  return "تم إرسال رسالتك إلى فريق ADRAR، وسيتواصل معك قريباً.";
+}
+
+function formatChatTranscript(history: Array<{ role: "user" | "assistant"; content: string }>, latest?: string) {
+  return [...history, ...(latest ? [{ role: "user" as const, content: latest }] : [])]
+    .slice(-12)
+    .map(item => `${item.role === "user" ? "الزائر" : "المساعد"}: ${item.content}`)
+    .join("\n");
+}
+
+async function buildChatKnowledge() {
+  const [hotels, cars, restaurants, cafes] = await Promise.all([
+    getAllHotels(),
+    getAllCars(),
+    getAllRestaurants(),
+    getAllCafes(),
+  ]);
+  return JSON.stringify({
+    hotels: hotels.map(item => ({ id: item.id, names: [item.nameAr, item.nameEn, item.nameFr, item.nameBer], descriptions: [item.descriptionAr, item.descriptionEn, item.descriptionFr, item.descriptionBer], locations: [item.locationAr, item.locationEn, item.locationFr, item.locationBer], prices: [item.priceAr, item.priceEn, item.priceFr, item.priceBer], rating: item.rating, whatsapp: item.whatsapp })),
+    cars: cars.map(item => ({ id: item.id, names: [item.nameAr, item.nameEn, item.nameFr, item.nameBer], descriptions: [item.descriptionAr, item.descriptionEn, item.descriptionFr, item.descriptionBer], type: [item.typeAr, item.typeEn, item.typeFr, item.typeBer], price: item.price, seats: item.seats, fuel: item.fuel, whatsapp: item.whatsapp })),
+    restaurants: restaurants.map(item => ({ id: item.id, names: [item.nameAr, item.nameEn, item.nameFr, item.nameBer], descriptions: [item.descriptionAr, item.descriptionEn, item.descriptionFr, item.descriptionBer], locations: [item.locationAr, item.locationEn, item.locationFr, item.locationBer], cuisine: [item.cuisineAr, item.cuisineEn, item.cuisineFr, item.cuisineBer], hours: item.hours, phone: item.phone, whatsapp: item.whatsapp })),
+    cafes: cafes.map(item => ({ id: item.id, names: [item.nameAr, item.nameEn, item.nameFr, item.nameBer], descriptions: [item.descriptionAr, item.descriptionEn, item.descriptionFr, item.descriptionBer], locations: [item.locationAr, item.locationEn, item.locationFr, item.locationBer], hours: item.hours, phone: item.phone, whatsapp: item.whatsapp })),
+  }, null, 2);
 }
 
 // --- Query cache entries (principle #8: Caching) ---
@@ -226,12 +264,57 @@ function safeDatabaseErrorMeta(error: unknown) {
 export const appRouter = router({
   system: systemRouter,
   contact: router({
+    ask: publicProcedure
+      .input(z.object({
+        message: z.string().trim().min(1).max(MAX_TEXT),
+        language: z.enum(CHAT_LANGUAGES).default("ar"),
+        history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) })).max(12).default([]),
+        name: z.string().trim().max(120).optional(),
+        email: z.string().trim().email().max(320).optional(),
+        requestAdmin: z.boolean().default(false),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        assertAuthRateLimit(ctx.req, "chat-ask");
+        const wantsAdmin = input.requestAdmin || explicitlyRequestsAdmin(input.message);
+        const senderName = ctx.user?.name?.trim() || input.name?.trim() || null;
+        const senderEmail = ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null;
+        if (wantsAdmin) {
+          const transcript = formatChatTranscript(input.history, input.message);
+          const handoffMessage = `[Chatbot handoff]\n${transcript}`;
+          const result = await createContactMessage({ userId: ctx.user?.id ?? null, senderName, senderEmail, source: "chatbot", message: handoffMessage, status: "new" });
+          void notifyContactAdmin({ senderName, senderEmail, message: handoffMessage });
+          clearAuthRateLimit(ctx.req, "chat-ask");
+          return { handoff: true, accepted: true, id: result.id, reply: chatHandoffText(input.language) } as const;
+        }
+        try {
+          const knowledge = await buildChatKnowledge();
+          const transcript = formatChatTranscript(input.history);
+          const result = await invokeLLM({
+            model: "claude-sonnet-4-6",
+            maxTokens: 1200,
+            thinking: { type: "enabled", budget_tokens: 512 },
+            messages: [
+              { role: "system", content: `You are ADRAR Tourism's helpful travel assistant for Azilal, Morocco. Reply in the visitor's language: ${input.language}. Always try to answer helpfully. Ground factual claims about hotels, cars, restaurants, cafes, prices, locations, contacts, and availability strictly in the live site data below; never invent details or claim availability that is not present. If the data does not contain an exact answer, say what is known and suggest a practical next step, but do not automatically escalate to an admin. Keep answers concise and useful.\n\nLIVE SITE DATA:\n${knowledge}\n\nRECENT CONVERSATION:\n${transcript || "(new conversation)"}` },
+              { role: "user", content: input.message },
+            ],
+          });
+          const content = result.choices[0]?.message?.content;
+          const reply = typeof content === "string" ? content.trim() : "";
+          if (!reply) throw new Error("EMPTY_CHAT_RESPONSE");
+          clearAuthRateLimit(ctx.req, "chat-ask");
+          return { handoff: false, accepted: true, reply } as const;
+        } catch (error) {
+          console.error("[Chat] Assistant request failed", { reason: classifyDatabaseError(error) });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "CHAT_SERVICE_UNAVAILABLE" });
+        }
+      }),
     send: publicProcedure
       .input(
         z.object({
           name: z.string().trim().max(120).optional(),
           email: z.string().trim().email().max(320).optional(),
           message: z.string().trim().min(1).max(MAX_TEXT),
+          source: z.enum(["contact_form", "chatbot"]).default("contact_form"),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -244,6 +327,7 @@ export const appRouter = router({
             userId: ctx.user?.id ?? null,
             senderName,
             senderEmail,
+            source: input.source,
             message,
             status: "new",
           });
