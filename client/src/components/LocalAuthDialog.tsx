@@ -370,16 +370,19 @@ export default function LocalAuthDialog() {
     setFeedbackType("success");
     setError(message);
   };
-  const finish = (user: any, message = "") => {
+  const finish = async (user: any) => {
     // setData already contains the authoritative user returned by auth.
     // Avoid an immediate invalidate/refetch that can briefly clear the cache
     // while useAuth is deciding whether to reopen the auth dialog.
     utils.auth.me.setData(undefined, user);
-    if (message) showSuccess(message);
-    else setOpen(false);
+    try {
+      await utils.auth.me.invalidate();
+    } finally {
+      setOpen(false);
+    }
   };
   const login = trpc.auth.login.useMutation({
-    onSuccess: ({ user }) => finish(user),
+    onSuccess: ({ user }) => void finish(user),
     onError: err => {
       if (err.message.includes("AUTH_SERVICE_UNAVAILABLE")) {
         showError(c.authServiceUnavailable);
@@ -391,7 +394,7 @@ export default function LocalAuthDialog() {
     },
   });
   const register = trpc.auth.register.useMutation({
-    onSuccess: ({ user }) => finish(user, c.verifyPending),
+    onSuccess: ({ user }) => void finish(user),
     onError: err => {
       const message = String(err.message ?? "");
       if (
@@ -413,7 +416,7 @@ export default function LocalAuthDialog() {
     },
   });
   const activate = trpc.auth.activateExistingAdmin.useMutation({
-    onSuccess: ({ user }) => finish(user, c.activated),
+    onSuccess: ({ user }) => void finish(user),
     onError: err => {
       const message = String(err.message ?? "");
       if (message.includes("INVALID_BOOTSTRAP_SECRET")) {

@@ -980,9 +980,9 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] التحقق من وجود جدول contact_messages وأعمدته في TiDB؛ اختبار الشات المباشر بقي دون إنشاء رسالة تجريبية
 
 ## User request: simplify post-login flow and navbar auth
-- [ ] عدم إظهار نافذة الاختيارات بعد التسجيل أو الدخول
-- [ ] إظهار زر تسجيل الخروج بدل تسجيل الدخول للمستخدم المصادق عليه
-- [ ] اختبار الهاتف والحاسوب ثم رفع التعديلات إلى GitHub وVercel
+- [x] عدم إظهار نافذة الاختيارات بعد التسجيل أو الدخول
+- [x] إظهار زر تسجيل الخروج بدل تسجيل الدخول للمستخدم المصادق عليه
+- [x] اختبار الهاتف والحاسوب ثم رفع التعديلات إلى GitHub وVercel
 
 ## Audit et correction demandés — dépôt GitHub/Vercel
 - [ ] Corriger le conflit de peer dependencies pour que `npm install` fonctionne sans `--legacy-peer-deps`

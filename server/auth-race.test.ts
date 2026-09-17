@@ -11,14 +11,15 @@ const useAuthSource = readFileSync(
 );
 
 describe("local auth modal race protection", () => {
-  it("does not invalidate the me query immediately after a successful setData", () => {
+  it("refreshes the me query and closes after a successful setData", () => {
     const finishBlock = localAuthSource.match(
-      /const finish = \(user: any, message = \"\"\) => \{[\s\S]*?\n  \};/
+      /const finish = async \(user: any\) => \{[\s\S]*?\n  \};/
     )?.[0];
 
     expect(finishBlock).toBeTruthy();
     expect(finishBlock).toContain("utils.auth.me.setData(undefined, user)");
-    expect(finishBlock).not.toContain("utils.auth.me.invalidate()");
+    expect(finishBlock).toContain("utils.auth.me.invalidate()");
+    expect(finishBlock).toContain("setOpen(false)");
   });
 
   it("guards unauthenticated redirects while the me query is fetching", () => {

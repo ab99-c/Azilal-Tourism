@@ -158,7 +158,7 @@ export default function Navbar() {
               }`}
             >
               <LogOut className="w-4 h-4" />
-              {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Déconnexion' : lang === 'en' ? 'Log out' : 'ⴰⴼⴼⵓⵖ'}
+              {t('nav.logout')}
             </button>
           ) : (
             <div className="hidden sm:flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function Navbar() {
                     className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold bg-[#1b5e3f] text-white hover:bg-[#0f3d28] transition-colors"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Déconnexion' : lang === 'en' ? 'Log out' : 'ⴰⴼⴼⵓⵖ'}
+                    {t('nav.logout')}
                   </button>
                 ) : (
                   <div className="flex w-full gap-2">
