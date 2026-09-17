@@ -80,6 +80,7 @@ import {
 } from "./localAuth";
 import { assertAuthRateLimit, clearAuthRateLimit } from "./authRateLimit";
 import { notifyContactAdmin, sendContactReply } from "./contactEmail";
+import { canManagePlatform } from "./permissions";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -87,7 +88,7 @@ import { notifyContactAdmin, sendContactReply } from "./contactEmail";
  * all bookings. Public visitors can browse but never modify.
  */
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
+  if (!canManagePlatform(ctx.user)) {
     throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_ONLY_ERR" });
   }
   return next({ ctx });
