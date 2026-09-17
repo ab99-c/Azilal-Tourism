@@ -1023,4 +1023,4 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [x] Persist chatbot handoffs in `contact_messages` with `source=chatbot` and recent transcript context.
 - [x] Add rate limiting and regression tests for AI chat/admin handoff contracts.
 - [x] Add a source badge in the admin message panel to distinguish chatbot handoffs from the regular contact form.
-- [ ] Run TypeScript, full Vitest, production build, verify mobile/desktop manually, and push main/Vercel.
+- [x] Run TypeScript, full Vitest, production build, verify mobile/desktop manually, and push main/Vercel.
