@@ -285,13 +285,22 @@ function safeChatErrorMeta(error: unknown) {
     message?: unknown;
   };
   const message = typeof candidate?.message === "string" ? candidate.message : "";
+  const llmReason = /API_KEY is not configured|OPENAI_API_KEY is not configured/i.test(message)
+    ? "missing_llm_api_key"
+    : /LLM invoke failed:\s*401|LLM invoke failed:\s*403/i.test(message)
+      ? "llm_auth_rejected"
+      : /LLM invoke failed:\s*4\d\d/i.test(message)
+        ? "llm_request_rejected"
+        : /LLM invoke failed:\s*5\d\d/i.test(message)
+          ? "llm_provider_error"
+          : /LLM invoke|chat\/completions|forge\.manus|model/i.test(message)
+            ? "llm_request_failed"
+            : undefined;
   return {
     name: typeof candidate?.name === "string" ? candidate.name : undefined,
     code: typeof candidate?.code === "string" ? candidate.code : undefined,
     status: typeof candidate?.status === "number" ? candidate.status : undefined,
-    errorType: /OPENAI_API_KEY|LLM invoke|chat\/completions|forge\.manus|model/i.test(message)
-      ? "llm_request_failed"
-      : classifyDatabaseError(error),
+    errorType: llmReason ?? classifyDatabaseError(error),
   };
 }
 
