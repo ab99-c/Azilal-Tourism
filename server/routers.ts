@@ -175,12 +175,28 @@ function formatChatTranscript(history: Array<{ role: "user" | "assistant"; conte
 }
 
 async function buildChatKnowledge() {
-  const [hotels, cars, restaurants, cafes] = await Promise.all([
+  const results = await Promise.allSettled([
     getAllHotels(),
     getAllCars(),
     getAllRestaurants(),
     getAllCafes(),
   ]);
+  const [hotelsResult, carsResult, restaurantsResult, cafesResult] = results;
+  const readKnowledgeSource = <T>(
+    result: PromiseSettledResult<T[]>,
+    source: string,
+  ): T[] => {
+    if (result.status === "fulfilled") return result.value;
+    console.error("[Chat] Knowledge source unavailable", {
+      source,
+      reason: classifyDatabaseError(result.reason),
+    });
+    return [];
+  };
+  const hotels = readKnowledgeSource(hotelsResult, "hotels");
+  const cars = readKnowledgeSource(carsResult, "cars");
+  const restaurants = readKnowledgeSource(restaurantsResult, "restaurants");
+  const cafes = readKnowledgeSource(cafesResult, "cafes");
   return JSON.stringify({
     hotels: hotels.map(item => ({ id: item.id, names: [item.nameAr, item.nameEn, item.nameFr, item.nameBer], descriptions: [item.descriptionAr, item.descriptionEn, item.descriptionFr, item.descriptionBer], locations: [item.locationAr, item.locationEn, item.locationFr, item.locationBer], prices: [item.priceAr, item.priceEn, item.priceFr, item.priceBer], rating: item.rating, whatsapp: item.whatsapp })),
     cars: cars.map(item => ({ id: item.id, names: [item.nameAr, item.nameEn, item.nameFr, item.nameBer], descriptions: [item.descriptionAr, item.descriptionEn, item.descriptionFr, item.descriptionBer], type: [item.typeAr, item.typeEn, item.typeFr, item.typeBer], price: item.price, seats: item.seats, fuel: item.fuel, whatsapp: item.whatsapp })),
