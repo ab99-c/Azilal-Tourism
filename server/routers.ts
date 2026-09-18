@@ -277,6 +277,24 @@ function safeDatabaseErrorMeta(error: unknown) {
   };
 }
 
+function safeChatErrorMeta(error: unknown) {
+  const candidate = error as {
+    name?: unknown;
+    code?: unknown;
+    status?: unknown;
+    message?: unknown;
+  };
+  const message = typeof candidate?.message === "string" ? candidate.message : "";
+  return {
+    name: typeof candidate?.name === "string" ? candidate.name : undefined,
+    code: typeof candidate?.code === "string" ? candidate.code : undefined,
+    status: typeof candidate?.status === "number" ? candidate.status : undefined,
+    errorType: /OPENAI_API_KEY|LLM invoke|chat\/completions|forge\.manus|model/i.test(message)
+      ? "llm_request_failed"
+      : classifyDatabaseError(error),
+  };
+}
+
 export const appRouter = router({
   system: systemRouter,
   contact: router({
@@ -320,7 +338,7 @@ export const appRouter = router({
           clearAuthRateLimit(ctx.req, "chat-ask");
           return { handoff: false, accepted: true, reply } as const;
         } catch (error) {
-          console.error("[Chat] Assistant request failed", { reason: classifyDatabaseError(error) });
+          console.error("[Chat] Assistant request failed", safeChatErrorMeta(error));
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "CHAT_SERVICE_UNAVAILABLE" });
         }
       }),
