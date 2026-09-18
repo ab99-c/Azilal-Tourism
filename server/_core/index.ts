@@ -80,7 +80,7 @@ async function startServer() {
   // Lightweight per-IP protection for every tRPC procedure.
   app.use("/api/trpc", (req, res, next) => {
     try {
-      assertApiRateLimit(req);
+      assertApiRateLimit(req, Date.now(), res);
       next();
     } catch (error) {
       if (error instanceof Error && error.message === "API_RATE_LIMITED") {

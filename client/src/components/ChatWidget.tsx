@@ -24,7 +24,7 @@ export default function ChatWidget() {
 
   const askMutation = trpc.contact.ask.useMutation({
     onSuccess: (result) => setMessages((prev) => [...prev, { id: Date.now() + 1, text: result.reply, role: "assistant" }]),
-    onError: () => setMessages((prev) => [...prev, { id: Date.now() + 1, text: t("chat.error"), role: "assistant" }]),
+    onError: (error) => setMessages((prev) => [...prev, { id: Date.now() + 1, text: error.data?.code === "TOO_MANY_REQUESTS" ? t("chat.rateLimited") : t("chat.error"), role: "assistant" }]),
   });
 
   const history = messages.slice(-12).map((message) => ({ role: message.role, content: message.text }));

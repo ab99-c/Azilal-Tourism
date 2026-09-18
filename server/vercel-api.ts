@@ -47,7 +47,7 @@ app.post("/api/scheduled/escalateSafetyTrips", escalateInactiveSafetyTrips);
 app.post("/api/scheduled/db-health", databaseHealthHandler);
 app.use("/api/trpc", (req, res, next) => {
   try {
-    assertApiRateLimit(req);
+    assertApiRateLimit(req, Date.now(), res);
     next();
   } catch (error) {
     if (error instanceof Error && error.message === "API_RATE_LIMITED") {

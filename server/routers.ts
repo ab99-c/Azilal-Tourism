@@ -274,7 +274,7 @@ export const appRouter = router({
         requestAdmin: z.boolean().default(false),
       }))
       .mutation(async ({ input, ctx }) => {
-        assertAuthRateLimit(ctx.req, "chat-ask");
+        assertAuthRateLimit(ctx.req, "chat-ask", Date.now(), undefined, ctx.res);
         const wantsAdmin = input.requestAdmin || explicitlyRequestsAdmin(input.message);
         const senderName = ctx.user?.name?.trim() || input.name?.trim() || null;
         const senderEmail = ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null;
@@ -318,7 +318,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        assertAuthRateLimit(ctx.req, "contact-message");
+        assertAuthRateLimit(ctx.req, "contact-message", Date.now(), undefined, ctx.res);
         try {
           const senderName = ctx.user?.name?.trim() || input.name?.trim() || null;
           const senderEmail = ctx.user?.email?.trim().toLowerCase() || input.email?.trim().toLowerCase() || null;
@@ -487,7 +487,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input, ctx }) => {
-        assertAuthRateLimit(ctx.req, "register");
+        assertAuthRateLimit(ctx.req, "register", Date.now(), undefined, ctx.res);
         let existing;
         try {
           existing = await getUserByEmail(input.email);
@@ -560,7 +560,8 @@ export const appRouter = router({
     login: publicProcedure
       .input(z.object({ email: localEmail, password: localPassword }))
       .mutation(async ({ input, ctx }) => {
-        assertAuthRateLimit(ctx.req, "login");
+        assertAuthRateLimit(ctx.req, "login", Date.now(), undefined, ctx.res);
+        assertAuthRateLimit(ctx.req, "login-account", Date.now(), input.email, ctx.res);
         let user;
         try {
           user = await getUserByEmail(input.email);
@@ -599,6 +600,7 @@ export const appRouter = router({
           maxAge: LOCAL_SESSION_MS,
         });
         clearAuthRateLimit(ctx.req, "login");
+        clearAuthRateLimit(ctx.req, "login-account", input.email);
         return { user };
       }),
     activateExistingAdmin: publicProcedure
@@ -1303,6 +1305,7 @@ export const appRouter = router({
           )
       )
       .mutation(async ({ input, ctx }) => {
+        assertAuthRateLimit(ctx.req, "booking-create", Date.now(), ctx.user ? String(ctx.user.id) : undefined, ctx.res);
         // Resolve the listing (car/hotel) so the booking is routed to its owner.
         // The persisted guest identity comes from the server-side session only —
         // any client-provided guestUserId is ignored so anonymous callers cannot

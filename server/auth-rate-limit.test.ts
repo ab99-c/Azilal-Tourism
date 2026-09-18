@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import type { Request } from "express";
-import { assertApiRateLimit, assertAuthRateLimit, clearAuthRateLimit, resetAuthRateLimitsForTests } from "./authRateLimit";
+import { assertApiRateLimit, assertAuthRateLimit, clearAuthRateLimit, rateLimitConfig, resetAuthRateLimitsForTests } from "./authRateLimit";
 import { getSessionCookieOptions } from "./_core/cookies";
 
 const request = (ip = "203.0.113.7") => ({
@@ -34,6 +34,30 @@ describe("authentication rate limiting", () => {
     }
     expect(() => assertApiRateLimit(req, 120)).toThrow("API_RATE_LIMITED");
     expect(() => assertApiRateLimit(req, 60_001)).not.toThrow();
+  });
+
+  it("uses purpose-specific limits for sensitive routes", () => {
+    expect(rateLimitConfig.register).toEqual({ windowMs: 60 * 60 * 1000, max: 5 });
+    expect(rateLimitConfig["login-account"]).toEqual({ windowMs: 15 * 60 * 1000, max: 5 });
+    expect(rateLimitConfig["chat-ask"]).toEqual({ windowMs: 60 * 60 * 1000, max: 12 });
+    expect(rateLimitConfig["booking-create"]).toEqual({ windowMs: 60 * 60 * 1000, max: 10 });
+    expect(rateLimitConfig["contact-message"]).toEqual({ windowMs: 60 * 60 * 1000, max: 5 });
+  });
+
+  it("sets Retry-After when a sensitive route is exceeded", () => {
+    const req = request();
+    const headers = new Map<string, string>();
+    const res = { setHeader: (name: string, value: string) => headers.set(name, value) } as any;
+    for (let attempt = 0; attempt < 12; attempt += 1) assertAuthRateLimit(req, "chat-ask", attempt, undefined, res);
+    expect(() => assertAuthRateLimit(req, "chat-ask", 12, undefined, res)).toThrow("AUTH_RATE_LIMITED");
+    expect(Number(headers.get("Retry-After"))).toBeGreaterThan(0);
+  });
+
+  it("separates login attempts by account as well as IP", () => {
+    const req = request();
+    for (let attempt = 0; attempt < 5; attempt += 1) assertAuthRateLimit(req, "login-account", attempt, "a@example.com");
+    expect(() => assertAuthRateLimit(req, "login-account", 5, "a@example.com")).toThrow("AUTH_RATE_LIMITED");
+    expect(() => assertAuthRateLimit(req, "login-account", 5, "b@example.com")).not.toThrow();
   });
 
   it("uses secure, httpOnly, same-site cookies in production", () => {

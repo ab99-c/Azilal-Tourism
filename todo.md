@@ -988,7 +988,7 @@ User's phone screenshots show content pushed RIGHT with a dark/black strip along
 - [ ] Corriger le conflit de peer dependencies pour que `npm install` fonctionne sans `--legacy-peer-deps`
 - [ ] Finaliser le diagnostic API 500 : logging sûr, cause racine, correction et retest chat/inscription
 - [ ] Vérifier Resend et le domaine expéditeur sans envoyer de message réel
-- [ ] Évaluer et renforcer le rate limiting WAF sur les routes `/api/trpc/*`
+- [x] Rate limiting WAF audité et renforcé: global `/api/trpc/*` = 120 requêtes/IP/minute; login = 10/IP/15min + 5/IP+email/15min; register = 5/IP/heure; `contact.ask` = 12/IP/heure; `contact.send` = 5/IP/heure; `bookings.create` = 10/IP (ou utilisateur connecté)/heure. Les limites sont en mémoire par instance Vercel, donc elles ne sont pas partagées entre cold starts/instances; un store Redis/KV partagé reste recommandé pour une protection distribuée stricte. Les dépassements renvoient 429 avec `Retry-After` et l’UI affiche un message localisé.
 - [ ] Revérifier DNS et HTTPS de `adrartoursime.tours`
 - [ ] Documenter/configurer les variables CI et stabiliser les tests dépendants de l’environnement
 - [ ] Exécuter `npm run check`, `npx vitest run` et `npm run build`, puis pousser `main` et vérifier Vercel

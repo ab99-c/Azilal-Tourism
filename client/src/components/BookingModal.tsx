@@ -140,6 +140,7 @@ export default function BookingModal({
         "booking.datesUnavailable": "هذه التواريخ غير متاحة. اختر فترة أخرى.",
         "booking.availabilityError":
           "تعذر فحص التوفر الآن. تحقق من اتصالك ثم أعد المحاولة.",
+        "booking.rateLimited": "تم تجاوز عدد طلبات الحجز مؤقتاً. انتظر قليلاً ثم أعد المحاولة.",
         "booking.cancellation":
           "سياسة الإلغاء تختلف حسب المالك. تواصل مع الجهة مباشرة قبل تأكيد الحجز لمعرفة الشروط.",
       },
@@ -194,6 +195,7 @@ export default function BookingModal({
           "These dates are unavailable. Please choose another period.",
         "booking.availabilityError":
           "Availability cannot be checked right now. Check your connection and try again.",
+        "booking.rateLimited": "Too many booking requests. Please wait a little and try again.",
         "booking.cancellation":
           "Cancellation terms vary by owner. Contact the provider before confirming to ask about the conditions.",
       },
@@ -248,6 +250,7 @@ export default function BookingModal({
           "Ces dates ne sont pas disponibles. Choisissez une autre période.",
         "booking.availabilityError":
           "La disponibilité ne peut pas être vérifiée maintenant. Réessayez après avoir vérifié votre connexion.",
+        "booking.rateLimited": "Trop de demandes de réservation. Attendez un peu puis réessayez.",
         "booking.cancellation":
           "Les conditions d’annulation varient selon le propriétaire. Contactez-le avant de confirmer.",
       },
@@ -299,6 +302,7 @@ export default function BookingModal({
         "booking.datesUnavailable": "ⵉⵙⵙⴰⵏ ⴰⴷ ⵓⵔ ⵍⵍⵉⵏ. ⵙⵜⵉ ⵜⴰⵍⴰⵎⵎⴰⵙⵜ ⵢⴰⴹⵏ.",
         "booking.availabilityError":
           "ⵓⵔ ⵏⵣⵎⵎⵔ ⴰⴷ ⵏⵙⵙⵉⵡⵍ ⵅⴼ ⵜⵉⵍⵉ ⵜⵜⵓⵔⵉⵎ. ⵙⵎⵢⴰⵙⴰ ⴰⵙⵎⵇⵇⵍ ⵏⵏⴽ ⵜⵓⵖⴰⵍ.",
+        "booking.rateLimited": "ⵓⵟⵟⵓⵏ ⵏ ⵜⵙⵓⵜⵔⵉⵏ ⵏ ⵓⵙⵉⵔⵉ ⵉⵛⵛⵓⵔ. ⵔⵊⵓ ⵎⴽⵏⵏⴰ ⵙⵙⵏⵖ ⴰⵙⵙⴰ.",
         "booking.cancellation":
           "ⵜⵉⵏⵎⵍ ⵏ ⵓⵙⵙⵉⵔⵉ ⵜⵎⵙⵙⵉⵔ ⵙ ⴱⴰⴱ ⵏ ⵓⵎⵙⵙⴰⵡ. ⵙⵙⵉⵡⵍ ⵉⵙ ⵣⵔⵉⵏ ⵉⵙⵏⴰⵙⵏ.",
       },
@@ -383,7 +387,7 @@ export default function BookingModal({
         toast.error(t_book("booking.datesUnavailable"));
         return;
       }
-      toast.error(t_book("booking.availabilityError"), {
+      toast.error(error.data?.code === "TOO_MANY_REQUESTS" ? t_book("booking.rateLimited") : t_book("booking.availabilityError"), {
         description: error.message,
         duration: 4000,
       });
