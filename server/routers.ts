@@ -82,6 +82,7 @@ import { assertAuthRateLimit, clearAuthRateLimit } from "./authRateLimit";
 import { notifyContactAdmin, sendContactReply } from "./contactEmail";
 import { canManagePlatform } from "./permissions";
 import { invokeLLM } from "./_core/llm";
+import { ENV } from "./_core/env";
 
 /**
  * Admin-gated procedure (principle #6: Authentication & Authorization).
@@ -301,6 +302,8 @@ function safeChatErrorMeta(error: unknown) {
     code: typeof candidate?.code === "string" ? candidate.code : undefined,
     status: typeof candidate?.status === "number" ? candidate.status : undefined,
     errorType: llmReason ?? classifyDatabaseError(error),
+    llmApiKeyConfigured: Boolean(ENV.forgeApiKey),
+    llmApiUrlConfigured: Boolean(ENV.forgeApiUrl),
   };
 }
 
