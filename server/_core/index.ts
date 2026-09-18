@@ -41,6 +41,8 @@ function securityHeaders(req: express.Request, res: express.Response, next: expr
   const allowedOrigins = new Set([
     "https://azilal-tourism.vercel.app",
     "https://azilaltour-j2sx2a5n.manus.space",
+    "https://adrartoursime.tours",
+    "https://www.adrartoursime.tours",
   ]);
   const corsOrigin = origin && allowedOrigins.has(origin)
     ? origin
