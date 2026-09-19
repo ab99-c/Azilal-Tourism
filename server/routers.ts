@@ -284,7 +284,9 @@ function safeChatErrorMeta(error: unknown) {
     code?: unknown;
     status?: unknown;
     message?: unknown;
+    cause?: unknown;
   };
+  const cause = candidate?.cause as { code?: unknown; name?: unknown; message?: unknown } | undefined;
   const message = typeof candidate?.message === "string" ? candidate.message : "";
   const llmReason = /API_KEY is not configured|OPENAI_API_KEY is not configured/i.test(message)
     ? "missing_llm_api_key"
@@ -304,6 +306,11 @@ function safeChatErrorMeta(error: unknown) {
     errorType: llmReason ?? classifyDatabaseError(error),
     llmApiKeyConfigured: Boolean(ENV.forgeApiKey),
     llmApiUrlConfigured: Boolean(ENV.forgeApiUrl),
+    networkCauseCode: typeof cause?.code === "string" ? cause.code : undefined,
+    networkCauseName: typeof cause?.name === "string" ? cause.name : undefined,
+    networkCauseMessage: typeof cause?.message === "string"
+      ? cause.message.slice(0, 120)
+      : undefined,
   };
 }
 
