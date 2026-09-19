@@ -330,6 +330,21 @@ const fetchWithBackoff = async (
       await sleep(computeBackoffDelay(attempt, retryAfterMs));
     } catch (error) {
       lastError = error;
+      const safeError = error as { name?: unknown; message?: unknown; cause?: unknown };
+      const safeCause = safeError.cause as { code?: unknown; message?: unknown } | undefined;
+      let host = "unknown";
+      try {
+        host = new URL(url).host;
+      } catch {
+        // Keep the diagnostic secret-safe even when the configured URL is malformed.
+      }
+      console.warn("LLM network error", {
+        host,
+        name: typeof safeError.name === "string" ? safeError.name : undefined,
+        message: typeof safeError.message === "string" ? safeError.message.slice(0, 120) : undefined,
+        causeCode: typeof safeCause?.code === "string" ? safeCause.code : undefined,
+        causeMessage: typeof safeCause?.message === "string" ? safeCause.message.slice(0, 120) : undefined,
+      });
       if (attempt === RETRY_MAX_RETRIES) throw error;
       console.warn(
         `LLM request retry ${attempt + 1}/${RETRY_MAX_RETRIES} after network error`
